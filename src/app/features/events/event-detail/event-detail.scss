@@ -1,0 +1,175 @@
+.center {
+  display: grid;
+  place-items: center;
+  min-height: 50vh;
+}
+
+.banner {
+  position: relative;
+  height: min(46vh, 420px);
+  overflow: hidden;
+}
+
+.banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.banner-shade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(10, 6, 20, 0.92) 0%,
+    rgba(10, 6, 20, 0.4) 45%,
+    rgba(10, 6, 20, 0.15) 100%
+  );
+}
+
+.banner-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  max-width: var(--tkt-page-max);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2rem;
+  color: #fff;
+}
+
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 0.75rem;
+}
+
+.back mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
+
+.cat {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.banner-text h1 {
+  margin: 0 0 0.6rem;
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.when,
+.where {
+  margin: 0.15rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  opacity: 0.95;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.desc {
+  line-height: 1.7;
+  color: var(--mat-sys-on-surface-variant);
+  white-space: pre-line;
+}
+
+mat-divider { margin: 1.75rem 0; }
+
+.zones {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.zone {
+  padding: 1rem 1.15rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  border-radius: 12px;
+}
+
+.zone.gone { opacity: 0.55; }
+
+.zone-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.6rem;
+}
+
+.zone-name { font-weight: 600; }
+.zone-price { font-size: 1.1rem; font-weight: 700; }
+
+.zone-left {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.buy-box {
+  position: sticky;
+  top: 84px;
+}
+
+.buy-card {
+  padding: 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  border-radius: var(--tkt-radius);
+  background: var(--mat-sys-surface);
+  box-shadow: var(--tkt-shadow);
+}
+
+.from-label {
+  display: block;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
+.facts {
+  margin: 0 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.facts div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.88rem;
+}
+
+.facts dt { color: var(--mat-sys-on-surface-variant); margin: 0; }
+.facts dd { margin: 0; font-weight: 600; text-align: right; }
+
+.cta {
+  width: 100%;
+  height: 46px;
+  font-weight: 600;
+}
+
+.fine {
+  margin: 0.75rem 0 0;
+  text-align: center;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .detail-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+  .buy-box { position: static; }
+}

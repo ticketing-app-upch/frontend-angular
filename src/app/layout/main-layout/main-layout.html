@@ -1,0 +1,63 @@
+<header class="bar">
+  <div class="bar-inner">
+    <a class="brand" routerLink="/eventos">
+      <mat-icon>confirmation_number</mat-icon>
+      <span>TKT</span>
+    </a>
+
+    <nav class="links">
+      <a routerLink="/eventos" routerLinkActive="active">Eventos</a>
+      @if (isAuthenticated()) {
+        <a routerLink="/mis-entradas" routerLinkActive="active">Mis entradas</a>
+      }
+      @if (isOrganizer()) {
+        <a routerLink="/organizador/panel" routerLinkActive="active">Panel</a>
+        <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
+      }
+    </nav>
+
+    <span class="tkt-spacer"></span>
+
+    @if (isAuthenticated()) {
+      <button mat-button [matMenuTriggerFor]="menu" class="account">
+        <span class="avatar">{{ initials(user()!.fullName) }}</span>
+        <span class="who">{{ user()!.fullName }}</span>
+        <mat-icon>arrow_drop_down</mat-icon>
+      </button>
+      <mat-menu #menu="matMenu">
+        <div class="menu-head">
+          <strong>{{ user()!.fullName }}</strong>
+          <span>{{ user()!.email }}</span>
+          <span class="role">{{ user()!.role === 'ORGANIZER' ? 'Organizador' : 'Cliente' }}</span>
+        </div>
+        <mat-divider />
+        <a mat-menu-item routerLink="/mis-entradas">
+          <mat-icon>local_activity</mat-icon> Mis entradas
+        </a>
+        @if (isOrganizer()) {
+          <a mat-menu-item routerLink="/organizador/panel">
+            <mat-icon>insights</mat-icon> Panel del organizador
+          </a>
+        }
+        <mat-divider />
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon> Cerrar sesión
+        </button>
+      </mat-menu>
+    } @else {
+      <a mat-button routerLink="/auth/login">Ingresar</a>
+      <a mat-flat-button routerLink="/auth/registro">Crear cuenta</a>
+    }
+  </div>
+</header>
+
+<main>
+  <router-outlet />
+</main>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <span>© {{ year }} TKT · Plataforma de ticketing</span>
+    <span class="tkt-muted">Frontend demo · datos de prueba en memoria</span>
+  </div>
+</footer>

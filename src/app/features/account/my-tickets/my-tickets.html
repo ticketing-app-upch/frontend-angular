@@ -1,0 +1,77 @@
+<div class="tkt-page">
+  <h1 class="tkt-section-title">Mis entradas</h1>
+  <p class="tkt-section-sub">Tus compras y códigos de acceso.</p>
+
+  @if (loading()) {
+    <div class="loading">
+      <mat-progress-spinner mode="indeterminate" diameter="42" />
+    </div>
+  } @else if (orders().length === 0) {
+    <tkt-empty-state
+      icon="local_activity"
+      title="Aún no tienes entradas"
+      message="Cuando compres, tus entradas aparecerán aquí con su código."
+    >
+      <a mat-flat-button routerLink="/eventos">Explorar eventos</a>
+    </tkt-empty-state>
+  } @else {
+    <div class="tickets">
+      @for (order of orders(); track order.id) {
+        <article class="ticket" [class.past]="isPast(order.eventStartsAt)">
+          <div class="stub">
+            <div class="qr" [attr.aria-label]="'Código ' + order.code">
+              @for (on of qrCells(order.code); track $index) {
+                <span [class.on]="on"></span>
+              }
+            </div>
+            <span class="code">{{ order.code }}</span>
+          </div>
+
+          <div class="info">
+            <div class="top">
+              <span class="status" [class.past]="isPast(order.eventStartsAt)">
+                {{ isPast(order.eventStartsAt) ? 'Finalizado' : order.status }}
+              </span>
+              <span class="tkt-muted">
+                Comprado el {{ order.createdAt | date: 'd MMM y' }}
+              </span>
+            </div>
+
+            <h2>{{ order.eventName }}</h2>
+            <p class="meta">
+              <mat-icon inline>event</mat-icon>
+              {{ order.eventStartsAt | date: "EEE d 'de' MMM, y · HH:mm" }}
+            </p>
+            <p class="meta">
+              <mat-icon inline>place</mat-icon>
+              {{ order.eventVenue }}
+            </p>
+
+            <mat-expansion-panel class="lines" hideToggle>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  {{ ticketCount(order) }} entrada(s)
+                </mat-panel-title>
+                <mat-panel-description>
+                  {{ order.total | currency: 'PEN' : 'symbol-narrow' }}
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <ul>
+                @for (line of order.lines; track line.zoneId) {
+                  <li>
+                    <span>{{ line.zoneName }} × {{ line.quantity }}</span>
+                    <span>{{ line.unitPrice * line.quantity | currency: 'PEN' : 'symbol-narrow' }}</span>
+                  </li>
+                }
+                <li class="sub">
+                  <span>Comisión</span>
+                  <span>{{ order.fee | currency: 'PEN' : 'symbol-narrow' }}</span>
+                </li>
+              </ul>
+            </mat-expansion-panel>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

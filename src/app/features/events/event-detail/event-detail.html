@@ -1,0 +1,101 @@
+@if (loading()) {
+  <div class="tkt-page center">
+    <mat-progress-spinner mode="indeterminate" diameter="46" />
+  </div>
+} @else if (notFound()) {
+  <div class="tkt-page">
+    <tkt-empty-state
+      icon="search_off"
+      title="Evento no encontrado"
+      message="El evento que buscas no existe o dejó de estar disponible."
+    >
+      <a mat-flat-button routerLink="/eventos">Ver todos los eventos</a>
+    </tkt-empty-state>
+  </div>
+} @else if (event(); as ev) {
+  <div class="banner">
+    <img [src]="ev.imageUrl" [alt]="ev.name" />
+    <div class="banner-shade"></div>
+    <div class="banner-text">
+      <a routerLink="/eventos" class="back">
+        <mat-icon>arrow_back</mat-icon> Eventos
+      </a>
+      <span class="cat">{{ ev.category | titlecase }}</span>
+      <h1>{{ ev.name }}</h1>
+      <p class="when">
+        <mat-icon inline>event</mat-icon>
+        {{ ev.startsAt | date: "EEEE d 'de' MMMM, y · HH:mm" }}
+      </p>
+      <p class="where">
+        <mat-icon inline>place</mat-icon>
+        {{ ev.venue }}, {{ ev.city }}
+      </p>
+    </div>
+  </div>
+
+  <div class="tkt-page detail-grid">
+    <div class="about">
+      <h2 class="tkt-section-title">Sobre el evento</h2>
+      <p class="desc">{{ ev.description }}</p>
+
+      <mat-divider />
+
+      <h2 class="tkt-section-title">Zonas y precios</h2>
+      <div class="zones">
+        @for (zone of ev.zones; track zone.id) {
+          <div class="zone" [class.gone]="zoneAvailable(zone.sold, zone.capacity) === 0">
+            <div class="zone-head">
+              <span class="zone-name">{{ zone.name }}</span>
+              <span class="zone-price">
+                {{ zone.price | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+              </span>
+            </div>
+            <tkt-capacity-bar [sold]="zone.sold" [total]="zone.capacity" />
+            <span class="zone-left">
+              @if (zoneAvailable(zone.sold, zone.capacity) === 0) {
+                Agotada
+              } @else {
+                {{ zoneAvailable(zone.sold, zone.capacity) }} entradas disponibles
+              }
+            </span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <aside class="buy-box">
+      <div class="buy-card">
+        <span class="from-label tkt-muted">Aforo total</span>
+        @if (capacity(); as cap) {
+          <tkt-capacity-bar [sold]="cap.sold" [total]="cap.total" />
+        }
+
+        <mat-divider />
+
+        <dl class="facts">
+          <div><dt>Máx. por compra</dt><dd>{{ ev.maxPerOrder }} entradas</dd></div>
+          <div><dt>Lugar</dt><dd>{{ ev.venue }}</dd></div>
+          <div><dt>Ciudad</dt><dd>{{ ev.city }}</dd></div>
+        </dl>
+
+        @if (soldOut()) {
+          <button mat-flat-button disabled class="cta">Evento agotado</button>
+        } @else if (isAuthenticated()) {
+          <a mat-flat-button class="cta" [routerLink]="['/comprar', ev.id]">
+            Comprar entradas
+          </a>
+        } @else {
+          <a
+            mat-flat-button
+            class="cta"
+            [routerLink]="['/auth/login']"
+            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+          >
+            Ingresa para comprar
+          </a>
+        }
+        <p class="fine tkt-muted">Compra simulada · datos de prueba</p>
+      </div>
+    </aside>
+  </div>
+}

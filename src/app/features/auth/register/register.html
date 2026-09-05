@@ -1,0 +1,75 @@
+<div class="auth-wrap">
+  <mat-card class="auth-card">
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+    <div class="head">
+      <h1>Crear cuenta</h1>
+      <p class="tkt-muted">Compra entradas o publica y gestiona tus eventos.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-form-field appearance="outline">
+        <mat-label>Nombre completo</mat-label>
+        <input matInput formControlName="fullName" autocomplete="name" />
+        @if (form.controls.fullName.invalid && form.controls.fullName.touched) {
+          <mat-error>Ingresa tu nombre (mínimo 3 caracteres).</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Correo</mat-label>
+        <input matInput type="email" formControlName="email" autocomplete="email" />
+        @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+          <mat-error>Ingresa tu correo.</mat-error>
+        }
+        @if (form.controls.email.hasError('email')) {
+          <mat-error>Correo no válido.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Contraseña</mat-label>
+        <input
+          matInput
+          [type]="hide() ? 'password' : 'text'"
+          formControlName="password"
+          autocomplete="new-password"
+        />
+        <button
+          type="button"
+          mat-icon-button
+          matSuffix
+          (click)="hide.set(!hide())"
+          [attr.aria-label]="hide() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+        >
+          <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        </button>
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <mat-error>Mínimo 4 caracteres.</mat-error>
+        }
+      </mat-form-field>
+
+      <div class="role-field">
+        <span class="role-label">Quiero registrarme como</span>
+        <mat-button-toggle-group formControlName="role" hideSingleSelectionIndicator>
+          <mat-button-toggle value="CLIENT">
+            <mat-icon>person</mat-icon> Cliente
+          </mat-button-toggle>
+          <mat-button-toggle value="ORGANIZER">
+            <mat-icon>campaign</mat-icon> Organizador
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+      </div>
+
+      <button mat-flat-button type="submit" [disabled]="loading()">
+        Crear cuenta
+      </button>
+    </form>
+
+    <p class="alt">
+      ¿Ya tienes cuenta?
+      <a routerLink="/auth/login">Ingresar</a>
+    </p>
+  </mat-card>
+</div>

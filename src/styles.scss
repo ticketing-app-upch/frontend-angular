@@ -1,0 +1,106 @@
+@use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// Tema Material 3 — plataforma de ticketing
+// ---------------------------------------------------------------------------
+html {
+  color-scheme: light dark;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$violet-palette,
+        tertiary: mat.$cyan-palette,
+      ),
+      typography: (
+        plain-family: 'Inter, Roboto, "Helvetica Neue", sans-serif',
+        brand-family: 'Inter, Roboto, "Helvetica Neue", sans-serif',
+      ),
+      density: 0,
+    )
+  );
+}
+
+:root {
+  --tkt-page-max: 1180px;
+  --tkt-gap: 1.5rem;
+  --tkt-radius: 16px;
+  --tkt-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 32px -12px rgba(20, 12, 45, 0.22);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--mat-sys-surface-container-low, #f5f3fb);
+  color: var(--mat-sys-on-surface, #1c1b1f);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.tkt-page {
+  max-width: var(--tkt-page-max);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.tkt-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.tkt-section-sub {
+  margin: 0 0 1.75rem;
+  color: var(--mat-sys-on-surface-variant, #5b5b66);
+}
+
+.tkt-grid {
+  display: grid;
+  gap: var(--tkt-gap);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.tkt-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tkt-spacer {
+  flex: 1 1 auto;
+}
+
+.tkt-muted {
+  color: var(--mat-sys-on-surface-variant, #5b5b66);
+}
+
+.snack-success {
+  --mdc-snackbar-container-color: #16794b;
+  --mat-snack-bar-button-color: #d9f7e6;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+}
+
+.snack-error {
+  --mdc-snackbar-container-color: #b3261e;
+  --mat-snack-bar-button-color: #ffdad6;
+  --mdc-snackbar-supporting-text-color: #ffffff;
+}
+
+// Scrollbar discreta
+* {
+  scrollbar-width: thin;
+}

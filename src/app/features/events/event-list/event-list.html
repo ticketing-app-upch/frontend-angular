@@ -1,0 +1,66 @@
+<section class="hero">
+  <span class="hero-orb orb-a" aria-hidden="true"></span>
+  <span class="hero-orb orb-b" aria-hidden="true"></span>
+  <span class="hero-grid" aria-hidden="true"></span>
+
+  <div class="hero-inner">
+    <span class="hero-badge">
+      <span class="dot"></span> Aforo en tiempo real
+    </span>
+    <h1>Vive el evento,<br /><span class="accent">no la fila.</span></h1>
+    <p>
+      Descubre conciertos, festivales, teatro y deporte. Elige tu zona, compra en
+      segundos y lleva tu entrada en el celular.
+    </p>
+  </div>
+</section>
+
+<div class="tkt-page">
+  <div class="filters">
+    <mat-form-field appearance="outline" class="search">
+      <mat-label>Buscar evento, lugar o ciudad</mat-label>
+      <input matInput [formControl]="search" />
+      <mat-icon matPrefix>search</mat-icon>
+    </mat-form-field>
+
+    <mat-slide-toggle
+      [checked]="onlyAvailable()"
+      (change)="onlyAvailable.set($event.checked)"
+    >
+      Solo con disponibilidad
+    </mat-slide-toggle>
+  </div>
+
+  <mat-chip-listbox
+    class="cats"
+    [value]="category()"
+    (change)="setCategory($event.value)"
+    hideSingleSelectionIndicator
+  >
+    @for (opt of categories; track opt.value) {
+      <mat-chip-option [value]="opt.value" [selected]="opt.value === category()">
+        {{ opt.label }}
+      </mat-chip-option>
+    }
+  </mat-chip-listbox>
+
+  @if (loading()) {
+    <div class="loading">
+      <mat-progress-spinner mode="indeterminate" diameter="42" />
+      <span class="tkt-muted">Cargando eventos…</span>
+    </div>
+  } @else if (filtered().length === 0) {
+    <tkt-empty-state
+      icon="event_busy"
+      title="No encontramos eventos"
+      message="Prueba con otra búsqueda o quita los filtros."
+    />
+  } @else {
+    <p class="count tkt-muted">{{ filtered().length }} evento(s)</p>
+    <div class="tkt-grid">
+      @for (event of filtered(); track event.id) {
+        <tkt-event-card [event]="event" />
+      }
+    </div>
+  }
+</div>

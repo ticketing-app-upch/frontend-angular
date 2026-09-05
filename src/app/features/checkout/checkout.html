@@ -1,0 +1,185 @@
+@if (loading()) {
+  <div class="tkt-page center">
+    <mat-progress-spinner mode="indeterminate" diameter="46" />
+  </div>
+} @else if (notFound()) {
+  <div class="tkt-page">
+    <tkt-empty-state
+      icon="search_off"
+      title="Evento no disponible"
+      message="No pudimos cargar este evento para la compra."
+    >
+      <a mat-flat-button routerLink="/eventos">Volver al catálogo</a>
+    </tkt-empty-state>
+  </div>
+} @else if (event(); as ev) {
+  <div class="tkt-page">
+    <a routerLink="/eventos/{{ ev.id }}" class="back">
+      <mat-icon>arrow_back</mat-icon> Volver al evento
+    </a>
+    <h1 class="tkt-section-title">Comprar entradas</h1>
+    <p class="tkt-section-sub">
+      {{ ev.name }} · {{ ev.startsAt | date: "d 'de' MMM, HH:mm" }} · {{ ev.venue }}
+    </p>
+
+    @if (order(); as ord) {
+      <div class="done">
+        <div class="check"><mat-icon>check_circle</mat-icon></div>
+        <h2>¡Compra confirmada!</h2>
+        <p class="code">{{ ord.code }}</p>
+        <p class="tkt-muted">
+          Enviamos {{ ord.lines.length }} tipo(s) de entrada a tu cuenta.
+          Total pagado {{ ord.total | currency: 'PEN' : 'symbol-narrow' }}.
+        </p>
+        <div class="done-actions">
+          <button mat-flat-button (click)="goToTickets()">Ver mis entradas</button>
+          <a mat-stroked-button routerLink="/eventos">Seguir explorando</a>
+        </div>
+      </div>
+    } @else {
+      <mat-stepper orientation="vertical" #stepper linear>
+        <!-- Paso 1: selección -->
+        <mat-step [completed]="hasSelection()">
+          <ng-template matStepLabel>Elige tus zonas</ng-template>
+
+          <div class="limit-note">
+            <mat-icon inline>info</mat-icon>
+            Máximo {{ maxPerOrder() }} entradas por compra.
+            @if (hasSelection()) {
+              Te quedan {{ remaining() }}.
+            }
+          </div>
+
+          <div class="zone-list">
+            @for (zone of ev.zones; track zone.id) {
+              <div class="zrow" [class.disabled]="zoneAvailable(zone.id) === 0">
+                <div class="zinfo">
+                  <span class="zname">{{ zone.name }}</span>
+                  <span class="zprice">
+                    {{ zone.price | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                    <span class="tkt-muted">c/u</span>
+                  </span>
+                  <span class="zavail tkt-muted">
+                    @if (zoneAvailable(zone.id) === 0) {
+                      Agotada
+                    } @else {
+                      {{ zoneAvailable(zone.id) }} disponibles
+                    }
+                  </span>
+                </div>
+                <div class="stepper-ctrl">
+                  <button
+                    mat-icon-button
+                    (click)="change(zone.id, -1)"
+                    [disabled]="currentQty(zone.id) === 0"
+                    aria-label="Quitar una entrada"
+                  >
+                    <mat-icon>remove</mat-icon>
+                  </button>
+                  <span class="qty">{{ currentQty(zone.id) }}</span>
+                  <button
+                    mat-icon-button
+                    (click)="change(zone.id, 1)"
+                    [disabled]="!canAdd(zone.id)"
+                    aria-label="Agregar una entrada"
+                  >
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="step-actions">
+            <button
+              mat-flat-button
+              matStepperNext
+              [disabled]="!hasSelection()"
+              (click)="requestQuote()"
+            >
+              Continuar
+            </button>
+          </div>
+        </mat-step>
+
+        <!-- Paso 2: resumen -->
+        <mat-step [completed]="quote() !== null">
+          <ng-template matStepLabel>Revisa tu compra</ng-template>
+
+          @if (quoting()) {
+            <div class="quoting">
+              <mat-progress-spinner mode="indeterminate" diameter="32" />
+              <span class="tkt-muted">Calculando precio…</span>
+            </div>
+          } @else if (quote(); as q) {
+            <table class="summary">
+              <tbody>
+                @for (item of q.items; track item.zoneId) {
+                  <tr>
+                    <td>
+                      {{ item.zoneName }}
+                      <span class="tkt-muted">× {{ item.quantity }}</span>
+                      @if (item.note) {
+                        <span class="tag">{{ item.note }}</span>
+                      }
+                    </td>
+                    <td class="num">
+                      {{ item.unitPrice * item.quantity | currency: 'PEN' : 'symbol-narrow' }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Subtotal</td>
+                  <td class="num">{{ q.subtotal | currency: 'PEN' : 'symbol-narrow' }}</td>
+                </tr>
+                <tr>
+                  <td>Comisión de servicio</td>
+                  <td class="num">{{ q.fee | currency: 'PEN' : 'symbol-narrow' }}</td>
+                </tr>
+                <tr class="grand">
+                  <td>Total</td>
+                  <td class="num">{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          }
+
+          <div class="step-actions">
+            <button mat-stroked-button matStepperPrevious>Atrás</button>
+            <button
+              mat-flat-button
+              matStepperNext
+              [disabled]="quote() === null"
+            >
+              Ir a pagar
+            </button>
+          </div>
+        </mat-step>
+
+        <!-- Paso 3: pago simulado -->
+        <mat-step>
+          <ng-template matStepLabel>Pago</ng-template>
+          <div class="pay-note">
+            <mat-icon inline>lock</mat-icon>
+            Pago simulado para la demo. No se procesa ningún cobro real.
+          </div>
+          @if (quote(); as q) {
+            <p class="pay-total">
+              A pagar: <strong>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</strong>
+            </p>
+          }
+          <div class="step-actions">
+            <button mat-stroked-button matStepperPrevious [disabled]="placing()">
+              Atrás
+            </button>
+            <button mat-flat-button (click)="confirm()" [disabled]="placing()">
+              @if (placing()) { Procesando… } @else { Confirmar compra }
+            </button>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    }
+  </div>
+}
