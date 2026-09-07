@@ -139,3 +139,14 @@ a {
 * {
   scrollbar-width: thin;
 }
+
+// Diálogo de documentos legales: fondo difuminado + tarjeta redondeada
+.tkt-legal-backdrop {
+  backdrop-filter: blur(6px);
+  background: rgba(12, 8, 22, 0.5);
+}
+
+.tkt-legal-panel .mat-mdc-dialog-surface {
+  border-radius: 20px;
+  overflow: hidden;
+}
