@@ -1,75 +1,309 @@
 <div class="auth-wrap">
-  <mat-card class="auth-card">
-    @if (loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-    <div class="head">
-      <h1>Crear cuenta</h1>
-      <p class="tkt-muted">Compra entradas o publica y gestiona tus eventos.</p>
-    </div>
+  <div class="reg-shell">
+    <aside class="reg-aside">
+      <span class="aside-orb" aria-hidden="true"></span>
+      <div class="aside-inner">
+        <a routerLink="/eventos" class="aside-brand">
+          <mat-icon>confirmation_number</mat-icon> Aforo
+        </a>
+        <h2>Crea tu cuenta<br /><span class="accent">en un minuto.</span></h2>
+        <ul class="aside-points">
+          <li><mat-icon>bolt</mat-icon> Compra en segundos, sin filas</li>
+          <li><mat-icon>event_seat</mat-icon> Elige zona con aforo en vivo</li>
+          <li><mat-icon>qr_code_2</mat-icon> Tu entrada, siempre en el celular</li>
+        </ul>
+        <p class="aside-foot">
+          ¿Eres organizador? También publicas y gestionas tus eventos desde aquí.
+        </p>
+      </div>
+    </aside>
 
-    <form [formGroup]="form" (ngSubmit)="submit()">
-      <mat-form-field appearance="outline">
-        <mat-label>Nombre completo</mat-label>
-        <input matInput formControlName="fullName" autocomplete="name" />
-        @if (form.controls.fullName.invalid && form.controls.fullName.touched) {
-          <mat-error>Ingresa tu nombre (mínimo 3 caracteres).</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Correo</mat-label>
-        <input matInput type="email" formControlName="email" autocomplete="email" />
-        @if (form.controls.email.hasError('required') && form.controls.email.touched) {
-          <mat-error>Ingresa tu correo.</mat-error>
-        }
-        @if (form.controls.email.hasError('email')) {
-          <mat-error>Correo no válido.</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Contraseña</mat-label>
-        <input
-          matInput
-          [type]="hide() ? 'password' : 'text'"
-          formControlName="password"
-          autocomplete="new-password"
-        />
-        <button
-          type="button"
-          mat-icon-button
-          matSuffix
-          (click)="hide.set(!hide())"
-          [attr.aria-label]="hide() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
-        >
-          <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
-        </button>
-        @if (form.controls.password.invalid && form.controls.password.touched) {
-          <mat-error>Mínimo 4 caracteres.</mat-error>
-        }
-      </mat-form-field>
-
-      <div class="role-field">
-        <span class="role-label">Quiero registrarme como</span>
-        <mat-button-toggle-group formControlName="role" hideSingleSelectionIndicator>
-          <mat-button-toggle value="CLIENT">
-            <mat-icon>person</mat-icon> Cliente
-          </mat-button-toggle>
-          <mat-button-toggle value="ORGANIZER">
-            <mat-icon>campaign</mat-icon> Organizador
-          </mat-button-toggle>
-        </mat-button-toggle-group>
+    <mat-card class="auth-card">
+      @if (loading()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+      <div class="head">
+        <h1>Regístrate</h1>
+        <p class="tkt-muted">
+          Los campos marcados con <b>*</b> son obligatorios.
+        </p>
       </div>
 
-      <button mat-flat-button type="submit" [disabled]="loading()">
-        Crear cuenta
-      </button>
-    </form>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="role-field">
+          <span class="sec-label">Quiero registrarme como</span>
+          <mat-button-toggle-group formControlName="role" hideSingleSelectionIndicator>
+            <mat-button-toggle value="CLIENT">
+              <mat-icon>person</mat-icon> Cliente
+            </mat-button-toggle>
+            <mat-button-toggle value="ORGANIZER">
+              <mat-icon>campaign</mat-icon> Organizador
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
 
-    <p class="alt">
-      ¿Ya tienes cuenta?
-      <a routerLink="/auth/login">Ingresar</a>
-    </p>
-  </mat-card>
+        <!-- Datos de acceso -->
+        <section class="fs">
+          <span class="sec-label">Datos de acceso</span>
+          <div class="two">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ firstNameLabel() }}</mat-label>
+              <input matInput formControlName="firstName" autocomplete="given-name" />
+              @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
+                <mat-error>Ingresa el nombre.</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ lastNameLabel() }}</mat-label>
+              <input matInput formControlName="lastName" autocomplete="family-name" />
+              @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+                <mat-error>Ingresa los apellidos.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Correo electrónico</mat-label>
+            <input matInput type="email" formControlName="email" autocomplete="email" />
+            @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+              <mat-error>Ingresa tu correo.</mat-error>
+            }
+            @if (form.controls.email.hasError('email')) {
+              <mat-error>Correo no válido.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña</mat-label>
+            <input
+              matInput
+              [type]="hide() ? 'password' : 'text'"
+              formControlName="password"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="hide.set(!hide())"
+              [attr.aria-label]="hide() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            >
+              <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <mat-hint>Usa 6 caracteres o más, única para esta cuenta.</mat-hint>
+            @if (form.controls.password.invalid && form.controls.password.touched) {
+              <mat-error>Mínimo 6 caracteres.</mat-error>
+            }
+          </mat-form-field>
+        </section>
+
+        <!-- Datos personales (cliente) -->
+        @if (!isOrganizer()) {
+          <section class="fs" formGroupName="personal">
+            <span class="sec-label">Datos personales</span>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>País</mat-label>
+                <mat-select formControlName="country">
+                  @for (c of countries; track c.code) {
+                    <mat-option [value]="c.code">{{ c.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Ciudad</mat-label>
+                <input matInput formControlName="city" autocomplete="address-level2" />
+                @if (personal.controls.city.invalid && personal.controls.city.touched) {
+                  <mat-error>Indica tu ciudad.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>Distrito</mat-label>
+                <input matInput formControlName="district" autocomplete="address-level3" />
+                <mat-hint>Si vives en Lima.</mat-hint>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Tipo de documento</mat-label>
+                <mat-select formControlName="docType">
+                  @for (d of docTypes; track d) {
+                    <mat-option [value]="d">{{ d }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>N° de documento</mat-label>
+                <input
+                  matInput
+                  formControlName="docNumber"
+                  [placeholder]="docPlaceholder()"
+                  inputmode="numeric"
+                />
+                @if (personal.controls.docNumber.invalid && personal.controls.docNumber.touched) {
+                  <mat-error>Documento no válido para el tipo elegido.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>Género</mat-label>
+                <mat-select formControlName="gender">
+                  @for (g of genders; track g.value) {
+                    <mat-option [value]="g.value">{{ g.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <div class="phone-row">
+                <mat-form-field appearance="outline" class="phone-code">
+                  <mat-label>Cód.</mat-label>
+                  <mat-select formControlName="phoneCode">
+                    @for (c of countries; track c.dial) {
+                      <mat-option [value]="c.dial">{{ c.dial }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="phone-num">
+                  <mat-label>Teléfono</mat-label>
+                  <input matInput formControlName="phone" inputmode="tel" />
+                  @if (personal.controls.phone.invalid && personal.controls.phone.touched) {
+                    <mat-error>Número no válido.</mat-error>
+                  }
+                </mat-form-field>
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- Datos de la organización -->
+        @if (isOrganizer()) {
+          <section class="fs org-section" formGroupName="organizer">
+            <div class="org-head">
+              <mat-icon>store</mat-icon>
+              <div>
+                <strong>Datos de la organización</strong>
+                <span class="tkt-muted">
+                  Se revisan antes de habilitar la publicación de eventos.
+                </span>
+              </div>
+            </div>
+
+            <div class="org-type">
+              <span class="sec-label">Tipo de organizador</span>
+              <mat-button-toggle-group formControlName="orgType" hideSingleSelectionIndicator>
+                <mat-button-toggle value="EMPRESA">Empresa</mat-button-toggle>
+                <mat-button-toggle value="PERSONA">Persona natural</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre comercial</mat-label>
+              <input matInput formControlName="displayName" />
+              <mat-hint>El que verá el público en tus eventos.</mat-hint>
+              @if (org.controls.displayName.invalid && org.controls.displayName.touched) {
+                <mat-error>Ingresa el nombre comercial.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>{{ taxIdLabel() }}</mat-label>
+                <input
+                  matInput
+                  formControlName="taxId"
+                  inputmode="numeric"
+                  [attr.maxlength]="taxIdLabel() === 'RUC' ? 11 : 8"
+                />
+                @if (org.controls.taxId.invalid && org.controls.taxId.touched) {
+                  <mat-error>
+                    {{ taxIdLabel() === 'RUC'
+                      ? 'RUC de 11 dígitos (10/15/17/20…).'
+                      : 'DNI de 8 dígitos.' }}
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              @if (org.controls.orgType.value === 'EMPRESA') {
+                <mat-form-field appearance="outline">
+                  <mat-label>Razón social</mat-label>
+                  <input matInput formControlName="legalName" />
+                  @if (org.controls.legalName.invalid && org.controls.legalName.touched) {
+                    <mat-error>Ingresa la razón social.</mat-error>
+                  }
+                </mat-form-field>
+              }
+            </div>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>País</mat-label>
+                <mat-select formControlName="country">
+                  @for (c of countries; track c.code) {
+                    <mat-option [value]="c.code">{{ c.name }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Ciudad</mat-label>
+                <input matInput formControlName="city" />
+                @if (org.controls.city.invalid && org.controls.city.touched) {
+                  <mat-error>Indica tu ciudad.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>Teléfono</mat-label>
+                <input matInput formControlName="phone" inputmode="tel" maxlength="17" />
+                <mat-hint>Solo dígitos, hasta 17.</mat-hint>
+                @if (org.controls.phone.invalid && org.controls.phone.touched) {
+                  <mat-error>Número no válido (6 a 17 dígitos).</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Sitio web o red social (opcional)</mat-label>
+                <input matInput formControlName="website" placeholder="https://…" />
+                @if (org.controls.website.invalid && org.controls.website.touched) {
+                  <mat-error>URL no válida.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <p class="org-note">
+              <mat-icon>place</mat-icon>
+              Tus eventos se publican en <b>Lima, Perú</b>. El país de arriba es
+              el de tu organización (puede ser del extranjero).
+            </p>
+          </section>
+        }
+
+        <!-- Consentimientos -->
+        <section class="fs consents">
+          <mat-checkbox formControlName="acceptedTerms">
+            He leído y acepto los
+            <a href="#" (click)="openLegal('terms', $event)">Términos y Condiciones</a>
+            y la
+            <a href="#" (click)="openLegal('privacy', $event)">Política de privacidad</a>. *
+          </mat-checkbox>
+          @if (form.controls.acceptedTerms.invalid && form.controls.acceptedTerms.touched) {
+            <p class="c-error">Debes aceptar los términos para continuar.</p>
+          }
+          <mat-checkbox formControlName="marketingOptIn">
+            Quiero recibir promociones y descuentos de Aforo.
+          </mat-checkbox>
+        </section>
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+          @if (loading()) { Creando cuenta… } @else { Crear cuenta }
+        </button>
+      </form>
+
+      <p class="alt">¿Ya tienes cuenta? <a routerLink="/auth/login">Ingresar</a></p>
+    </mat-card>
+  </div>
 </div>

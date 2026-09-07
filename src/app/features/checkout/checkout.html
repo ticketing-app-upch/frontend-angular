@@ -13,61 +13,103 @@
     </tkt-empty-state>
   </div>
 } @else if (event(); as ev) {
-  <div class="tkt-page">
-    <a routerLink="/eventos/{{ ev.id }}" class="back">
-      <mat-icon>arrow_back</mat-icon> Volver al evento
-    </a>
-    <h1 class="tkt-section-title">Comprar entradas</h1>
-    <p class="tkt-section-sub">
-      {{ ev.name }} · {{ ev.startsAt | date: "d 'de' MMM, HH:mm" }} · {{ ev.venue }}
-    </p>
+  <!-- Cabecera oscura del evento -->
+  <header class="evhero" [class.is-match]="match() !== null">
+    <span
+      class="evhero-bg"
+      [style.background-image]="'url(' + ev.imageUrl + ')'"
+    ></span>
+    <div class="evhero-shade"></div>
 
-    @if (order(); as ord) {
+    <div class="evhero-inner">
+      <a class="back" routerLink="/eventos/{{ ev.id }}">
+        <mat-icon>arrow_back</mat-icon> Volver al evento
+      </a>
+
+      @if (match(); as m) {
+        <div class="evhero-crests" aria-hidden="true">
+          <img [src]="m.crestA" [alt]="m.teamA" />
+          <span class="vs">VS</span>
+          <img [src]="m.crestB" [alt]="m.teamB" />
+        </div>
+      }
+
+      <span class="chip">{{ ev.category }}</span>
+      <h1>{{ ev.name }}</h1>
+      <p class="evhero-meta">
+        <span><mat-icon>event</mat-icon>{{ ev.startsAt | date: "EEE d 'de' MMM, y · HH:mm" }}</span>
+        <span><mat-icon>place</mat-icon>{{ ev.venue }}, {{ ev.city }}</span>
+      </p>
+    </div>
+  </header>
+
+  @if (order(); as ord) {
+    <!-- Éxito -->
+    <div class="tkt-page">
       <div class="done">
         <div class="check"><mat-icon>check_circle</mat-icon></div>
         <h2>¡Compra confirmada!</h2>
         <p class="code">{{ ord.code }}</p>
         <p class="tkt-muted">
-          Enviamos {{ ord.lines.length }} tipo(s) de entrada a tu cuenta.
-          Total pagado {{ ord.total | currency: 'PEN' : 'symbol-narrow' }}.
+          {{ ord.lines.length }} tipo(s) de entrada enviados a tu cuenta ·
+          total {{ ord.total | currency: 'PEN' : 'symbol-narrow' }}.
         </p>
         <div class="done-actions">
           <button mat-flat-button (click)="goToTickets()">Ver mis entradas</button>
           <a mat-stroked-button routerLink="/eventos">Seguir explorando</a>
         </div>
       </div>
-    } @else {
-      <mat-stepper orientation="vertical" #stepper linear>
-        <!-- Paso 1: selección -->
-        <mat-step [completed]="hasSelection()">
-          <ng-template matStepLabel>Elige tus zonas</ng-template>
+    </div>
+  } @else {
+    <div class="tkt-page buy">
+      <div class="buy-grid">
+        <!-- Plano -->
+        <section class="panel plan">
+          <h2 class="panel-title">
+            {{ match() ? 'Plano del estadio' : 'Plano de sectores' }}
+          </h2>
+          <tkt-zone-map
+            [zones]="ev.zones"
+            [quantities]="quantities()"
+            [stadium]="match() !== null"
+            [image]="venuePlan()"
+            [hotspots]="venueSpots()"
+            (pick)="change($event, 1)"
+          />
+          <p class="plan-hint tkt-muted">
+            Plano referencial · toca un sector para agregar una entrada
+          </p>
+        </section>
 
-          <div class="limit-note">
-            <mat-icon inline>info</mat-icon>
-            Máximo {{ maxPerOrder() }} entradas por compra.
-            @if (hasSelection()) {
-              Te quedan {{ remaining() }}.
-            }
+        <!-- Selección de sectores -->
+        <section class="panel picker">
+          <div class="picker-head">
+            <h2 class="panel-title">Sectores y precios</h2>
+            <span class="limit">
+              <mat-icon inline>info</mat-icon>
+              Máx. {{ maxPerOrder() }} por compra
+              @if (hasSelection()) { · quedan {{ remaining() }} }
+            </span>
           </div>
 
-          <div class="zone-list">
-            @for (zone of ev.zones; track zone.id) {
-              <div class="zrow" [class.disabled]="zoneAvailable(zone.id) === 0">
-                <div class="zinfo">
+          <ul class="zones">
+            @for (zone of ev.zones; track zone.id; let i = $index) {
+              <li class="zrow" [class.disabled]="zoneAvailable(zone.id) === 0">
+                <span class="swatch" [style.background]="zoneColor(i)"></span>
+                <div class="zmeta">
                   <span class="zname">{{ zone.name }}</span>
-                  <span class="zprice">
-                    {{ zone.price | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
-                    <span class="tkt-muted">c/u</span>
-                  </span>
                   <span class="zavail tkt-muted">
                     @if (zoneAvailable(zone.id) === 0) {
-                      Agotada
+                      Agotado
                     } @else {
-                      {{ zoneAvailable(zone.id) }} disponibles
+                      {{ zoneAvailable(zone.id) | number }} disponibles
                     }
                   </span>
                 </div>
-                <div class="stepper-ctrl">
+                <span class="zprice">
+                  {{ zone.price | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                </span>
+                <div class="stepper">
                   <button
                     mat-icon-button
                     (click)="change(zone.id, -1)"
@@ -86,100 +128,110 @@
                     <mat-icon>add</mat-icon>
                   </button>
                 </div>
-              </div>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <!-- Resumen / pago -->
+        <aside class="summary">
+          <div class="summary-card">
+            @if (!reviewing()) {
+              <h2 class="panel-title">Tu selección</h2>
+              @if (hasSelection()) {
+                <ul class="sum-lines">
+                  @for (l of selectedLines(); track l.zone.id) {
+                    <li>
+                      <span>{{ l.zone.name }} <b>× {{ l.qty }}</b></span>
+                      <span>{{ l.zone.price * l.qty | currency: 'PEN' : 'symbol-narrow' }}</span>
+                    </li>
+                  }
+                </ul>
+                <dl class="sum-totals">
+                  <div><dt>Subtotal</dt><dd>{{ provisional().subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                  <div><dt>Comisión de servicio</dt><dd>{{ provisional().fee | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                  <div class="grand"><dt>Total</dt><dd>{{ provisional().total | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                </dl>
+                <button mat-flat-button class="tkt-cta cta" (click)="startReview()">
+                  Continuar al pago
+                </button>
+              } @else {
+                <p class="sum-empty tkt-muted">
+                  Elige uno o más sectores para ver el total.
+                </p>
+              }
+            } @else {
+              <h2 class="panel-title">Confirma tu compra</h2>
+              @if (quoting()) {
+                <div class="sum-loading">
+                  <mat-progress-spinner mode="indeterminate" diameter="30" />
+                  <span class="tkt-muted">Calculando precio final…</span>
+                </div>
+              } @else if (quote(); as q) {
+                <ul class="sum-lines">
+                  @for (it of q.items; track it.zoneId) {
+                    <li>
+                      <span>
+                        {{ it.zoneName }} <b>× {{ it.quantity }}</b>
+                        @if (it.note) { <em class="tag">{{ it.note }}</em> }
+                      </span>
+                      <span>{{ it.unitPrice * it.quantity | currency: 'PEN' : 'symbol-narrow' }}</span>
+                    </li>
+                  }
+                </ul>
+                <dl class="sum-totals">
+                  <div><dt>Subtotal</dt><dd>{{ q.subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                  <div><dt>Comisión de servicio</dt><dd>{{ q.fee | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                  <div class="grand"><dt>Total</dt><dd>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                </dl>
+                <p class="pay-note">
+                  <mat-icon inline>lock</mat-icon>
+                  Pago simulado para la demo · no se procesa ningún cobro real.
+                </p>
+                <button
+                  mat-flat-button
+                  class="tkt-cta cta"
+                  (click)="confirm()"
+                  [disabled]="placing()"
+                >
+                  @if (placing()) { Procesando… } @else { Confirmar compra }
+                </button>
+                <button
+                  mat-button
+                  class="cta-back"
+                  (click)="backToSelection()"
+                  [disabled]="placing()"
+                >
+                  Volver a sectores
+                </button>
+              }
             }
           </div>
+        </aside>
+      </div>
 
-          <div class="step-actions">
-            <button
-              mat-flat-button
-              matStepperNext
-              [disabled]="!hasSelection()"
-              (click)="requestQuote()"
-            >
-              Continuar
-            </button>
-          </div>
-        </mat-step>
+      <!-- Info del evento -->
+      <div class="info-row">
+        <article class="info-card">
+          <h3><mat-icon>confirmation_number</mat-icon> Compra de entradas</h3>
+          <ul>
+            <li>Límite de compra: máximo {{ maxPerOrder() }} entradas por transacción.</li>
+            <li>Público recomendado: mayores de 18 años.</li>
+            <li>Los precios incluyen la comisión por servicio.</li>
+            <li>El plano de sectores es referencial y puede variar por razones técnicas.</li>
+          </ul>
+        </article>
 
-        <!-- Paso 2: resumen -->
-        <mat-step [completed]="quote() !== null">
-          <ng-template matStepLabel>Revisa tu compra</ng-template>
-
-          @if (quoting()) {
-            <div class="quoting">
-              <mat-progress-spinner mode="indeterminate" diameter="32" />
-              <span class="tkt-muted">Calculando precio…</span>
-            </div>
-          } @else if (quote(); as q) {
-            <table class="summary">
-              <tbody>
-                @for (item of q.items; track item.zoneId) {
-                  <tr>
-                    <td>
-                      {{ item.zoneName }}
-                      <span class="tkt-muted">× {{ item.quantity }}</span>
-                      @if (item.note) {
-                        <span class="tag">{{ item.note }}</span>
-                      }
-                    </td>
-                    <td class="num">
-                      {{ item.unitPrice * item.quantity | currency: 'PEN' : 'symbol-narrow' }}
-                    </td>
-                  </tr>
-                }
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td>Subtotal</td>
-                  <td class="num">{{ q.subtotal | currency: 'PEN' : 'symbol-narrow' }}</td>
-                </tr>
-                <tr>
-                  <td>Comisión de servicio</td>
-                  <td class="num">{{ q.fee | currency: 'PEN' : 'symbol-narrow' }}</td>
-                </tr>
-                <tr class="grand">
-                  <td>Total</td>
-                  <td class="num">{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</td>
-                </tr>
-              </tfoot>
-            </table>
-          }
-
-          <div class="step-actions">
-            <button mat-stroked-button matStepperPrevious>Atrás</button>
-            <button
-              mat-flat-button
-              matStepperNext
-              [disabled]="quote() === null"
-            >
-              Ir a pagar
-            </button>
-          </div>
-        </mat-step>
-
-        <!-- Paso 3: pago simulado -->
-        <mat-step>
-          <ng-template matStepLabel>Pago</ng-template>
-          <div class="pay-note">
-            <mat-icon inline>lock</mat-icon>
-            Pago simulado para la demo. No se procesa ningún cobro real.
-          </div>
-          @if (quote(); as q) {
-            <p class="pay-total">
-              A pagar: <strong>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</strong>
-            </p>
-          }
-          <div class="step-actions">
-            <button mat-stroked-button matStepperPrevious [disabled]="placing()">
-              Atrás
-            </button>
-            <button mat-flat-button (click)="confirm()" [disabled]="placing()">
-              @if (placing()) { Procesando… } @else { Confirmar compra }
-            </button>
-          </div>
-        </mat-step>
-      </mat-stepper>
-    }
-  </div>
+        <article class="info-card">
+          <h3><mat-icon>stadium</mat-icon> Acerca del evento</h3>
+          <ul>
+            <li><b>Recinto:</b> {{ ev.venue }}, {{ ev.city }}.</li>
+            <li><b>Inicio:</b> {{ ev.startsAt | date: "EEEE d 'de' MMMM, y · HH:mm" }}.</li>
+            <li><b>Ingreso:</b> con tu entrada digital; disponible en “Mis entradas”.</li>
+            <li>No se permite el reingreso una vez dentro del recinto.</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  }
 }

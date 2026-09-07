@@ -9,27 +9,54 @@ interface StoreShape {
   orders: TicketOrder[];
 }
 
+interface PersistedShape {
+  /** Huella de la semilla con la que se guardó esta data. */
+  rev: string;
+  data: StoreShape;
+}
+
 const STORAGE_KEY = 'tkt.mock.v1';
+
+/** Huella corta y determinista de la semilla actual (mock-data.ts). */
+function seedRevision(): string {
+  const raw = JSON.stringify([SEED_USERS, SEED_EVENTS, SEED_ORDERS]);
+  let h = 0;
+  for (let i = 0; i < raw.length; i++) {
+    h = (Math.imul(31, h) + raw.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
 
 /**
  * Base de datos falsa en memoria, persistida en localStorage para que las
  * compras y los eventos creados sobrevivan a un refresco durante las pruebas.
+ *
+ * Si editas `mock-data.ts`, la huella (`rev`) cambia y la data guardada se
+ * descarta automáticamente: al recargar verás la semilla nueva (se pierden las
+ * compras hechas en runtime, que es lo esperado al cambiar los datos base).
+ *
  * Se reemplaza por llamadas HTTP reales cuando `environment.useMock` sea false.
  */
 @Injectable({ providedIn: 'root' })
 export class MockStore {
+  private readonly rev = seedRevision();
   private data: StoreShape = this.load();
 
   private load(): StoreShape {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        return JSON.parse(raw) as StoreShape;
+        const parsed = JSON.parse(raw) as PersistedShape;
+        if (parsed?.rev === this.rev && parsed.data) {
+          return parsed.data;
+        }
       }
     } catch {
       /* almacenamiento no disponible o corrupto: usamos la semilla */
     }
-    return this.seed();
+    const fresh = this.seed();
+    this.persistData(fresh);
+    return fresh;
   }
 
   private seed(): StoreShape {
@@ -40,12 +67,17 @@ export class MockStore {
     };
   }
 
-  private persist(): void {
+  private persistData(data: StoreShape): void {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.data));
+      const payload: PersistedShape = { rev: this.rev, data };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch {
       /* modo incógnito / cuota llena: seguimos solo en memoria */
     }
+  }
+
+  private persist(): void {
+    this.persistData(this.data);
   }
 
   /** Reinicia la data de prueba a la semilla original. */

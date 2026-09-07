@@ -38,7 +38,7 @@ import { DecimalPipe } from '@angular/common';
       background: var(--mat-sys-primary);
       transition: width 0.5s ease;
     }
-    .fill.warn { background: #e2a400; }
+    .fill.warn { background: var(--tkt-accent, #e2a400); }
     .fill.full { background: #b3261e; }
     .label {
       display: flex;

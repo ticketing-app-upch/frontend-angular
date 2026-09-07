@@ -7,14 +7,11 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatStepperModule } from '@angular/material/stepper';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
-import { STEPPER_GLOBAL_OPTIONS } from '@angular/cdk/stepper';
 import { EventService } from '../../core/services/event.service';
 import { PriceQuote, PricingService } from '../../core/services/pricing.service';
 import { TicketService } from '../../core/services/ticket.service';
@@ -22,23 +19,24 @@ import { NotificationService } from '../../core/services/notification.service';
 import { EventItem } from '../../core/models/event.model';
 import { TicketOrder } from '../../core/models/ticket.model';
 import { EmptyState } from '../../shared/empty-state/empty-state';
+import { ZoneMap, zoneColor } from '../../shared/zone-map/zone-map';
+import { matchArt, venueMap, venueHotspots } from '../../shared/event-image';
+
+const SERVICE_FEE_RATE = 0.06;
 
 @Component({
   selector: 'tkt-checkout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    { provide: STEPPER_GLOBAL_OPTIONS, useValue: { displayDefaultIndicatorType: false } },
-  ],
   imports: [
     RouterLink,
     CurrencyPipe,
     DatePipe,
+    DecimalPipe,
     MatButtonModule,
     MatIconModule,
-    MatStepperModule,
     MatProgressSpinnerModule,
-    MatDividerModule,
     EmptyState,
+    ZoneMap,
   ],
   templateUrl: './checkout.html',
   styleUrl: './checkout.scss',
@@ -59,11 +57,25 @@ export class Checkout {
   /** zoneId -> cantidad elegida */
   readonly quantities = signal<Record<string, number>>({});
 
+  readonly reviewing = signal(false);
   readonly quoting = signal(false);
   readonly quote = signal<PriceQuote | null>(null);
 
   readonly placing = signal(false);
   readonly order = signal<TicketOrder | null>(null);
+
+  readonly zoneColor = zoneColor;
+
+  readonly match = computed(() => {
+    const e = this.event();
+    return e ? matchArt(e.name, e.category) : null;
+  });
+
+  readonly venuePlan = computed(() => venueMap(this.event()?.venue));
+  readonly venueSpots = computed(() => {
+    const e = this.event();
+    return e ? venueHotspots(e.venue, e.zones) : [];
+  });
 
   readonly totalQty = computed(() =>
     Object.values(this.quantities()).reduce((a, n) => a + n, 0),
@@ -80,6 +92,16 @@ export class Checkout {
     return ev.zones
       .filter((z) => (q[z.id] ?? 0) > 0)
       .map((z) => ({ zone: z, qty: q[z.id] ?? 0 }));
+  });
+
+  /** Total provisional (antes de pedir la cotización oficial). */
+  readonly provisional = computed(() => {
+    const subtotal = this.selectedLines().reduce(
+      (a, l) => a + l.zone.price * l.qty,
+      0,
+    );
+    const fee = round2(subtotal * SERVICE_FEE_RATE);
+    return { subtotal: round2(subtotal), fee, total: round2(subtotal + fee) };
   });
 
   constructor() {
@@ -108,7 +130,9 @@ export class Checkout {
   }
 
   canAdd(zoneId: string): boolean {
-    return this.remaining() > 0 && this.currentQty(zoneId) < this.zoneAvailable(zoneId);
+    return (
+      this.remaining() > 0 && this.currentQty(zoneId) < this.zoneAvailable(zoneId)
+    );
   }
 
   currentQty(zoneId: string): number {
@@ -123,9 +147,21 @@ export class Checkout {
     next[zoneId] = value;
     this.quantities.set(next);
     this.quote.set(null);
+    this.reviewing.set(false);
   }
 
-  requestQuote(): void {
+  startReview(): void {
+    if (!this.hasSelection()) return;
+    this.reviewing.set(true);
+    this.requestQuote();
+  }
+
+  backToSelection(): void {
+    this.reviewing.set(false);
+    this.quote.set(null);
+  }
+
+  private requestQuote(): void {
     const ev = this.event();
     if (!ev || !this.hasSelection()) return;
     const items = this.selectedLines().map((l) => ({
@@ -140,6 +176,7 @@ export class Checkout {
       },
       error: () => {
         this.quoting.set(false);
+        this.reviewing.set(false);
         this.notify.error('No se pudo calcular el precio.');
       },
     });
@@ -169,4 +206,8 @@ export class Checkout {
   goToTickets(): void {
     this.router.navigate(['/mis-entradas']);
   }
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }

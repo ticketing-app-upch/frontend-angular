@@ -14,7 +14,7 @@ export const routes: Routes = [
           import('./features/events/event-list/event-list').then(
             (m) => m.EventList,
           ),
-        title: 'Eventos · TKT',
+        title: 'Eventos · Aforo',
       },
       {
         path: 'eventos/:id',
@@ -22,14 +22,14 @@ export const routes: Routes = [
           import('./features/events/event-detail/event-detail').then(
             (m) => m.EventDetail,
           ),
-        title: 'Detalle del evento · TKT',
+        title: 'Detalle del evento · Aforo',
       },
       {
         path: 'comprar/:eventId',
         canActivate: [authGuard],
         loadComponent: () =>
           import('./features/checkout/checkout').then((m) => m.Checkout),
-        title: 'Comprar entradas · TKT',
+        title: 'Comprar entradas · Aforo',
       },
       {
         path: 'mis-entradas',
@@ -38,7 +38,7 @@ export const routes: Routes = [
           import('./features/account/my-tickets/my-tickets').then(
             (m) => m.MyTickets,
           ),
-        title: 'Mis entradas · TKT',
+        title: 'Mis entradas · Aforo',
       },
       {
         path: 'organizador',
@@ -51,7 +51,7 @@ export const routes: Routes = [
               import('./features/organizer/dashboard/dashboard').then(
                 (m) => m.OrganizerDashboard,
               ),
-            title: 'Panel del organizador · TKT',
+            title: 'Panel del organizador · Aforo',
           },
           {
             path: 'eventos',
@@ -59,7 +59,7 @@ export const routes: Routes = [
               import(
                 './features/organizer/event-manage/event-manage'
               ).then((m) => m.EventManage),
-            title: 'Mis eventos · TKT',
+            title: 'Mis eventos · Aforo',
           },
           {
             path: 'eventos/nuevo',
@@ -67,7 +67,7 @@ export const routes: Routes = [
               import('./features/organizer/event-form/event-form').then(
                 (m) => m.EventForm,
               ),
-            title: 'Nuevo evento · TKT',
+            title: 'Nuevo evento · Aforo',
           },
           {
             path: 'eventos/:id/editar',
@@ -75,7 +75,7 @@ export const routes: Routes = [
               import('./features/organizer/event-form/event-form').then(
                 (m) => m.EventForm,
               ),
-            title: 'Editar evento · TKT',
+            title: 'Editar evento · Aforo',
           },
         ],
       },
@@ -88,7 +88,7 @@ export const routes: Routes = [
             path: 'login',
             loadComponent: () =>
               import('./features/auth/login/login').then((m) => m.Login),
-            title: 'Ingresar · TKT',
+            title: 'Ingresar · Aforo',
           },
           {
             path: 'registro',
@@ -96,7 +96,7 @@ export const routes: Routes = [
               import('./features/auth/register/register').then(
                 (m) => m.Register,
               ),
-            title: 'Crear cuenta · TKT',
+            title: 'Crear cuenta · Aforo',
           },
         ],
       },

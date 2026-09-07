@@ -2,47 +2,130 @@
   <span class="hero-orb orb-a" aria-hidden="true"></span>
   <span class="hero-orb orb-b" aria-hidden="true"></span>
   <span class="hero-grid" aria-hidden="true"></span>
+  <span class="hero-grain" aria-hidden="true"></span>
 
   <div class="hero-inner">
-    <span class="hero-badge">
-      <span class="dot"></span> Aforo en tiempo real
-    </span>
-    <h1>Vive el evento,<br /><span class="accent">no la fila.</span></h1>
-    <p>
-      Descubre conciertos, festivales, teatro y deporte. Elige tu zona, compra en
-      segundos y lleva tu entrada en el celular.
-    </p>
+    <div class="hero-copy">
+      <span class="hero-eyebrow">
+        <mat-icon>confirmation_number</mat-icon>
+        Aforo · Entradas y aforo en tiempo real
+      </span>
+
+      <h1>Que no te lo cuenten.<br /><span class="accent">Vívelo.</span></h1>
+
+      <p>
+        Descubre conciertos, festivales, teatro y deporte. Elige tu zona, compra
+        en segundos y lleva tu entrada en el celular.
+      </p>
+
+      <div class="hero-cta">
+        <a class="cta-primary" href="#catalogo" (click)="scrollToCatalog($event)">
+          <mat-icon>search</mat-icon> Explorar eventos
+        </a>
+        <a class="cta-ghost" routerLink="/auth/registro">Publicar un evento</a>
+      </div>
+
+      <ul class="hero-stats">
+        <li><strong>+120</strong><span>eventos activos</span></li>
+        <li><strong>45k</strong><span>entradas emitidas</span></li>
+        <li><strong>4.8&#9733;</strong><span>satisfacción</span></li>
+      </ul>
+    </div>
+
+    @if (spotlightVm(); as sp) {
+      <div
+        class="hero-visual"
+        (mouseenter)="spotlightPaused.set(true)"
+        (mouseleave)="spotlightPaused.set(false)"
+      >
+        @for (item of [sp]; track item.id) {
+          <div class="mini-ticket">
+            <div class="mt-row">
+              <span class="mt-cat">{{ item.category | titlecase }}</span>
+              <span class="mt-live"><span class="dot"></span> En vivo</span>
+            </div>
+            <p class="mt-name">{{ item.name }}</p>
+            <p class="mt-meta">{{ item.place }}</p>
+            <div class="mt-track">
+              <span [style.width.%]="item.ratio"></span>
+            </div>
+            <div class="mt-foot">
+              <span>{{ item.zoneName }} · {{ item.available }} disponibles</span>
+              <strong>
+                {{ item.price | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}
+              </strong>
+            </div>
+          </div>
+        }
+
+        @if (spotlight().length > 1) {
+          <div class="mt-dots" role="tablist" aria-label="Eventos destacados">
+            @for (e of spotlight(); track e.id; let i = $index) {
+              <button
+                type="button"
+                class="mt-dot"
+                [class.on]="i === spotlightIndex() % spotlight().length"
+                (click)="showSpotlight(i)"
+                [attr.aria-label]="'Ver ' + e.name"
+              ></button>
+            }
+          </div>
+        }
+      </div>
+    }
   </div>
 </section>
 
-<div class="tkt-page">
-  <div class="filters">
-    <mat-form-field appearance="outline" class="search">
-      <mat-label>Buscar evento, lugar o ciudad</mat-label>
-      <input matInput [formControl]="search" />
-      <mat-icon matPrefix>search</mat-icon>
-    </mat-form-field>
+<div class="tkt-page" id="catalogo">
+  <div class="controls">
+    <div class="search-box" [class.has-text]="!!search.value">
+      <mat-icon>search</mat-icon>
+      <input
+        type="text"
+        [formControl]="search"
+        placeholder="Buscar evento, lugar o ciudad"
+        aria-label="Buscar evento, lugar o ciudad"
+      />
+      @if (search.value) {
+        <button
+          type="button"
+          class="clear"
+          (click)="search.setValue('')"
+          aria-label="Limpiar búsqueda"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      }
+    </div>
 
-    <mat-slide-toggle
-      [checked]="onlyAvailable()"
-      (change)="onlyAvailable.set($event.checked)"
-    >
-      Solo con disponibilidad
-    </mat-slide-toggle>
+    <div class="filter-row">
+      <div class="chips" role="group" aria-label="Filtrar por categoría">
+        @for (opt of categories; track opt.value) {
+          <button
+            type="button"
+            class="chip"
+            [class.active]="opt.value === category()"
+            [attr.aria-pressed]="opt.value === category()"
+            (click)="setCategory(opt.value)"
+          >
+            <mat-icon>{{ opt.icon }}</mat-icon>
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+
+      <button
+        type="button"
+        class="chip toggle"
+        [class.active]="onlyAvailable()"
+        [attr.aria-pressed]="onlyAvailable()"
+        (click)="onlyAvailable.set(!onlyAvailable())"
+      >
+        <mat-icon>{{ onlyAvailable() ? 'check_circle' : 'event_available' }}</mat-icon>
+        Con disponibilidad
+      </button>
+    </div>
   </div>
-
-  <mat-chip-listbox
-    class="cats"
-    [value]="category()"
-    (change)="setCategory($event.value)"
-    hideSingleSelectionIndicator
-  >
-    @for (opt of categories; track opt.value) {
-      <mat-chip-option [value]="opt.value" [selected]="opt.value === category()">
-        {{ opt.label }}
-      </mat-chip-option>
-    }
-  </mat-chip-listbox>
 
   @if (loading()) {
     <div class="loading">

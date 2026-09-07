@@ -47,25 +47,41 @@
 }
 
 .brand {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 0.45rem;
-  font-weight: 800;
-  font-size: 1.2rem;
-  letter-spacing: 0.02em;
+  column-gap: 0.5rem;
   text-decoration: none;
   color: var(--mat-sys-primary);
 }
 
-.brand span {
+.brand mat-icon {
+  grid-row: 1 / span 2;
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--mat-sys-primary) 45%, transparent));
+}
+
+.brand-name {
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: 0.01em;
+  line-height: 1;
   background: linear-gradient(100deg, var(--mat-sys-primary), var(--mat-sys-tertiary));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-.brand mat-icon {
-  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--mat-sys-primary) 45%, transparent));
+.brand-tag {
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 520px) {
+  .brand-tag { display: none; }
 }
 
 .links {

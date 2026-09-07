@@ -98,22 +98,34 @@ export class AuthService {
     if (this.store.users.some((u) => u.email.toLowerCase() === email)) {
       return mockError<AuthResponse>('Ya existe una cuenta con ese correo.', 409);
     }
-    const user = {
+    const user: User & { password: string } = {
       id: `u-${crypto.randomUUID().slice(0, 8)}`,
       fullName: payload.fullName.trim(),
       email,
       role: payload.role,
       password: payload.password,
+      marketingOptIn: payload.marketingOptIn,
     };
+    if (payload.role === 'CLIENT' && payload.profile) {
+      user.profile = payload.profile;
+    }
+    if (payload.role === 'ORGANIZER' && payload.organizer) {
+      user.organizer = {
+        ...payload.organizer,
+        // En un backend real quedaría 'PENDING' hasta revisión.
+        // Para la demo la dejamos verificada para poder publicar.
+        verificationStatus: 'VERIFIED',
+      };
+    }
     this.store.addUser(user);
     return mockResponse(this.toAuthResponse(user));
   }
 
   private toAuthResponse(user: User): AuthResponse {
-    const { id, fullName, email, role } = user;
+    const { id, fullName, email, role, organizer, profile, marketingOptIn } = user;
     return {
       token: `mock.${btoa(`${id}:${role}`)}.${Date.now()}`,
-      user: { id, fullName, email, role },
+      user: { id, fullName, email, role, organizer, profile, marketingOptIn },
     };
   }
 }

@@ -7,13 +7,16 @@ import {
   input,
   signal,
 } from '@angular/core';
-import { CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
+import {
+  CurrencyPipe,
+  DatePipe,
+  DecimalPipe,
+  TitleCasePipe,
+} from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
 import { EventService } from '../../../core/services/event.service';
 import {
   computeCapacity,
@@ -22,6 +25,7 @@ import {
 import { AuthService } from '../../../core/auth/auth.service';
 import { CapacityBar } from '../../../shared/capacity-bar/capacity-bar';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
+import { matchArt } from '../../../shared/event-image';
 
 @Component({
   selector: 'tkt-event-detail',
@@ -30,12 +34,11 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
     RouterLink,
     CurrencyPipe,
     DatePipe,
+    DecimalPipe,
     TitleCasePipe,
     MatButtonModule,
     MatIconModule,
-    MatChipsModule,
     MatProgressSpinnerModule,
-    MatDividerModule,
     CapacityBar,
     EmptyState,
   ],
@@ -61,6 +64,21 @@ export class EventDetail {
   });
 
   readonly soldOut = computed(() => this.capacity()?.available === 0);
+
+  readonly match = computed(() => {
+    const e = this.event();
+    return e ? matchArt(e.name, e.category) : null;
+  });
+
+  onCrestError(event: Event, fallback: string): void {
+    const img = event.target as HTMLImageElement;
+    if (img.src !== fallback) img.src = fallback;
+  }
+
+  readonly minPrice = computed(() => {
+    const e = this.event();
+    return e ? Math.min(...e.zones.map((z) => z.price)) : 0;
+  });
 
   constructor() {
     effect(() => {

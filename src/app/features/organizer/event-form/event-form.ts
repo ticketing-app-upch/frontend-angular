@@ -31,6 +31,7 @@ import {
   EventStatus,
   Zone,
 } from '../../../core/models/event.model';
+import { eventImage } from '../../../shared/event-image';
 
 @Component({
   selector: 'tkt-event-form',
@@ -149,7 +150,7 @@ export class EventForm {
         ? 'PUBLICADO'
         : ev.status,
       venue: ev.venue,
-      city: ev.city,
+      city: 'Lima',
       startsAt: toLocalInput(ev.startsAt),
       imageUrl: ev.imageUrl,
       maxPerOrder: ev.maxPerOrder,
@@ -166,7 +167,6 @@ export class EventForm {
     }
     const raw = this.form.getRawValue();
     const existing = this.editing();
-    const slug = raw.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 24);
 
     const payload: EventItem = {
       id: existing?.id ?? `ev-${crypto.randomUUID().slice(0, 8)}`,
@@ -175,11 +175,11 @@ export class EventForm {
       category: raw.category,
       status: raw.status,
       venue: raw.venue.trim(),
-      city: raw.city.trim(),
+      city: 'Lima',
       startsAt: new Date(raw.startsAt).toISOString(),
       imageUrl:
         raw.imageUrl.trim() ||
-        `https://picsum.photos/seed/tkt-${slug || Date.now()}/960/540`,
+        eventImage({ name: raw.name.trim(), category: raw.category }),
       organizerId: existing?.organizerId ?? this.auth.user()?.id ?? '',
       maxPerOrder: raw.maxPerOrder,
       zones: raw.zones.map((z, i) => ({

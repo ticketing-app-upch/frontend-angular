@@ -7,7 +7,7 @@
 
     <div class="aside-inner">
       <a routerLink="/eventos" class="aside-brand">
-        <mat-icon>confirmation_number</mat-icon> TKT
+        <mat-icon>confirmation_number</mat-icon> Aforo
       </a>
 
       <div class="aside-copy">
@@ -70,6 +70,13 @@
             <mat-error>Mínimo 4 caracteres.</mat-error>
           }
         </mat-form-field>
+
+        <div class="form-row">
+          <mat-checkbox formControlName="remember">Recuérdame</mat-checkbox>
+          <a href="#" class="forgot" (click)="forgotPassword($event)">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
 
         <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
           @if (loading()) { Ingresando… } @else { Ingresar }
