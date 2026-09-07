@@ -7,9 +7,13 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { merge } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
+import {
+  MatFormFieldModule,
+  MAT_FORM_FIELD_DEFAULT_OPTIONS,
+} from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,6 +25,12 @@ import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LegalDialog, LegalDoc } from '../../../shared/legal/legal-dialog';
+import { DigitsOnly } from '../../../shared/digits-only';
+import {
+  CountryField,
+  CountryPick,
+} from '../../../shared/country-field/country-field';
+import { flagEmoji, normalize } from '../../../shared/countries';
 import {
   DocType,
   OrganizerType,
@@ -48,9 +58,17 @@ const DOC_PATTERNS: Record<DocType, RegExp> = {
     MatCheckboxModule,
     MatSelectModule,
     MatProgressBarModule,
+    DigitsOnly,
+    CountryField,
   ],
   templateUrl: './register.html',
   styleUrl: './register.scss',
+  providers: [
+    {
+      provide: MAT_FORM_FIELD_DEFAULT_OPTIONS,
+      useValue: { subscriptSizing: 'dynamic', appearance: 'outline' },
+    },
+  ],
 })
 export class Register {
   private fb = inject(FormBuilder);
@@ -62,15 +80,6 @@ export class Register {
   readonly loading = signal(false);
   readonly hide = signal(true);
 
-  readonly countries = [
-    { code: 'PE', name: 'Perú', dial: '+51' },
-    { code: 'CL', name: 'Chile', dial: '+56' },
-    { code: 'CO', name: 'Colombia', dial: '+57' },
-    { code: 'EC', name: 'Ecuador', dial: '+593' },
-    { code: 'MX', name: 'México', dial: '+52' },
-    { code: 'AR', name: 'Argentina', dial: '+54' },
-    { code: 'ES', name: 'España', dial: '+34' },
-  ];
   readonly docTypes: DocType[] = ['DNI', 'CE', 'PASAPORTE'];
   readonly genders = [
     { value: 'F', label: 'Femenino' },
@@ -86,13 +95,18 @@ export class Register {
 
     personal: this.fb.nonNullable.group({
       country: ['PE', Validators.required],
+      hasPeruvianNationality: [false],
       city: ['', Validators.required],
       district: [''],
       docType: ['DNI' as DocType, Validators.required],
       docNumber: ['', [Validators.required, Validators.pattern(DOC_PATTERNS.DNI)]],
       gender: ['', Validators.required],
-      phoneCode: ['+51', Validators.required],
-      phone: ['', [Validators.required, Validators.pattern(/^\d{6,12}$/)]],
+      // solo los dígitos del código; el "+" es fijo en la UI
+      phoneCode: ['51', [Validators.required, Validators.pattern(/^\d{1,4}$/)]],
+      phone: [
+        '',
+        [Validators.required, Validators.pattern(/^\d{6,17}$/), Validators.maxLength(17)],
+      ],
     }),
 
     organizer: this.fb.nonNullable.group({
@@ -135,21 +149,86 @@ export class Register {
     this.isOrganizer() ? 'Apellidos del responsable' : 'Apellidos',
   );
 
+  /** País del cliente resuelto por el autocompletar. */
+  private readonly clientCountry = signal<CountryPick | null>(null);
+  /** Hay país reconocido -> el código telefónico se autocompleta y se bloquea. */
+  readonly codeAuto = computed(() => !!this.clientCountry()?.country);
+  readonly countryFlag = computed(() =>
+    flagEmoji(this.clientCountry()?.country?.code ?? ''),
+  );
+
   private readonly orgTypeValue = toSignal(
     this.org.controls.orgType.valueChanges,
     { initialValue: this.org.controls.orgType.value },
   );
+
+  private readonly orgCountryCode = toSignal(
+    this.org.controls.country.valueChanges,
+    { initialValue: this.org.controls.country.value },
+  );
+  /** El país de la organización es Perú. */
+  readonly orgIsPeru = computed(() => this.orgCountryCode() === 'PE');
   readonly taxIdLabel = computed(() =>
     this.orgTypeValue() === 'PERSONA' ? 'DNI' : 'RUC',
   );
 
-  private readonly docTypeValue = toSignal(
+  readonly docTypeValue = toSignal(
     this.personal.controls.docType.valueChanges,
     { initialValue: this.personal.controls.docType.value },
   );
-  readonly docPlaceholder = computed(() =>
-    this.docTypeValue() === 'DNI' ? '8 dígitos' : 'N° de documento',
+  readonly docPlaceholder = computed(() => {
+    switch (this.docTypeValue()) {
+      case 'DNI':
+        return '8 dígitos';
+      case 'CE':
+        return '9 a 12 dígitos';
+      default:
+        return 'Ej.: X1234567';
+    }
+  });
+
+  /** CE y DNI son numéricos; Pasaporte admite letras y números. */
+  readonly isNumericDoc = computed(() => this.docTypeValue() !== 'PASAPORTE');
+
+  /** Largo máximo del campo según el tipo de documento. */
+  readonly docMaxLength = computed(() =>
+    this.docTypeValue() === 'DNI' ? 8 : 12,
   );
+
+  /** Nota de ayuda bajo el N° de documento. */
+  readonly docHint = computed(() => {
+    switch (this.docTypeValue()) {
+      case 'DNI':
+        return 'Documento Nacional de Identidad: 8 dígitos.';
+      case 'CE':
+        return 'Carné de Extranjería: entre 9 y 12 dígitos.';
+      default:
+        return 'Pasaporte: entre 6 y 12 caracteres (letras y números).';
+    }
+  });
+
+  private readonly countryCode = toSignal(
+    this.personal.controls.country.valueChanges,
+    { initialValue: this.personal.controls.country.value },
+  );
+  private readonly peNationality = toSignal(
+    this.personal.controls.hasPeruvianNationality.valueChanges,
+    { initialValue: this.personal.controls.hasPeruvianNationality.value },
+  );
+
+  /** El país seleccionado es Perú. */
+  readonly isPeru = computed(() => this.countryCode() === 'PE');
+
+  /** Puede escribir ciudad/distrito: peruanos o extranjeros con nacionalidad peruana. */
+  readonly canEditLocation = computed(() => this.isPeru() || this.peNationality());
+
+  /** Tipos de documento disponibles según país / nacionalidad. */
+  readonly allowedDocTypes = computed<DocType[]>(() => {
+    if (this.isPeru() || this.peNationality()) {
+      return ['DNI', 'CE', 'PASAPORTE'];
+    }
+    return ['CE', 'PASAPORTE'];
+  });
 
   constructor() {
     this.applyRole(this.form.controls.role.value);
@@ -173,12 +252,91 @@ export class Register {
         ctrl.updateValueAndValidity();
       });
 
-    this.personal.controls.country.valueChanges
+    // País / nacionalidad -> ciudad+distrito opcionales para extranjeros y
+    // ajuste de los tipos de documento permitidos.
+    merge(
+      this.personal.controls.country.valueChanges,
+      this.personal.controls.hasPeruvianNationality.valueChanges,
+      this.personal.controls.city.valueChanges,
+    )
       .pipe(takeUntilDestroyed())
-      .subscribe((code) => {
-        const c = this.countries.find((x) => x.code === code);
-        if (c) this.personal.controls.phoneCode.setValue(c.dial);
-      });
+      .subscribe(() => this.applyNationalityRules());
+    this.applyNationalityRules();
+  }
+
+  private applyNationalityRules(): void {
+    const p = this.personal.controls;
+    const isPeru = p.country.value === 'PE';
+
+    // Ciudad obligatoria solo en Perú; editables para peruanos o
+    // extranjeros que declaran nacionalidad peruana.
+    if (isPeru) {
+      p.city.setValidators(Validators.required);
+    } else {
+      p.city.clearValidators();
+    }
+    const canEdit = isPeru || p.hasPeruvianNationality.value;
+    if (canEdit) {
+      p.city.enable({ emitEvent: false });
+    } else {
+      p.city.setValue('', { emitEvent: false });
+      p.city.disable({ emitEvent: false });
+    }
+    p.city.updateValueAndValidity({ emitEvent: false });
+
+    // Distrito solo aplica a Lima: si escriben otro departamento en Ciudad,
+    // se bloquea y se limpia.
+    const cityIsLima = normalize(p.city.value ?? '').trim() === 'lima';
+    const districtOk = canEdit && (p.city.value.trim() === '' || cityIsLima);
+    if (districtOk) {
+      p.district.enable({ emitEvent: false });
+    } else {
+      p.district.setValue('', { emitEvent: false });
+      p.district.disable({ emitEvent: false });
+    }
+    p.district.updateValueAndValidity({ emitEvent: false });
+
+    // Al volver a Perú, la casilla de nacionalidad no aplica.
+    if (isPeru && p.hasPeruvianNationality.value) {
+      p.hasPeruvianNationality.setValue(false, { emitEvent: false });
+    }
+
+    // Si el tipo de documento actual ya no está permitido, cae al primero.
+    const allowed = this.allowedDocTypes();
+    if (!allowed.includes(p.docType.value)) {
+      p.docType.setValue(allowed[0]);
+    }
+  }
+
+  /** El autocompletar de país (cliente) resolvió un país o texto libre. */
+  onClientCountry(pick: CountryPick): void {
+    this.clientCountry.set(pick);
+    this.personal.controls.country.setValue(
+      pick.country?.code ?? pick.text.trim(),
+    );
+    if (pick.country) {
+      this.personal.controls.phoneCode.setValue(pick.country.dial.replace('+', ''));
+    }
+  }
+
+  /** El autocompletar de país (organizador). */
+  onOrgCountry(pick: CountryPick): void {
+    this.org.controls.country.setValue(pick.country?.code ?? pick.text.trim());
+    this.applyOrgCountryRules();
+  }
+
+  /** Ciudad de la organización: editable y obligatoria sólo si el país es Perú. */
+  private applyOrgCountryRules(): void {
+    const city = this.org.controls.city;
+    if (this.org.controls.country.value === 'PE') {
+      city.setValidators(Validators.required);
+      city.enable({ emitEvent: false });
+    } else {
+      city.clearValidators();
+      city.setValue('', { emitEvent: false });
+      city.disable({ emitEvent: false });
+    }
+    city.updateValueAndValidity({ emitEvent: false });
   }
 
   openLegal(doc: LegalDoc, event: Event): void {
@@ -198,9 +356,13 @@ export class Register {
     if (role === 'ORGANIZER') {
       this.personal.disable({ emitEvent: false });
       this.org.enable({ emitEvent: false });
+      // Reaplica el bloqueo de ciudad para organizaciones del extranjero.
+      this.applyOrgCountryRules();
     } else {
       this.org.disable({ emitEvent: false });
       this.personal.enable({ emitEvent: false });
+      // Reaplica el bloqueo de ciudad/distrito para extranjeros.
+      this.applyNationalityRules();
     }
   }
 
@@ -275,10 +437,14 @@ export class Register {
                 country: raw.personal.country,
                 city: raw.personal.city.trim(),
                 district: raw.personal.district.trim(),
+                hasPeruvianNationality:
+                  raw.personal.country === 'PE'
+                    ? true
+                    : raw.personal.hasPeruvianNationality,
                 docType: raw.personal.docType,
                 docNumber: raw.personal.docNumber.trim().toUpperCase(),
                 gender: raw.personal.gender as never,
-                phoneCode: raw.personal.phoneCode,
+                phoneCode: `+${raw.personal.phoneCode}`,
                 phone: raw.personal.phone.trim(),
               }
             : undefined,

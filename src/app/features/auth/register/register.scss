@@ -162,10 +162,23 @@ form mat-form-field {
   width: 100%;
 }
 
+/* con subscriptSizing: dynamic los campos no reservan hueco fijo;
+   damos un respiro entre filas para que los errores no se peguen */
+.fs > .two,
+.fs > .phone-row,
+.fs > mat-form-field {
+  margin-top: 0.85rem;
+}
+.fs > .sec-label + .two,
+.fs > .sec-label + mat-form-field {
+  margin-top: 0;
+}
+
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0 0.85rem;
+  align-items: start;
 }
 
 .role-field mat-button-toggle-group {
@@ -177,8 +190,18 @@ form mat-form-field {
 
 .phone-row {
   display: grid;
-  grid-template-columns: 92px 1fr;
+  grid-template-columns: 132px 1fr;
   gap: 0 0.5rem;
+}
+
+.phone-row .flag {
+  font-size: 0.95rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+/* deja sitio al prefijo (bandera + "+") y quita el padding izq. sobrante */
+.phone-row .phone-code input {
+  padding-left: 0;
 }
 
 /* ---------- Sección organizador ---------- */

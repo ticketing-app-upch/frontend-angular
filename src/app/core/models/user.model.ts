@@ -15,6 +15,8 @@ export interface ClientProfile {
   city: string;
   /** Distrito (sobre todo para Lima); opcional. */
   district: string;
+  /** Solo aplica a extranjeros: declara nacionalidad peruana (doble). */
+  hasPeruvianNationality: boolean;
   docType: DocType;
   docNumber: string;
   gender: Gender;
