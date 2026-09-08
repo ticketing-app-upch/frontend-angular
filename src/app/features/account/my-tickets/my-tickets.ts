@@ -6,8 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { TicketService } from '../../../core/services/ticket.service';
+import { RedemptionService } from '../../../core/services/redemption.service';
 import { TicketOrder } from '../../../core/models/ticket.model';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
+import { TicketQr } from '../../../shared/ticket-qr/ticket-qr';
 
 @Component({
   selector: 'tkt-my-tickets',
@@ -21,12 +23,14 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
     MatProgressSpinnerModule,
     MatExpansionModule,
     EmptyState,
+    TicketQr,
   ],
   templateUrl: './my-tickets.html',
   styleUrl: './my-tickets.scss',
 })
 export class MyTickets {
   private tickets = inject(TicketService);
+  private redemptions = inject(RedemptionService);
 
   readonly loading = signal(true);
   readonly orders = signal<TicketOrder[]>([]);
@@ -45,16 +49,9 @@ export class MyTickets {
     return order.lines.reduce((a, l) => a + l.quantity, 0);
   }
 
-  /** Matriz pseudo-aleatoria y determinista para dibujar un "QR" decorativo. */
-  qrCells(code: string): boolean[] {
-    const cells: boolean[] = [];
-    let seed = 0;
-    for (let i = 0; i < code.length; i++) seed = (seed * 31 + code.charCodeAt(i)) >>> 0;
-    for (let i = 0; i < 49; i++) {
-      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
-      cells.push((seed >> 8) % 2 === 0);
-    }
-    return cells;
+  /** Momento del primer ingreso registrado en la puerta, si ya se usó. */
+  redeemedAt(order: TicketOrder): number | null {
+    return this.redemptions.get(order.id)?.at ?? null;
   }
 
   isPast(iso: string): boolean {

@@ -102,5 +102,13 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    // Puerta de validación (se abre al escanear el QR de una entrada).
+    // Sin layout ni guard: la escanea el personal de acceso, no el comprador.
+    path: 'validar',
+    loadComponent: () =>
+      import('./features/validate/validate').then((m) => m.ValidatePage),
+    title: 'Validar entrada · Aforo',
+  },
   { path: '**', redirectTo: '' },
 ];

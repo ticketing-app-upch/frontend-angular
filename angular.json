@@ -23,6 +23,7 @@
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
+            "allowedCommonJsDependencies": ["qrcode"],
             "assets": [
               {
                 "glob": "**/*",
@@ -65,6 +66,9 @@
         },
         "serve": {
           "builder": "@angular/build:dev-server",
+          "options": {
+            "allowedHosts": true
+          },
           "configurations": {
             "production": {
               "buildTarget": "tkt:build:production"

@@ -17,22 +17,34 @@
   } @else {
     <div class="tickets">
       @for (order of orders(); track order.id) {
-        <article class="ticket" [class.past]="isPast(order.eventStartsAt)">
+        <article
+          class="ticket"
+          [class.past]="isPast(order.eventStartsAt)"
+          [class.used]="redeemedAt(order)"
+        >
           <div class="stub">
-            <div class="qr" [attr.aria-label]="'Código ' + order.code">
-              @for (on of qrCells(order.code); track $index) {
-                <span [class.on]="on"></span>
-              }
-            </div>
+            <tkt-qr
+              [order]="order"
+              [rotating]="!isPast(order.eventStartsAt)"
+              [size]="168"
+            />
             <span class="code">{{ order.code }}</span>
           </div>
 
           <div class="info">
             <div class="top">
-              <span class="status" [class.past]="isPast(order.eventStartsAt)">
-                {{ isPast(order.eventStartsAt) ? 'Finalizado' : order.status }}
-              </span>
-              <span class="tkt-muted">
+              @if (redeemedAt(order); as usedAt) {
+                <span class="status used">
+                  <span class="dot" aria-hidden="true"></span>
+                  Utilizada · {{ usedAt | date: 'd MMM, HH:mm' }}
+                </span>
+              } @else {
+                <span class="status" [class.past]="isPast(order.eventStartsAt)">
+                  <span class="dot" aria-hidden="true"></span>
+                  {{ isPast(order.eventStartsAt) ? 'Finalizado' : order.status }}
+                </span>
+              }
+              <span class="bought">
                 Comprado el {{ order.createdAt | date: 'd MMM y' }}
               </span>
             </div>
@@ -50,10 +62,12 @@
             <mat-expansion-panel class="lines" hideToggle>
               <mat-expansion-panel-header>
                 <mat-panel-title>
+                  <mat-icon inline>confirmation_number</mat-icon>
                   {{ ticketCount(order) }} entrada(s)
                 </mat-panel-title>
                 <mat-panel-description>
-                  {{ order.total | currency: 'PEN' : 'symbol-narrow' }}
+                  <span class="amount">{{ order.total | currency: 'PEN' : 'symbol-narrow' }}</span>
+                  <mat-icon inline class="chevron">expand_more</mat-icon>
                 </mat-panel-description>
               </mat-expansion-panel-header>
               <ul>
