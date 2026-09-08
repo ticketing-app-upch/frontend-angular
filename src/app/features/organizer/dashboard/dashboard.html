@@ -5,7 +5,7 @@
       <p class="tkt-section-sub">Ocupación y recaudación de tus eventos.</p>
     </div>
     <span class="tkt-spacer"></span>
-    <a mat-flat-button routerLink="/organizador/eventos/nuevo">
+    <a mat-flat-button class="tkt-cta" routerLink="/organizador/eventos/nuevo">
       <mat-icon>add</mat-icon> Nuevo evento
     </a>
   </div>
@@ -40,14 +40,14 @@
 
     <div class="panel">
       <div class="panel-head">
-        <h2>Recaudación · últimos 6 meses</h2>
+        <h2><mat-icon>show_chart</mat-icon> Recaudación · últimos 6 meses</h2>
       </div>
       <tkt-bar-chart [data]="chartData()" />
     </div>
 
     <div class="panel">
       <div class="panel-head">
-        <h2>Rendimiento por evento</h2>
+        <h2><mat-icon>leaderboard</mat-icon> Rendimiento por evento</h2>
         <a routerLink="/organizador/eventos" class="link">Gestionar eventos</a>
       </div>
 
@@ -58,46 +58,43 @@
           message="Publica un evento y registra ventas para ver métricas."
         />
       } @else {
-        <table mat-table [dataSource]="s.byEvent" class="perf">
-          <ng-container matColumnDef="event">
-            <th mat-header-cell *matHeaderCellDef>Evento</th>
-            <td mat-cell *matCellDef="let row">{{ row.eventName }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef>Fecha</th>
-            <td mat-cell *matCellDef="let row">{{ row.startsAt | date: 'd MMM y' }}</td>
-          </ng-container>
-
-          <ng-container matColumnDef="occupancy">
-            <th mat-header-cell *matHeaderCellDef>Ocupación</th>
-            <td mat-cell *matCellDef="let row" class="occ-cell">
-              <tkt-capacity-bar
-                [sold]="row.sold"
-                [total]="row.capacity"
-                [showLabel]="false"
-              />
-              <span>{{ row.occupancy | percent: '1.0-0' }}</span>
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="sold">
-            <th mat-header-cell *matHeaderCellDef class="num">Vendidas</th>
-            <td mat-cell *matCellDef="let row" class="num">
-              {{ row.sold | number }} / {{ row.capacity | number }}
-            </td>
-          </ng-container>
-
-          <ng-container matColumnDef="revenue">
-            <th mat-header-cell *matHeaderCellDef class="num">Recaudación</th>
-            <td mat-cell *matCellDef="let row" class="num strong">
-              {{ row.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}
-            </td>
-          </ng-container>
-
-          <tr mat-header-row *matHeaderRowDef="columns"></tr>
-          <tr mat-row *matRowDef="let row; columns: columns"></tr>
-        </table>
+        <div class="perf-scroll">
+          <table class="perf">
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Fecha</th>
+                <th class="occ-col">Ocupación</th>
+                <th class="num">Vendidas</th>
+                <th class="num">Recaudación</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of s.byEvent; track row.eventId) {
+                <tr>
+                  <td class="ev-name">{{ row.eventName }}</td>
+                  <td class="muted">{{ row.startsAt | date: 'd MMM y' }}</td>
+                  <td>
+                    <div class="occ-cell">
+                      <tkt-capacity-bar
+                        [sold]="row.sold"
+                        [total]="row.capacity"
+                        [showLabel]="false"
+                      />
+                      <span class="occ-pct">{{ row.occupancy | percent: '1.0-0' }}</span>
+                    </div>
+                  </td>
+                  <td class="num muted">
+                    {{ row.sold | number }} / {{ row.capacity | number }}
+                  </td>
+                  <td class="num strong">
+                    {{ row.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       }
     </div>
   }

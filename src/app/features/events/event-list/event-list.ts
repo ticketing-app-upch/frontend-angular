@@ -14,6 +14,7 @@ import { debounceTime, startWith } from 'rxjs';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EventService } from '../../../core/services/event.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import {
   computeCapacity,
   EventCategory,
@@ -57,6 +58,7 @@ interface SpotlightVm {
 })
 export class EventList {
   private events = inject(EventService);
+  private notify = inject(NotificationService);
 
   readonly categories: CategoryOption[] = [
     { value: 'TODAS', label: 'Todas', icon: 'grid_view' },
@@ -132,7 +134,10 @@ export class EventList {
         this.allEvents.set(list);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.notify.error('No se pudieron cargar los eventos.');
+      },
     });
 
     const timer = setInterval(() => {

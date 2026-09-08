@@ -57,6 +57,7 @@ export class EventDetail {
   readonly event = signal<EventItem | null>(null);
 
   readonly isAuthenticated = this.auth.isAuthenticated;
+  readonly isOrganizer = this.auth.isOrganizer;
 
   readonly capacity = computed(() => {
     const e = this.event();

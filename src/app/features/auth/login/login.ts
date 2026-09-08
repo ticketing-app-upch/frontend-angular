@@ -14,6 +14,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { UserRole } from '../../../core/models/user.model';
 
 @Component({
   selector: 'tkt-login',
@@ -55,6 +56,12 @@ export class Login {
     });
   }
 
+  private homeFor(role: UserRole): string {
+    if (role === 'ADMIN') return '/admin';
+    if (role === 'ORGANIZER') return '/organizador/panel';
+    return '/eventos';
+  }
+
   forgotPassword(event: Event): void {
     event.preventDefault();
     this.notify.info(
@@ -71,9 +78,8 @@ export class Login {
     this.auth.login(this.form.getRawValue()).subscribe({
       next: (res) => {
         this.notify.success(`Hola, ${res.user.fullName.split(' ')[0]}`);
-        const redirect =
-          this.route.snapshot.queryParamMap.get('redirect') ?? '/eventos';
-        this.router.navigateByUrl(redirect);
+        const redirect = this.route.snapshot.queryParamMap.get('redirect');
+        this.router.navigateByUrl(redirect ?? this.homeFor(res.user.role));
       },
       error: (err) => {
         this.loading.set(false);

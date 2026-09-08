@@ -13,6 +13,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { TitleCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -96,6 +97,55 @@ export class EventForm {
   get zones(): FormArray {
     return this.form.controls.zones;
   }
+
+  /** Estadios de Lima habilitados para partidos de fútbol. */
+  readonly footballVenues = [
+    'Estadio Monumental',
+    'Estadio Nacional',
+    'Estadio San Marcos',
+    'Estadio Alejandro Villanueva',
+    'Estadio Iván Elías Moreno',
+    'Estadio Alberto Gallardo',
+    'Estadio Miguel Grau',
+  ];
+
+  /**
+   * Recintos de Lima aptos para conciertos. Se excluye la Explanada del Jockey
+   * Club: la Municipalidad de Surco mantiene la restricción a conciertos masivos
+   * desde 2023 y a 2026 no se ha levantado.
+   */
+  readonly concertVenues = [
+    'Estadio Nacional',
+    'Estadio San Marcos',
+    'Estadio Monumental',
+    'Estadio Alejandro Villanueva',
+    'Arena 1 - Costa Verde',
+    'Multiespacio Costa 21',
+    'Coliseo Eduardo Dibós',
+    'Explanada Costa Verde',
+    'Anfiteatro del Parque de la Exposición',
+    'Gran Teatro Nacional',
+    'Teatro Municipal de Lima',
+    'Teatro Peruano Japonés',
+  ];
+
+  private categoryValue = toSignal(this.form.controls.category.valueChanges, {
+    initialValue: this.form.controls.category.value,
+  });
+  /**
+   * Lista cerrada de recintos según la categoría (DEPORTE / CONCIERTO).
+   * `null` = el recinto es texto libre.
+   */
+  readonly venueOptions = computed<readonly string[] | null>(() => {
+    switch (this.categoryValue()) {
+      case 'DEPORTE':
+        return this.footballVenues;
+      case 'CONCIERTO':
+        return this.concertVenues;
+      default:
+        return null;
+    }
+  });
 
   constructor() {
     effect(() => {

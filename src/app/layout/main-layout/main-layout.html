@@ -8,12 +8,15 @@
 
     <nav class="links">
       <a routerLink="/eventos" routerLinkActive="active">Eventos</a>
-      @if (isAuthenticated()) {
+      @if (isClient()) {
         <a routerLink="/mis-entradas" routerLinkActive="active">Mis entradas</a>
       }
       @if (isOrganizer()) {
         <a routerLink="/organizador/panel" routerLinkActive="active">Panel</a>
         <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
+      }
+      @if (isAdmin()) {
+        <a routerLink="/admin" routerLinkActive="active">Administración</a>
       }
     </nav>
 
@@ -32,12 +35,19 @@
           <span class="role">{{ user()!.role === 'ORGANIZER' ? 'Organizador' : 'Cliente' }}</span>
         </div>
         <mat-divider />
-        <a mat-menu-item routerLink="/mis-entradas">
-          <mat-icon>local_activity</mat-icon> Mis entradas
-        </a>
+        @if (isClient()) {
+          <a mat-menu-item routerLink="/mis-entradas">
+            <mat-icon>local_activity</mat-icon> Mis entradas
+          </a>
+        }
         @if (isOrganizer()) {
           <a mat-menu-item routerLink="/organizador/panel">
             <mat-icon>insights</mat-icon> Panel del organizador
+          </a>
+        }
+        @if (isAdmin()) {
+          <a mat-menu-item routerLink="/admin">
+            <mat-icon>shield_person</mat-icon> Administración
           </a>
         }
         <mat-divider />

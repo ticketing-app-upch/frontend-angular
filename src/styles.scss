@@ -123,16 +123,64 @@ a {
   color: var(--mat-sys-on-surface-variant, #5b5b66);
 }
 
-.snack-success {
-  --mdc-snackbar-container-color: #16794b;
-  --mat-snack-bar-button-color: #d9f7e6;
-  --mdc-snackbar-supporting-text-color: #ffffff;
+// ---- Panel de administración: tarjeta + tabla ----
+.adm-card {
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 9%, transparent);
+  border-radius: 18px;
+  background: var(--mat-sys-surface);
+  box-shadow: 0 2px 6px rgba(16, 12, 40, 0.05),
+    0 22px 50px -32px rgba(76, 29, 149, 0.3);
+  overflow: hidden;
+}
+.adm-scroll { overflow-x: auto; }
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.adm-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 0.8rem 1rem;
+  white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+}
+.adm-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+  vertical-align: middle;
+}
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+.adm-table tbody tr:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 4%, transparent);
 }
 
-.snack-error {
-  --mdc-snackbar-container-color: #b3261e;
-  --mat-snack-bar-button-color: #ffdad6;
-  --mdc-snackbar-supporting-text-color: #ffffff;
+.adm-chip {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  color: var(--mat-sys-on-surface-variant);
+}
+.adm-chip.st-PUBLICADO,
+.adm-chip.st-CONFIRMADA {
+  background: color-mix(in srgb, #16a34a 18%, transparent);
+  color: #15803d;
+}
+.adm-chip.st-AGOTADO {
+  background: color-mix(in srgb, var(--tkt-accent) 15%, transparent);
+  color: var(--tkt-accent-strong);
+}
+.adm-chip.st-CANCELADA {
+  background: color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+  color: var(--mat-sys-error);
 }
 
 // Scrollbar discreta

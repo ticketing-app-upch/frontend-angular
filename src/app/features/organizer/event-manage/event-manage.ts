@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { computeCapacity, EventItem } from '../../../core/models/event.model';
 import { CapacityBar } from '../../../shared/capacity-bar/capacity-bar';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
@@ -32,6 +33,7 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
 export class EventManage {
   private events = inject(EventService);
   private auth = inject(AuthService);
+  private notify = inject(NotificationService);
 
   readonly loading = signal(true);
   readonly items = signal<EventItem[]>([]);
@@ -45,7 +47,10 @@ export class EventManage {
         );
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.notify.error('No se pudieron cargar tus eventos.');
+      },
     });
   }
 

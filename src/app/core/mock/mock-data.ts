@@ -27,6 +27,14 @@ export const SEED_USERS: SeedUser[] = [
     password: 'cliente',
     role: 'CLIENT',
   },
+  {
+    // Cuenta de administrador: se crea aquí, nunca desde el registro público.
+    id: 'u-adm-1',
+    fullName: 'Admin Aforo',
+    email: 'admin@tkt.pe',
+    password: 'admin',
+    role: 'ADMIN',
+  },
 ];
 
 function daysFromNow(days: number, hour = 20): string {
@@ -305,6 +313,24 @@ const RAW_EVENTS: Omit<EventItem, 'imageUrl'>[] = [
     zones: [
       { id: 'z-15a', name: 'Platea', price: 120, capacity: 450, sold: 180 },
       { id: 'z-15b', name: 'General', price: 70, capacity: 700, sold: 210 },
+    ],
+  },
+  {
+    id: 'ev-16',
+    name: 'Cienciano vs Melgar',
+    description:
+      'Evento de prueba para verificar que los escudos aparecen sin escribir "fútbol" en el nombre (ambos equipos tienen escudo registrado).',
+    category: 'DEPORTE',
+    status: 'PUBLICADO',
+    venue: 'Estadio Nacional',
+    city: 'Lima',
+    startsAt: daysFromNow(9, 15),
+    organizerId: 'u-org-1',
+    maxPerOrder: 4,
+    zones: [
+      { id: 'z-16a', name: 'Occidente', price: 120, capacity: 8000, sold: 5200 },
+      { id: 'z-16b', name: 'Oriente', price: 80, capacity: 12000, sold: 7400 },
+      { id: 'z-16c', name: 'Norte', price: 45, capacity: 15000, sold: 9100 },
     ],
   },
 ];

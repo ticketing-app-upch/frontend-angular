@@ -29,6 +29,8 @@ export class MainLayout {
   readonly user = this.auth.user;
   readonly isAuthenticated = this.auth.isAuthenticated;
   readonly isOrganizer = this.auth.isOrganizer;
+  readonly isClient = this.auth.isClient;
+  readonly isAdmin = this.auth.isAdmin;
   readonly year = new Date().getFullYear();
 
   logout(): void {

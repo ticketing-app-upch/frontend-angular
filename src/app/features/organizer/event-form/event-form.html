@@ -12,7 +12,7 @@
   } @else {
     <form [formGroup]="form" (ngSubmit)="submit()" class="form">
       <mat-card class="block">
-        <h2>Información general</h2>
+        <h2><mat-icon>info</mat-icon> Información general</h2>
 
         <mat-form-field appearance="outline">
           <mat-label>Nombre del evento</mat-label>
@@ -53,7 +53,18 @@
         <div class="two">
           <mat-form-field appearance="outline">
             <mat-label>Lugar / recinto</mat-label>
-            <input matInput formControlName="venue" />
+            @if (venueOptions(); as venues) {
+              <mat-select formControlName="venue">
+                @for (v of venues; track v) {
+                  <mat-option [value]="v">{{ v }}</mat-option>
+                }
+              </mat-select>
+            } @else {
+              <input matInput formControlName="venue" />
+            }
+            @if (venueOptions()) {
+              <mat-hint>Recintos de Lima para esta categoría.</mat-hint>
+            }
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Ciudad</mat-label>
@@ -85,7 +96,7 @@
 
       <mat-card class="block">
         <div class="zones-head">
-          <h2>Zonas</h2>
+          <h2><mat-icon>event_seat</mat-icon> Zonas</h2>
           <button mat-stroked-button type="button" (click)="addZone()">
             <mat-icon>add</mat-icon> Agregar zona
           </button>
@@ -94,6 +105,7 @@
         <div formArrayName="zones" class="zones">
           @for (zone of zones.controls; track zone; let i = $index) {
             <div class="zone" [formGroupName]="i">
+              <span class="zone-num">{{ i + 1 }}</span>
               <mat-form-field appearance="outline">
                 <mat-label>Nombre</mat-label>
                 <input matInput formControlName="name" />
@@ -127,7 +139,7 @@
 
       <div class="form-actions">
         <a mat-stroked-button routerLink="/organizador/eventos">Cancelar</a>
-        <button mat-flat-button type="submit" [disabled]="saving()">
+        <button mat-flat-button type="submit" class="tkt-cta" [disabled]="saving()">
           @if (saving()) { Guardando… } @else { Guardar evento }
         </button>
       </div>

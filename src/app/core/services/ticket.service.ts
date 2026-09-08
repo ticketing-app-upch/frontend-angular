@@ -8,6 +8,7 @@ import { computeCapacity } from '../models/event.model';
 import {
   CreateOrderPayload,
   OrderLine,
+  OrderStatus,
   TicketOrder,
 } from '../models/ticket.model';
 import { AuthService } from '../auth/auth.service';
@@ -33,6 +34,31 @@ export class TicketService {
       );
     }
     return this.http.get<TicketOrder[]>(`${this.base}/orders/me`);
+  }
+
+  /** Todas las órdenes de la plataforma. Solo admin. */
+  listAll(): Observable<TicketOrder[]> {
+    if (environment.useMock) {
+      return mockResponse(
+        [...this.store.orders]
+          .map((o) => structuredClone(o))
+          .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+      );
+    }
+    return this.http.get<TicketOrder[]>(`${this.base}/admin/orders`);
+  }
+
+  /** Cambia el estado de una orden (p. ej. cancelar). Solo admin. */
+  setStatus(id: string, status: OrderStatus): Observable<TicketOrder> {
+    if (environment.useMock) {
+      const found = this.store.orders.find((o) => o.id === id);
+      if (!found) {
+        return mockError<TicketOrder>('Orden no encontrada.', 404);
+      }
+      this.store.updateOrder(id, { status });
+      return mockResponse({ ...structuredClone(found), status });
+    }
+    return this.http.patch<TicketOrder>(`${this.base}/orders/${id}`, { status });
   }
 
   createOrder(payload: CreateOrderPayload): Observable<TicketOrder> {

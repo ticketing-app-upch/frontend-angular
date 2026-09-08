@@ -1,5 +1,10 @@
 import { Routes } from '@angular/router';
-import { authGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
+import {
+  authGuard,
+  clientGuard,
+  guestGuard,
+  roleGuard,
+} from './core/auth/auth.guards';
 
 export const routes: Routes = [
   {
@@ -26,14 +31,14 @@ export const routes: Routes = [
       },
       {
         path: 'comprar/:eventId',
-        canActivate: [authGuard],
+        canActivate: [authGuard, clientGuard],
         loadComponent: () =>
           import('./features/checkout/checkout').then((m) => m.Checkout),
         title: 'Comprar entradas · Aforo',
       },
       {
         path: 'mis-entradas',
-        canActivate: [authGuard],
+        canActivate: [authGuard, clientGuard],
         loadComponent: () =>
           import('./features/account/my-tickets/my-tickets').then(
             (m) => m.MyTickets,
@@ -76,6 +81,49 @@ export const routes: Routes = [
                 (m) => m.EventForm,
               ),
             title: 'Editar evento · Aforo',
+          },
+        ],
+      },
+      {
+        path: 'admin',
+        canActivate: [roleGuard('ADMIN')],
+        loadComponent: () =>
+          import('./features/admin/admin-layout/admin-layout').then(
+            (m) => m.AdminLayout,
+          ),
+        children: [
+          { path: '', redirectTo: 'resumen', pathMatch: 'full' },
+          {
+            path: 'resumen',
+            loadComponent: () =>
+              import('./features/admin/admin-overview/admin-overview').then(
+                (m) => m.AdminOverview,
+              ),
+            title: 'Administración · Aforo',
+          },
+          {
+            path: 'usuarios',
+            loadComponent: () =>
+              import('./features/admin/admin-users/admin-users').then(
+                (m) => m.AdminUsers,
+              ),
+            title: 'Usuarios · Administración',
+          },
+          {
+            path: 'eventos',
+            loadComponent: () =>
+              import('./features/admin/admin-events/admin-events').then(
+                (m) => m.AdminEvents,
+              ),
+            title: 'Eventos · Administración',
+          },
+          {
+            path: 'compras',
+            loadComponent: () =>
+              import('./features/admin/admin-orders/admin-orders').then(
+                (m) => m.AdminOrders,
+              ),
+            title: 'Compras · Administración',
           },
         ],
       },

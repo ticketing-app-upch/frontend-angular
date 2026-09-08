@@ -1,0 +1,63 @@
+@if (loading()) {
+  <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
+} @else if (items().length === 0) {
+  <tkt-empty-state icon="event_busy" title="Sin eventos" />
+} @else {
+  <div class="adm-card">
+    <div class="adm-scroll">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Evento</th>
+            <th>Organizador</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th class="ta-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (ev of items(); track ev.id) {
+            <tr>
+              <td class="strong">{{ ev.name }}</td>
+              <td class="muted">{{ organizer(ev.organizerId) }}</td>
+              <td>{{ ev.category | titlecase }}</td>
+              <td>
+                <span class="adm-chip" [class]="'st-' + ev.status">
+                  {{ ev.status | titlecase }}
+                </span>
+              </td>
+              <td class="muted">{{ ev.startsAt | date: "d MMM y · HH:mm" }}</td>
+              <td class="ta-right">
+                @if (confirmId() === ev.id) {
+                  <span class="confirm">
+                    ¿Eliminar?
+                    <button mat-button color="warn" (click)="confirmDelete(ev)">Sí</button>
+                    <button mat-button (click)="cancelDelete()">No</button>
+                  </span>
+                } @else {
+                  <a
+                    mat-icon-button
+                    [routerLink]="['/organizador/eventos', ev.id, 'editar']"
+                    aria-label="Editar evento"
+                  >
+                    <mat-icon>edit</mat-icon>
+                  </a>
+                  <button
+                    mat-icon-button
+                    class="del"
+                    [disabled]="busyId() === ev.id"
+                    (click)="askDelete(ev)"
+                    aria-label="Eliminar evento"
+                  >
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

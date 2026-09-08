@@ -148,6 +148,10 @@
 
         @if (soldOut()) {
           <button mat-flat-button disabled class="cta">Evento agotado</button>
+        } @else if (isOrganizer()) {
+          <button mat-stroked-button disabled class="cta">
+            <mat-icon>store</mat-icon> Vista de organizador
+          </button>
         } @else if (isAuthenticated()) {
           <a mat-flat-button class="cta tkt-cta" [routerLink]="['/comprar', ev.id]">
             <mat-icon>local_activity</mat-icon> Comprar entradas

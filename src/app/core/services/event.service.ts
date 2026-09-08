@@ -41,6 +41,26 @@ export class EventService {
     return this.http.get<EventItem>(`${this.base}/events/${id}`);
   }
 
+  /** Todos los eventos de la plataforma (cualquier organizador, cualquier estado). Solo admin. */
+  listAll(): Observable<EventItem[]> {
+    if (environment.useMock) {
+      return mockResponse(
+        [...this.store.events]
+          .map((e) => structuredClone(e))
+          .sort((a, b) => b.startsAt.localeCompare(a.startsAt)),
+      );
+    }
+    return this.http.get<EventItem[]>(`${this.base}/admin/events`);
+  }
+
+  remove(id: string): Observable<void> {
+    if (environment.useMock) {
+      this.store.removeEvent(id);
+      return mockResponse<void>(undefined);
+    }
+    return this.http.delete<void>(`${this.base}/events/${id}`);
+  }
+
   /** Eventos que pertenecen a un organizador (incluye borradores). */
   listByOrganizer(organizerId: string): Observable<EventItem[]> {
     if (environment.useMock) {

@@ -1,4 +1,11 @@
-export type UserRole = 'CLIENT' | 'ORGANIZER';
+export type UserRole = 'CLIENT' | 'ORGANIZER' | 'ADMIN';
+
+/**
+ * Roles que una persona puede elegir al registrarse. `ADMIN` nunca está aquí:
+ * las cuentas de administrador se crean por fuera (seed / otro admin), jamás
+ * desde el formulario público.
+ */
+export type PublicRole = Exclude<UserRole, 'ADMIN'>;
 
 export type OrganizerType = 'PERSONA' | 'EMPRESA';
 
@@ -68,7 +75,7 @@ export interface RegisterPayload {
   fullName: string;
   email: string;
   password: string;
-  role: UserRole;
+  role: PublicRole;
   acceptedTerms: boolean;
   marketingOptIn: boolean;
   /** Requerido cuando `role === 'CLIENT'`. */

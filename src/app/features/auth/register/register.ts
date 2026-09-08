@@ -34,7 +34,7 @@ import { flagEmoji, normalize } from '../../../shared/countries';
 import {
   DocType,
   OrganizerType,
-  UserRole,
+  PublicRole,
 } from '../../../core/models/user.model';
 
 const DOC_PATTERNS: Record<DocType, RegExp> = {
@@ -91,7 +91,7 @@ export class Register {
     lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
-    role: ['CLIENT' as UserRole, Validators.required],
+    role: ['CLIENT' as PublicRole, Validators.required],
 
     personal: this.fb.nonNullable.group({
       country: ['PE', Validators.required],

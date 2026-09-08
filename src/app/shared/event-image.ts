@@ -50,10 +50,16 @@ export interface MatchArt {
 /** Devuelve escudos + nombres si el evento es un partido de fútbol "A vs B". */
 export function matchArt(name: string, category: EventCategory): MatchArt | null {
   if (category !== 'DEPORTE') return null;
-  if (!/f[uú]tbol|cl[aá]sico|derbi|derby/i.test(name)) return null;
   const teams = parseTeams(name);
   if (!teams) return null;
   const [teamA, teamB] = teams;
+  // Dispara los escudos si el nombre menciona el deporte, o si ambos equipos
+  // tienen escudo real registrado (así "Cienciano vs Melgar" ya funciona solo).
+  const mentionsFootball = /f[uú]tbol|cl[aá]sico|derbi|derby/i.test(name);
+  const bothKnown =
+    TEAM_CRESTS[normalizeTeam(teamA)] !== undefined &&
+    TEAM_CRESTS[normalizeTeam(teamB)] !== undefined;
+  if (!mentionsFootball && !bothKnown) return null;
   return {
     teamA,
     teamB,
@@ -70,12 +76,51 @@ export function matchArt(name: string, category: EventCategory): MatchArt | null
  * /public/events…). Si el equipo no está, se genera un escudo con sus colores
  * e iniciales.  Ej.:  'sporting cristal': '/events/crest-sporting-cristal.png'
  */
+// Las claves se comparan contra el nombre YA normalizado por `normalizeTeam()`:
+// minúsculas, sin tildes y sin las palabras club/deportivo/fbc/fc/cd. Por eso
+// aquí no hay tildes ni esas palabras. Varias claves pueden apuntar al mismo
+// archivo (alias por nombre corto o nombre oficial completo).
 const TEAM_CRESTS: Record<string, string> = {
   'sporting cristal': '/events/crest-sporting-cristal.webp',
   cristal: '/events/crest-sporting-cristal.webp',
   universitario: '/events/crest-universitario.png',
   'universitario de deportes': '/events/crest-universitario.png',
   'la u': '/events/crest-universitario.png',
+  'alianza lima': '/events/Alianza lima.webp',
+  alianza: '/events/Alianza lima.webp',
+  cienciano: '/events/cienciano.png',
+  melgar: '/events/melgar.webp',
+  'sport boys': '/events/Sport Boys.webp',
+  boys: '/events/Sport Boys.webp',
+  'sport huancayo': '/events/Sport Huancayo.png',
+  huancayo: '/events/Sport Huancayo.png',
+  'atletico grau': '/events/atlético grau.png',
+  'atletico grau de piura': '/events/atlético grau.png',
+  grau: '/events/atlético grau.png',
+  'atletico de sullana': '/events/Atlético de Sullana.png',
+  'alianza atletico': '/events/Atlético de Sullana.png',
+  'alianza atletico sullana': '/events/Atlético de Sullana.png',
+  sullana: '/events/Atlético de Sullana.png',
+  cusco: '/events/cusco.png',
+  garcilaso: '/events/deportivo garcilaso.webp',
+  'garcilaso del cusco': '/events/deportivo garcilaso.webp',
+  chankas: '/events/Chankas.png',
+  'los chankas': '/events/Chankas.png',
+  'los chankas de andahuaylas': '/events/Chankas.png',
+  adt: '/events/ADT.webp',
+  'adt tarma': '/events/ADT.webp',
+  'asociacion deportiva tarma': '/events/ADT.webp',
+  tarma: '/events/ADT.webp',
+  utc: '/events/UTC.png',
+  'utc cajamarca': '/events/UTC.png',
+  'utc de cajamarca': '/events/UTC.png',
+  cajamarca: '/events/cajamarca.png',
+  'comerciantes unidos': '/events/comerciantes unidos.png',
+  comerciantes: '/events/comerciantes unidos.png',
+  moquegua: '/events/moquegua.png',
+  'juan pablo ii': '/events/juan pablo II.webp',
+  'juan pablo ii college': '/events/juan pablo II.webp',
+  'juan pablo': '/events/juan pablo II.webp',
 };
 
 /** Colores de camiseta (conocimiento público, no son los logos). */

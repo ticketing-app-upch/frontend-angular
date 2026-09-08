@@ -14,13 +14,20 @@ export interface BarDatum {
   imports: [CurrencyPipe],
   template: `
     <div class="chart" role="img" [attr.aria-label]="ariaLabel()">
+      <div class="grid" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+      </div>
       @for (bar of bars(); track bar.label) {
-        <div class="col">
+        <div class="col" [class.is-peak]="bar.peak">
           <div class="bar-wrap">
-            <span class="tip">
+            <span class="val">
               {{ bar.value | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}
             </span>
-            <div class="bar" [style.height.%]="bar.height"></div>
+            <div
+              class="bar"
+              [class.zero]="bar.value <= 0"
+              [style.height.%]="bar.height"
+            ></div>
           </div>
           <span class="x">{{ bar.label }}</span>
           @if (bar.caption) {
@@ -33,13 +40,33 @@ export interface BarDatum {
   styles: `
     :host { display: block; }
     .chart {
+      position: relative;
       display: flex;
       align-items: flex-end;
-      gap: 0.75rem;
+      gap: clamp(0.5rem, 3vw, 1.25rem);
       height: 220px;
-      padding: 0.5rem 0.25rem 0;
+      padding: 1.6rem 0.25rem 0;
     }
-    .col { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; }
+    .grid {
+      position: absolute;
+      inset: 1.6rem 0 2.9rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+    .grid span {
+      display: block;
+      border-top: 1px dashed color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent);
+    }
+    .col {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+    }
     .bar-wrap {
       position: relative;
       flex: 1;
@@ -49,29 +76,41 @@ export interface BarDatum {
       justify-content: center;
     }
     .bar {
-      width: min(60%, 42px);
-      min-height: 4px;
-      border-radius: 8px 8px 2px 2px;
+      width: min(66%, 46px);
+      min-height: 6px;
+      border-radius: 7px 7px 3px 3px;
       background: linear-gradient(
         180deg,
         var(--mat-sys-primary),
-        color-mix(in srgb, var(--mat-sys-primary) 55%, var(--mat-sys-tertiary))
+        color-mix(in srgb, var(--mat-sys-primary) 45%, var(--tkt-accent))
       );
-      transition: height 0.5s ease;
+      box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--mat-sys-primary) 60%, transparent);
+      transition: height 0.5s cubic-bezier(0.2, 0.9, 0.3, 1);
     }
-    .tip {
+    .col.is-peak .bar {
+      background: linear-gradient(180deg, var(--tkt-accent-soft), var(--tkt-accent-strong));
+      box-shadow: 0 10px 24px -8px color-mix(in srgb, var(--tkt-accent) 60%, transparent);
+    }
+    .bar.zero {
+      background: color-mix(in srgb, var(--mat-sys-on-surface) 14%, transparent);
+      box-shadow: none;
+    }
+    .val {
       position: absolute;
-      top: -1.4rem;
-      font-size: 0.7rem;
-      font-weight: 600;
+      top: -1.5rem;
+      font-size: 0.72rem;
+      font-weight: 700;
       color: var(--mat-sys-on-surface-variant);
-      opacity: 0;
-      transition: opacity 0.15s ease;
       white-space: nowrap;
     }
-    .col:hover .tip { opacity: 1; }
-    .x { margin-top: 0.5rem; font-size: 0.78rem; color: var(--mat-sys-on-surface-variant); }
-    .cap { font-size: 0.72rem; font-weight: 600; }
+    .col.is-peak .val { color: var(--tkt-accent-strong); }
+    .x {
+      margin-top: 0.55rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--mat-sys-on-surface-variant);
+    }
+    .cap { font-size: 0.72rem; font-weight: 600; color: var(--mat-sys-on-surface); }
   `,
 })
 export class BarChart {
@@ -82,7 +121,8 @@ export class BarChart {
     const max = Math.max(1, ...rows.map((d) => d.value));
     return rows.map((d) => ({
       ...d,
-      height: Math.max(2, (d.value / max) * 100),
+      height: d.value <= 0 ? 0 : Math.max(6, (d.value / max) * 100),
+      peak: d.value > 0 && d.value === max,
     }));
   });
 

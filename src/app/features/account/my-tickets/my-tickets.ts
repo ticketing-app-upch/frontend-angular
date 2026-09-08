@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { TicketService } from '../../../core/services/ticket.service';
 import { RedemptionService } from '../../../core/services/redemption.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { TicketOrder } from '../../../core/models/ticket.model';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
 import { TicketQr } from '../../../shared/ticket-qr/ticket-qr';
@@ -31,6 +32,7 @@ import { TicketQr } from '../../../shared/ticket-qr/ticket-qr';
 export class MyTickets {
   private tickets = inject(TicketService);
   private redemptions = inject(RedemptionService);
+  private notify = inject(NotificationService);
 
   readonly loading = signal(true);
   readonly orders = signal<TicketOrder[]>([]);
@@ -41,7 +43,10 @@ export class MyTickets {
         this.orders.set(list);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        this.loading.set(false);
+        this.notify.error('No se pudieron cargar tus entradas.');
+      },
     });
   }
 

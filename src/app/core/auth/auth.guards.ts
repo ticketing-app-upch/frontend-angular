@@ -14,16 +14,34 @@ export const authGuard: CanActivateFn = (_route, state) => {
   });
 };
 
-export function roleGuard(role: UserRole): CanActivateFn {
+/**
+ * Restringe una ruta a uno o más roles. El rol `ADMIN` cumple siempre
+ * (tiene acceso a todo el sistema).
+ */
+export function roleGuard(...roles: UserRole[]): CanActivateFn {
   return () => {
     const auth = inject(AuthService);
     const router = inject(Router);
     if (!auth.isAuthenticated()) {
       return router.createUrlTree(['/auth/login']);
     }
-    return auth.user()?.role === role ? true : router.createUrlTree(['/eventos']);
+    const role = auth.user()?.role;
+    if (role === 'ADMIN' || (role && roles.includes(role))) {
+      return true;
+    }
+    return router.createUrlTree(['/eventos']);
   };
 }
+
+/**
+ * Restringe una ruta a clientes (comprar / ver entradas). Se usa DESPUÉS de
+ * `authGuard`, así que aquí sólo hay que apartar a los organizadores.
+ */
+export const clientGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  return auth.isOrganizer() ? router.createUrlTree(['/organizador/panel']) : true;
+};
 
 /** Evita que un usuario ya autenticado vea login/registro. */
 export const guestGuard: CanActivateFn = () => {

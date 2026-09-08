@@ -96,6 +96,19 @@ export class MockStore {
     this.persist();
   }
 
+  updateUser(id: string, patch: Partial<SeedUser>): void {
+    const idx = this.data.users.findIndex((u) => u.id === id);
+    if (idx >= 0) {
+      this.data.users[idx] = { ...this.data.users[idx], ...patch, id };
+      this.persist();
+    }
+  }
+
+  removeUser(id: string): void {
+    this.data.users = this.data.users.filter((u) => u.id !== id);
+    this.persist();
+  }
+
   // --- Events ----------------------------------------------------------
   get events(): EventItem[] {
     return this.data.events;
@@ -111,6 +124,11 @@ export class MockStore {
     this.persist();
   }
 
+  removeEvent(id: string): void {
+    this.data.events = this.data.events.filter((e) => e.id !== id);
+    this.persist();
+  }
+
   // --- Orders --------------------------------------------------------
   get orders(): TicketOrder[] {
     return this.data.orders;
@@ -118,6 +136,19 @@ export class MockStore {
 
   addOrder(order: TicketOrder): void {
     this.data.orders.unshift(order);
+    this.persist();
+  }
+
+  updateOrder(id: string, patch: Partial<TicketOrder>): void {
+    const idx = this.data.orders.findIndex((o) => o.id === id);
+    if (idx >= 0) {
+      this.data.orders[idx] = { ...this.data.orders[idx], ...patch, id };
+      this.persist();
+    }
+  }
+
+  removeOrder(id: string): void {
+    this.data.orders = this.data.orders.filter((o) => o.id !== id);
     this.persist();
   }
 
