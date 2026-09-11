@@ -53,23 +53,22 @@
         <div class="two">
           <mat-form-field appearance="outline">
             <mat-label>Lugar / recinto</mat-label>
-            @if (venueOptions(); as venues) {
-              <mat-select formControlName="venue">
-                @for (v of venues; track v) {
-                  <mat-option [value]="v">{{ v }}</mat-option>
-                }
-              </mat-select>
+            <input matInput formControlName="venue" list="venue-suggestions" />
+            <datalist id="venue-suggestions">@for (v of venueOptions() ?? []; track v) { <option [value]="v"></option> }</datalist>
+            @if (form.controls.venue.invalid && form.controls.venue.touched) {
+              <mat-error>El recinto es obligatorio.</mat-error>
             } @else {
-              <input matInput formControlName="venue" />
-            }
-            @if (venueOptions()) {
-              <mat-hint>Recintos de Lima para esta categoría.</mat-hint>
+              <mat-hint>Escribe un recinto o usa una sugerencia; verifica sus condiciones con el organizador.</mat-hint>
             }
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Ciudad</mat-label>
-            <input matInput formControlName="city" readonly />
-            <mat-hint>Por ahora sólo se publican eventos en Lima.</mat-hint>
+            <input matInput formControlName="city" />
+            @if (form.controls.city.invalid && form.controls.city.touched) {
+              <mat-error>La ciudad es obligatoria.</mat-error>
+            } @else {
+              <mat-hint>Indica la ciudad real del evento.</mat-hint>
+            }
           </mat-form-field>
         </div>
 
@@ -83,14 +82,20 @@
           </mat-form-field>
           <mat-form-field appearance="outline">
             <mat-label>Máx. entradas por compra</mat-label>
-            <input matInput type="number" min="1" max="20" formControlName="maxPerOrder" />
+            <input matInput type="number" min="1" max="6" step="1" formControlName="maxPerOrder" />
+            <mat-hint>Hasta 6 entradas por transacción.</mat-hint>
           </mat-form-field>
         </div>
 
         <mat-form-field appearance="outline">
+          <mat-label>Capacidad física del recinto</mat-label>
+          <input matInput type="number" min="1" step="1" formControlName="venueCapacity" />
+          <mat-hint>La suma de zonas no puede superar este aforo.</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
           <mat-label>URL de imagen (opcional)</mat-label>
           <input matInput formControlName="imageUrl" placeholder="https://…" />
-          <mat-hint>Si la dejas vacía, generamos una imagen de demo.</mat-hint>
+          <mat-hint>Si la dejas vacía, generamos una imagen para tu evento.</mat-hint>
         </mat-form-field>
       </mat-card>
 
@@ -120,7 +125,7 @@
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Vendidas</mat-label>
-                <input matInput type="number" min="0" formControlName="sold" />
+                <input matInput type="number" min="0" formControlName="sold" readonly />
               </mat-form-field>
               <button
                 mat-icon-button

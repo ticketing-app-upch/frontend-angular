@@ -55,13 +55,18 @@
 
   <div class="tkt-page detail-grid">
     <div class="about">
+      <div class="tkt-cluster" style="margin-bottom:24px">
+        <button mat-stroked-button (click)="discovery.toggle(ev.id)" [attr.aria-pressed]="discovery.has(ev.id)"><mat-icon>{{ discovery.has(ev.id) ? 'favorite' : 'favorite_border' }}</mat-icon>{{ discovery.has(ev.id) ? 'Guardado' : 'Guardar evento' }}</button>
+        <button mat-stroked-button (click)="calendar(ev)"><mat-icon>event_available</mat-icon>Mi calendario</button>
+        <button mat-stroked-button (click)="share()"><mat-icon>share</mat-icon>Compartir</button>
+      </div>
       <section class="block">
         <h2 class="tkt-section-title">Sobre el evento</h2>
         <p class="desc">{{ ev.description }}</p>
       </section>
 
       <section class="block">
-        <h2 class="tkt-section-title">Zonas y precios</h2>
+        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Estimación dinámica por entrada + 6% de servicio. El total se confirma antes del pago.</p>
         <div class="zones">
           @for (zone of ev.zones; track zone.id) {
             @let avail = zoneAvailable(zone.sold, zone.capacity);
@@ -81,7 +86,7 @@
                   }
                 </span>
                 <span class="zone-price">
-                  {{ zone.price | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                  {{ price(ev, zone).unitPrice | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
                 </span>
               </div>
               <tkt-capacity-bar
@@ -97,7 +102,7 @@
                     {{ avail | number }} entradas disponibles
                   }
                 </span>
-                <span>{{ pct | number: '1.0-0' }}% ocupado</span>
+                <span>{{ price(ev, zone).note }}</span><span>{{ pct | number: '1.0-0' }}% ocupado</span>
               </div>
             </div>
           }
@@ -107,13 +112,14 @@
 
     <aside class="buy-box">
       <div class="buy-card">
-        <div class="price-head">
+        @if (!soldOut()) { <div class="price-head">
           <span class="ph-label">Entradas desde</span>
           <span class="ph-price">
-            {{ minPrice() | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}
+            {{ minPrice() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
           </span>
         </div>
 
+        }
         @if (capacity(); as cap) {
           <div class="aforo">
             <div class="aforo-row">
@@ -148,9 +154,10 @@
 
         @if (soldOut()) {
           <button mat-flat-button disabled class="cta">Evento agotado</button>
+        } @else if (ended()) { <button mat-flat-button disabled class="cta">Venta no disponible</button>
         } @else if (isOrganizer()) {
           <button mat-stroked-button disabled class="cta">
-            <mat-icon>store</mat-icon> Vista de organizador
+            <mat-icon>store</mat-icon> Vista de gestión
           </button>
         } @else if (isAuthenticated()) {
           <a mat-flat-button class="cta tkt-cta" [routerLink]="['/comprar', ev.id]">
@@ -168,7 +175,7 @@
         }
 
         <p class="fine">
-          <mat-icon>lock</mat-icon> Compra simulada · datos de prueba
+          <mat-icon>lock</mat-icon> Compra protegida
         </p>
       </div>
     </aside>

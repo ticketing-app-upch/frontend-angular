@@ -65,7 +65,7 @@ export class Login {
   forgotPassword(event: Event): void {
     event.preventDefault();
     this.notify.info(
-      'Recuperación de contraseña no disponible en la demo (aún sin backend).',
+      'La recuperación de contraseña estará disponible próximamente.',
     );
   }
 
@@ -79,11 +79,11 @@ export class Login {
       next: (res) => {
         this.notify.success(`Hola, ${res.user.fullName.split(' ')[0]}`);
         const redirect = this.route.snapshot.queryParamMap.get('redirect');
-        this.router.navigateByUrl(redirect ?? this.homeFor(res.user.role));
+        this.router.navigateByUrl(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : this.homeFor(res.user.role));
       },
       error: (err) => {
         this.loading.set(false);
-        this.notify.error(err?.message ?? 'No se pudo iniciar sesión.');
+        this.notify.error(err?.error?.message ?? err?.message ?? 'No se pudo iniciar sesión.');
       },
     });
   }

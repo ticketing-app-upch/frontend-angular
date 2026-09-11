@@ -2,6 +2,12 @@
   <h1 class="tkt-section-title">Mis entradas</h1>
   <p class="tkt-section-sub">Tus compras y códigos de acceso.</p>
 
+  <div class="tkt-cluster ticket-filters">
+    <label>Buscar <input type="search" placeholder="Evento o código" [ngModel]="search()" (ngModelChange)="search.set($event)" /></label>
+    <label>Mostrar <select [ngModel]="filter()" (ngModelChange)="filter.set($event)"><option value="all">Todas</option><option value="upcoming">Próximas</option><option value="past">Pasadas</option><option value="cancelled">Canceladas</option></select></label>
+    <a mat-button routerLink="/ayuda">Ayuda con mis entradas</a>
+  </div>
+  @if (error()) { <p role="alert">No pudimos cargar tus compras.</p><button mat-stroked-button (click)="load()">Reintentar</button> }
   @if (loading()) {
     <div class="loading">
       <mat-progress-spinner mode="indeterminate" diameter="42" />
@@ -15,19 +21,21 @@
       <a mat-flat-button routerLink="/eventos">Explorar eventos</a>
     </tkt-empty-state>
   } @else {
+    @if (!filtered().length) { <p role="status">No hay entradas que coincidan con estos filtros.</p> }
     <div class="tickets">
-      @for (order of orders(); track order.id) {
+      @for (order of filtered(); track order.id) {
         <article
           class="ticket"
           [class.past]="isPast(order.eventStartsAt)"
           [class.used]="redeemedAt(order)"
         >
           <div class="stub">
-            <tkt-qr
+            @if (order.status === 'CONFIRMADA' && !redeemedAt(order)) { <tkt-qr
               [order]="order"
               [rotating]="!isPast(order.eventStartsAt)"
               [size]="168"
             />
+            } @else { <mat-icon aria-label="Pase no habilitado">qr_code_2</mat-icon><p>Pase no habilitado</p> }
             <span class="code">{{ order.code }}</span>
           </div>
 
@@ -41,7 +49,7 @@
               } @else {
                 <span class="status" [class.past]="isPast(order.eventStartsAt)">
                   <span class="dot" aria-hidden="true"></span>
-                  {{ isPast(order.eventStartsAt) ? 'Finalizado' : order.status }}
+                  {{ order.status === 'CANCELADA' ? 'CANCELADA' : isPast(order.eventStartsAt) ? 'Fecha de inicio pasada' : order.status }}
                 </span>
               }
               <span class="bought">
@@ -59,6 +67,7 @@
               {{ order.eventVenue }}
             </p>
 
+            <div class="tkt-cluster"><button mat-button (click)="calendar(order)"><mat-icon inline>event</mat-icon> Calendario</button><button mat-button (click)="printETicket(order)"><mat-icon inline>print</mat-icon> Imprimir E-Ticket</button></div>
             <mat-expansion-panel class="lines" hideToggle>
               <mat-expansion-panel-header>
                 <mat-panel-title>

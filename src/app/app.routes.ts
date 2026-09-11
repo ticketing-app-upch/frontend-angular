@@ -13,6 +13,7 @@ export const routes: Routes = [
       import('./layout/main-layout/main-layout').then((m) => m.MainLayout),
     children: [
       { path: '', redirectTo: 'eventos', pathMatch: 'full' },
+      { path: 'ayuda', loadComponent: () => import('./features/help/help').then(m => m.Help), title: 'Ayuda · Aforo' },
       {
         path: 'eventos',
         loadComponent: () =>
@@ -48,6 +49,7 @@ export const routes: Routes = [
       {
         path: 'organizador',
         canActivate: [roleGuard('ORGANIZER')],
+        canActivateChild: [roleGuard('ORGANIZER')],
         children: [
           { path: '', redirectTo: 'panel', pathMatch: 'full' },
           {
@@ -87,6 +89,7 @@ export const routes: Routes = [
       {
         path: 'admin',
         canActivate: [roleGuard('ADMIN')],
+        canActivateChild: [roleGuard('ADMIN')],
         loadComponent: () =>
           import('./features/admin/admin-layout/admin-layout').then(
             (m) => m.AdminLayout,

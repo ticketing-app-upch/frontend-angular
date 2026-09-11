@@ -17,8 +17,8 @@
       <tkt-stat-card
         icon="payments"
         label="Recaudación total"
-        [value]="s.totalRevenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0'"
-        hint="Órdenes confirmadas"
+        [value]="s.totalRevenue | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        hint="Venta de entradas · sin comisión"
       />
       <tkt-stat-card
         icon="confirmation_number"
@@ -38,6 +38,7 @@
       />
     </div>
 
+    <tkt-zone-insights [rows]="s.byZone ?? []" />
     <div class="panel">
       <div class="panel-head">
         <h2><mat-icon>show_chart</mat-icon> Recaudación · últimos 6 meses</h2>

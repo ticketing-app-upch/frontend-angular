@@ -57,8 +57,8 @@
       <button mat-flat-button (click)="rescan()">
         <mat-icon>refresh</mat-icon> Volver a evaluar
       </button>
-      <button mat-stroked-button (click)="resetDemo()">
-        <mat-icon>restart_alt</mat-icon> Reiniciar demo
+      <button mat-stroked-button (click)="resetValidation()">
+        <mat-icon>restart_alt</mat-icon> Reiniciar validación
       </button>
       <a mat-button routerLink="/eventos">Ir a Aforo</a>
     </div>
@@ -86,7 +86,7 @@
   </div>
 
   <p class="foot">
-    Puerta de validación · demo. En producción la clave de firma y el registro
-    de redenciones viven en el backend del escáner.
+    Puerta de validación de entradas. La verificación confirma la vigencia y el
+    estado de uso de cada código.
   </p>
 </div>

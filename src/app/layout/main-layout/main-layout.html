@@ -1,3 +1,4 @@
+<a class="skip-link" href="#main-content">Saltar al contenido</a>
 <header class="bar">
   <div class="bar-inner">
     <a class="brand" routerLink="/eventos">
@@ -6,7 +7,7 @@
       <span class="brand-tag">ticketing en vivo</span>
     </a>
 
-    <nav class="links">
+    <nav class="links" aria-label="Navegación principal">
       <a routerLink="/eventos" routerLinkActive="active">Eventos</a>
       @if (isClient()) {
         <a routerLink="/mis-entradas" routerLinkActive="active">Mis entradas</a>
@@ -21,6 +22,7 @@
     </nav>
 
     <span class="tkt-spacer"></span>
+    <button mat-icon-button (click)="toggleTheme()" [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"><mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon></button>
 
     @if (isAuthenticated()) {
       <button mat-button [matMenuTriggerFor]="menu" class="account">
@@ -32,7 +34,7 @@
         <div class="menu-head">
           <strong>{{ user()!.fullName }}</strong>
           <span>{{ user()!.email }}</span>
-          <span class="role">{{ user()!.role === 'ORGANIZER' ? 'Organizador' : 'Cliente' }}</span>
+          <span class="role">{{ user()!.role === 'ADMIN' ? 'Administrador' : user()!.role === 'ORGANIZER' ? 'Organizador' : 'Asistente' }}</span>
         </div>
         <mat-divider />
         @if (isClient()) {
@@ -62,13 +64,21 @@
   </div>
 </header>
 
-<main>
+<main id="main-content" tabindex="-1">
   <router-outlet />
 </main>
 
+<nav class="mobile-nav" aria-label="Navegación móvil">
+  <a routerLink="/eventos" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
+  <a routerLink="/eventos" [queryParams]="{saved:'1'}"><mat-icon>favorite_border</mat-icon>Guardados</a>
+  @if (isOrganizer()) { <a routerLink="/organizador/panel" routerLinkActive="active"><mat-icon>insights</mat-icon>Panel</a> }
+  @else if (isAdmin()) { <a routerLink="/admin" routerLinkActive="active"><mat-icon>admin_panel_settings</mat-icon>Admin</a> }
+  @else { <a routerLink="/mis-entradas" routerLinkActive="active"><mat-icon>confirmation_number</mat-icon>Entradas</a> }
+  <a routerLink="/ayuda" routerLinkActive="active"><mat-icon>help_outline</mat-icon>Ayuda</a>
+</nav>
 <footer class="foot">
   <div class="foot-inner">
-    <span>© {{ year }} Aforo · Entradas y aforo en tiempo real</span>
-    <span class="tkt-muted">Frontend demo · datos de prueba en memoria</span>
+    <span>© {{ year }} Aforo · Tu próxima experiencia</span>
+    <a routerLink="/ayuda">Centro de ayuda</a>
   </div>
 </footer>

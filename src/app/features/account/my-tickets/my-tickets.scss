@@ -298,3 +298,4 @@ tkt-qr {
     padding: 1.2rem 1.15rem 1.3rem;
   }
 }
+.ticket-filters { margin: 24px 0; label { display: flex; gap: 10px; align-items: center; font-size: 13px; } input, select { padding: 10px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface); color: inherit; max-width: 220px; } }

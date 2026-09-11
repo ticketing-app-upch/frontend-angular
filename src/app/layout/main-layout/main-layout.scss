@@ -178,3 +178,6 @@ main { flex: 1; }
   .links { display: none; }
   .who { display: none; }
 }
+.skip-link{position:fixed;left:10px;top:-100px;z-index:100;padding:14px;background:var(--mat-sys-primary);color:var(--mat-sys-on-primary)}.skip-link:focus{top:10px}.mobile-nav{display:none}.account .who{display:inline-block;vertical-align:middle}.account .avatar{display:inline-grid;vertical-align:middle;margin-right:8px}
+@media(max-width:720px){:host{padding-bottom:72px}.bar-inner{gap:4px;padding:10px 12px}.account .who{display:none}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:15;justify-content:space-around;padding:10px 4px calc(10px + env(safe-area-inset-bottom));background:var(--mat-sys-surface);border-top:1px solid var(--mat-sys-outline-variant)}.mobile-nav a{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none;font-size:10px;color:var(--mat-sys-on-surface-variant);min-width:56px}.mobile-nav a.active{color:var(--mat-sys-primary)}.brand{margin-right:4px}}
+@media(max-width:380px){.bar-inner>a:last-child{display:none}}

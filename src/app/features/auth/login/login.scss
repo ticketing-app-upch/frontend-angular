@@ -235,13 +235,13 @@ form mat-form-field {
   box-shadow: 0 10px 26px -8px color-mix(in srgb, var(--mat-sys-primary) 80%, transparent);
 }
 
-.demo {
+.quick-access {
   margin-top: 1.35rem;
   padding-top: 1.25rem;
   border-top: 1px dashed color-mix(in srgb, var(--mat-sys-on-surface) 15%, transparent);
 }
 
-.demo-label {
+.quick-access-label {
   display: block;
   font-size: 0.75rem;
   font-weight: 600;
@@ -251,12 +251,12 @@ form mat-form-field {
   margin-bottom: 0.6rem;
 }
 
-.demo-btns {
+.quick-access-btns {
   display: flex;
   gap: 0.6rem;
 }
 
-.demo-btns button {
+.quick-access-btns button {
   flex: 1;
 }
 

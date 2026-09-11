@@ -33,6 +33,7 @@ import {
   Zone,
 } from '../../../core/models/event.model';
 import { eventImage } from '../../../shared/event-image';
+import { eventIssues } from '../../../core/models/ticketing-rules';
 
 @Component({
   selector: 'tkt-event-form',
@@ -86,10 +87,11 @@ export class EventForm {
     venue: ['', Validators.required],
     city: ['Lima', Validators.required],
     startsAt: ['', Validators.required],
+    venueCapacity: [1000, [Validators.required, Validators.min(1)]],
     imageUrl: [''],
     maxPerOrder: [
       6,
-      [Validators.required, Validators.min(1), Validators.max(20)],
+      [Validators.required, Validators.min(1), Validators.max(6)],
     ],
     zones: this.fb.array([this.newZone()]),
   });
@@ -188,6 +190,7 @@ export class EventForm {
 
   removeZone(index: number): void {
     if (this.zones.length <= 1) return;
+    if (this.zones.at(index).get('sold')?.value > 0) { this.notify.error('Esta zona ya tiene ventas y no se puede eliminar.'); return; }
     this.zones.removeAt(index);
   }
 
@@ -200,7 +203,8 @@ export class EventForm {
         ? 'PUBLICADO'
         : ev.status,
       venue: ev.venue,
-      city: 'Lima',
+      city: ev.city,
+      venueCapacity: ev.venueCapacity ?? ev.zones.reduce((s, z) => s + z.capacity, 0),
       startsAt: toLocalInput(ev.startsAt),
       imageUrl: ev.imageUrl,
       maxPerOrder: ev.maxPerOrder,
@@ -217,15 +221,18 @@ export class EventForm {
     }
     const raw = this.form.getRawValue();
     const existing = this.editing();
+    if (!Number.isFinite(new Date(raw.startsAt).getTime())) { this.notify.error('Ingresa una fecha válida.'); return; }
 
     const payload: EventItem = {
-      id: existing?.id ?? `ev-${crypto.randomUUID().slice(0, 8)}`,
+      id: existing?.id ?? '',
       name: raw.name.trim(),
       description: raw.description.trim(),
       category: raw.category,
       status: raw.status,
       venue: raw.venue.trim(),
-      city: 'Lima',
+      city: raw.city.trim(),
+      venueCapacity: raw.venueCapacity,
+      publishedAt: existing?.publishedAt ?? (raw.status === 'PUBLICADO' ? new Date().toISOString() : undefined),
       startsAt: new Date(raw.startsAt).toISOString(),
       imageUrl:
         raw.imageUrl.trim() ||
@@ -233,14 +240,17 @@ export class EventForm {
       organizerId: existing?.organizerId ?? this.auth.user()?.id ?? '',
       maxPerOrder: raw.maxPerOrder,
       zones: raw.zones.map((z, i) => ({
+        ...existing?.zones.find(old => old.id === z.id),
         id: z.id || `z-${crypto.randomUUID().slice(0, 6)}-${i}`,
         name: z.name.trim(),
         price: z.price,
         capacity: z.capacity,
-        sold: Math.min(z.sold, z.capacity),
+        sold: existing?.zones.find(old => old.id === z.id)?.sold ?? 0,
       })),
     };
 
+    const issues = eventIssues(payload, existing ?? undefined);
+    if (issues.length) { this.notify.error(issues[0]); return; }
     this.saving.set(true);
     this.events.save(payload).subscribe({
       next: () => {
@@ -251,7 +261,7 @@ export class EventForm {
       },
       error: () => {
         this.saving.set(false);
-        this.notify.error('No se pudo guardar el evento.');
+        this.notify.error('No se pudo guardar. Comprueba tus permisos y la conexión.');
       },
     });
   }

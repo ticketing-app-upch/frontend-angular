@@ -11,6 +11,7 @@ import { DashboardStats } from '../../../core/models/dashboard.model';
 import { StatCard } from '../../../shared/stat-card/stat-card';
 import { BarChart, BarDatum } from '../../../shared/bar-chart/bar-chart';
 import { CapacityBar } from '../../../shared/capacity-bar/capacity-bar';
+import { ZoneInsights } from './zone-insights';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
 
 @Component({
@@ -29,6 +30,7 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
     BarChart,
     CapacityBar,
     EmptyState,
+    ZoneInsights,
   ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',

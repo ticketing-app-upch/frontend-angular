@@ -156,7 +156,7 @@ export class LegalDialog {
     {
       key: 'terms',
       title: 'Términos y Condiciones',
-      updated: 'Texto de demostración · última revisión: setiembre 2026',
+      updated: 'Última revisión: setiembre 2026',
       blocks: [
         {
           h: '1. Qué es Aforo',
@@ -211,16 +211,16 @@ export class LegalDialog {
         },
         {
           h: '7. Contacto',
-          p: ['Consultas sobre estos términos: soporte@aforo.pe (demo).'],
+          p: ['Consultas sobre estos términos: soporte@aforo.pe.'],
         },
       ],
       disclaimer:
-        'Este es un texto de demostración para un proyecto académico. No constituye asesoría legal.',
+        'Este texto es informativo y no constituye asesoría legal.',
     },
     {
       key: 'privacy',
       title: 'Política de privacidad',
-      updated: 'Texto de demostración · última revisión: setiembre 2026',
+      updated: 'Última revisión: setiembre 2026',
       blocks: [
         {
           h: '1. Datos que tratamos',
@@ -261,18 +261,18 @@ export class LegalDialog {
         {
           h: '5. Tus derechos',
           p: [
-            'Puedes acceder, rectificar, actualizar o solicitar la eliminación de tus datos, y retirar tu consentimiento para comunicaciones comerciales, escribiendo a privacidad@aforo.pe (demo).',
+            'Puedes acceder, rectificar, actualizar o solicitar la eliminación de tus datos, y retirar tu consentimiento para comunicaciones comerciales, escribiendo a privacidad@aforo.pe.',
           ],
         },
         {
           h: '6. Seguridad',
           p: [
-            'Aplicamos medidas razonables para proteger tu información. En esta demo, los datos se guardan localmente en tu navegador y no se envían a ningún servidor.',
+            'Aplicamos medidas razonables para proteger tu información durante la navegación.',
           ],
         },
       ],
       disclaimer:
-        'Texto de demostración para un proyecto académico. No constituye asesoría legal.',
+        'Este texto es informativo y no constituye asesoría legal.',
     },
   ];
 }

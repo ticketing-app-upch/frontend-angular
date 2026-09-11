@@ -25,6 +25,7 @@ import { STEP_MS, TicketTokenService } from '../../core/services/ticket-token.se
   selector: 'tkt-qr',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (!available()) { <p class="hint">Pase no disponible. Los QR reales requieren el backend.</p> } @else {
     <div class="frame" [style.width.px]="size()">
       <canvas
         #canvas
@@ -65,6 +66,7 @@ import { STEP_MS, TicketTokenService } from '../../core/services/ticket-token.se
             : 'Se renueva cada ' + stepMs / 1000 + ' s'
         }}
       </p>
+    }
     }
   `,
   styles: `
@@ -159,6 +161,7 @@ export class TicketQr {
   /** Lado del QR en píxeles CSS. */
   readonly size = input(196);
 
+  available(): boolean { return this.tokens.configured && this.order().status === 'CONFIRMADA'; }
   readonly frozen = signal(false);
   readonly stepMs = STEP_MS;
   /** Alinea el anillo con el límite real del intervalo rotativo. */
@@ -186,7 +189,7 @@ export class TicketQr {
       this.frozen();
       const order = this.order();
       const el = this.canvas()?.nativeElement;
-      if (!el) return;
+      if (!el || !this.available()) return;
       const url = this.tokens.configured
         ? this.tokens.issueUrl(order)
         : `${this.tokens.linkBase}/validar#${order.code}`;

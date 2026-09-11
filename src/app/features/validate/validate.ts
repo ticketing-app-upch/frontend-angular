@@ -6,6 +6,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { MockStore } from '../../core/mock/mock-store';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -45,9 +46,9 @@ const VERDICTS: Record<Verdict, VerdictView> = {
   'not-configured': {
     tone: 'idle',
     icon: 'key_off',
-    title: 'Validador sin clave',
+    title: 'Validación real pendiente de integración',
     detail:
-      'Define environment.ticketSecret para poder firmar y verificar los pases en modo demo.',
+      'La firma y el registro único de ingreso deben resolverse en el backend, nunca con una clave del navegador.',
   },
   invalid: {
     tone: 'bad',
@@ -81,7 +82,7 @@ const VERDICTS: Record<Verdict, VerdictView> = {
     tone: 'ok',
     icon: 'check_circle',
     title: 'Acceso válido',
-    detail: 'Firma verificada y pase vigente. Ingreso registrado.',
+    detail: 'Simulación local: pase vigente y orden confirmada. No autoriza un ingreso real ni sincroniza otros dispositivos.',
   },
 };
 
@@ -103,6 +104,7 @@ const VERDICTS: Record<Verdict, VerdictView> = {
   styleUrl: './validate.scss',
 })
 export class ValidatePage {
+  private readonly store = inject(MockStore);
   private readonly tokens = inject(TicketTokenService);
   private readonly redemptions = inject(RedemptionService);
   private readonly rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
@@ -134,7 +136,7 @@ export class ValidatePage {
     this.evaluate();
   }
 
-  resetDemo(): void {
+  resetValidation(): void {
     this.redemptions.reset();
     this.evaluate();
   }
@@ -182,6 +184,8 @@ export class ValidatePage {
         return;
       case 'ok': {
         const c = result.claims!;
+        const order = this.store.orders.find(o => o.id === c.oid && o.code === c.cod && o.status === 'CONFIRMADA');
+        if (!order) { this.verdict.set('invalid'); return; }
         const { record, firstTime } = this.redemptions.redeem(
           c.oid,
           c.cod,
