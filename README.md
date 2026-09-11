@@ -20,20 +20,19 @@
 
 ## 🛠️ Requisitos Previos
 
-- Node.js 20.x o superior (LTS)
-- npm
-- Angular CLI instalado globalmente:
-  ```bash
-  npm install -g @angular/cli
-  ```
+- Node.js 22 LTS (el repositorio incluye `.node-version`)
+- npm 11 (`npm ci` respeta exactamente `package-lock.json`)
+
+No necesitas instalar Angular CLI globalmente: los scripts usan la versión local.
 
 ## 🚀 Cómo correr
 
 ```bash
-npm install
+npm ci
 npm start            # servidor de desarrollo en http://localhost:4200
 npm run build        # build de producción (usa enviroment.prod.ts)
 npm test             # pruebas unitarias (Vitest)
+npm run check        # pruebas + build de producción
 ```
 
 ## 🧪 Datos de prueba (sin backend)
@@ -52,6 +51,7 @@ Cuando el backend esté listo, poner `useMock: false` y los mismos servicios peg
 | ----------- | -------------------- | ------------- |
 | Organizador | `organizador@tkt.pe` | `organizador` |
 | Cliente     | `cliente@tkt.pe`     | `cliente`     |
+| Admin       | `admin@tkt.pe`       | `admin`       |
 
 Para reiniciar la data: borrar la clave `tkt.mock.v1` de `localStorage`.
 
@@ -85,6 +85,18 @@ src/app/
 | `/organizador/panel`         | organizador | Ocupación y recaudación                |
 | `/organizador/eventos`       | organizador | Gestión de eventos                     |
 | `/organizador/eventos/nuevo` | organizador | Alta / edición de evento y zonas       |
+| `/ayuda`                     | público     | Centro de ayuda                         |
+
+## Funciones destacadas del frontend
+
+- Catálogo responsive con favoritos locales, comparación, filtros combinados, orden y “Aforo Match” por presupuesto y tamaño de grupo.
+- Planos interactivos distintos para Monumental, Estadio Nacional, San Marcos, teatros, arenas/coliseos y zonas generales. El modal ampliado permite selección múltiple.
+- Precio dinámico visible con motivo, cotización de dos minutos, comisión desglosada, idempotencia y pago aprobado/rechazado de prueba.
+- Panel por evento y por zona, laboratorio de escenarios de precio y exportación CSV protegida contra fórmulas.
+- Entradas con filtros, calendario `.ics`, resumen descargable y QR rotativo.
+- Tema claro/oscuro, navegación móvil, foco visible, reducción de movimiento y centro de ayuda.
+
+Consulta [FRONTEND_HANDOFF.md](./FRONTEND_HANDOFF.md) antes de integrar PHP y Python.
 
 ## 🧱 Stack
 

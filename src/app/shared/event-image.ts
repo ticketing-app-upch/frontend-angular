@@ -259,7 +259,6 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
     { match: /oriente|este\b/, points: '25,4 75,4 68,24 32,24' },
     { match: /norte|north/, points: '12,26 28,24 28,62 12,56' },
     { match: /familiar|\bsur\b|visitante/, points: '72,24 88,26 88,56 72,62' },
-    // Tribuna Occidente, de izquierda a derecha (A · B · C · Butaca Negra · D · E · F)
     { match: /lateral\s*a\b|\bocc.*\ba\b/, points: '21,66 30,66 28,90 8,90' },
     { match: /central\s*b\b|\bocc.*\bb\b/, points: '30,66 39,66 42,90 28,90' },
     { match: /central\s*c\b|\bocc.*\bc\b/, points: '39,66 46,66 49,90 42,90' },
@@ -267,13 +266,42 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
     { match: /central\s*d\b|\bocc.*\bd\b/, points: '54,66 61,66 58,90 51,90' },
     { match: /central\s*e\b|\bocc.*\be\b/, points: '61,66 71,66 76,90 58,90' },
     { match: /lateral\s*f\b|\bocc.*\bf\b/, points: '71,66 79,66 92,90 76,90' },
-    // fallback: un solo "Occidente" ocupa toda la tribuna inferior
     { match: /^occidente$/, points: '20,66 80,66 91,90 9,90' },
   ],
 };
 
+/**
+ * Configuración de planos SVG generados para estadios sin imagen real.
+ * Cada entrada define la forma (shape) y cómo mapear los stands.
+ */
+export type VenueShape =
+  | 'oval'
+  | 'rectangle'
+  | 'octagon'
+  | 'theater'
+  | 'arena'
+  | 'outdoor'
+  | 'conference'
+  | 'route'
+  | 'club';
+
+export function venueShape(venue: string | undefined): VenueShape {
+  if (!venue) return 'octagon';
+  const v = venue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/gran teatro|teatro|anfiteatro/.test(v)) return 'theater';
+  if (/arena\s*1|coliseo|dibos|costa\s*21|multiespacio/.test(v)) return 'arena';
+  if (/circuito/.test(v)) return 'route';
+  if (/convenciones|westin/.test(v)) return 'conference';
+  if (/jazz zone|club de jazz/.test(v)) return 'club';
+  if (/parque de la exposicion|explanada|plaza de armas/.test(v)) return 'outdoor';
+  if (/san marcos/.test(v)) return 'rectangle';
+  if (/estadio nacional/.test(v)) return 'oval';
+  return 'octagon';
+}
+
+
 function venueKey(venue: string): string {
-  return venue.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return venue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 export function venueMap(venue: string | undefined): string | null {
