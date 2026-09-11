@@ -14,6 +14,9 @@ export interface Zone {
   price: number;
   capacity: number;
   sold: number;
+  /** Saldos históricos anteriores al registro de órdenes. */
+  openingSold?: number;
+  openingRevenue?: number;
 }
 
 export interface EventItem {
@@ -26,6 +29,9 @@ export interface EventItem {
   city: string;
   /** ISO string. */
   startsAt: string;
+  publishedAt?: string;
+  /** Capacidad física declarada del recinto. */
+  venueCapacity?: number;
   imageUrl: string;
   organizerId: string;
   /** Máximo de entradas por transacción. */

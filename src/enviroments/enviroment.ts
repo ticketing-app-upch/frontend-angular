@@ -10,15 +10,15 @@ export const environment = {
    * cuando quieras pegarle a las APIs reales.
    */
   useMock: true,
-  /** Latencia simulada (ms) para que la UI se sienta realista con mocks. */
+  /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
   /**
-   * DEMO: clave HMAC con la que se firman los QR de las entradas y con la
+   * Clave HMAC con la que se firman los QR de las entradas y con la
    * que la puerta (`/validar`) verifica su autenticidad. En un sistema real
    * esta clave vive SOLO en el backend / la app del escáner, nunca en el
-   * cliente; aquí la exponemos para poder demostrar el flujo sin servidor.
+   * cliente; el backend debe reemplazarla por una clave privada.
    */
-  ticketSecret: 'aforo-demo-clave-de-firma-2026-no-usar-en-produccion',
+  ticketSecret: 'aforo-clave-local-de-firma-2026-no-usar-en-produccion',
   /**
    * Base absoluta que se incrusta en el QR de la entrada (la puerta abre
    * `<publicBaseUrl>/validar#<token>`). Déjalo vacío para usar el origen

@@ -39,7 +39,7 @@ function seedRevision(): string {
  */
 @Injectable({ providedIn: 'root' })
 export class MockStore {
-  private readonly rev = seedRevision();
+  private readonly rev = 'aforo-v2';
   private data: StoreShape = this.load();
 
   private load(): StoreShape {
@@ -47,14 +47,14 @@ export class MockStore {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as PersistedShape;
-        if (parsed?.rev === this.rev && parsed.data) {
-          return parsed.data;
+        if (parsed?.data && Array.isArray(parsed.data.events) && Array.isArray(parsed.data.orders) && Array.isArray(parsed.data.users)) {
+          return this.upgrade(parsed.data);
         }
       }
     } catch {
       /* almacenamiento no disponible o corrupto: usamos la semilla */
     }
-    const fresh = this.seed();
+    const fresh = this.upgrade(this.seed());
     this.persistData(fresh);
     return fresh;
   }
@@ -76,13 +76,29 @@ export class MockStore {
     }
   }
 
+  /** Migra sin borrar compras ni eventos; las fechas dejan de resetear la semilla. */
+  private upgrade(data: StoreShape): StoreShape {
+    for (const event of data.events) {
+      event.maxPerOrder = Math.min(6, Math.max(1, event.maxPerOrder));
+      event.venueCapacity ??= event.zones.reduce((sum, zone) => sum + zone.capacity, 0);
+      event.publishedAt ??= new Date(Date.parse(event.startsAt) - 45 * 86400000).toISOString();
+      for (const zone of event.zones) {
+        const recorded = data.orders.filter(o => o.eventId === event.id && o.status === 'CONFIRMADA').flatMap(o => o.lines).filter(l => l.zoneId === zone.id).reduce((s, l) => s + l.quantity, 0);
+        zone.openingSold ??= Math.max(0, zone.sold - recorded);
+        zone.openingRevenue ??= Math.round(zone.openingSold * zone.price * 100) / 100;
+      }
+    }
+    this.persistData(data);
+    return data;
+  }
+
   private persist(): void {
     this.persistData(this.data);
   }
 
   /** Reinicia la data de prueba a la semilla original. */
   reset(): void {
-    this.data = this.seed();
+    this.data = this.upgrade(this.seed());
     this.persist();
   }
 

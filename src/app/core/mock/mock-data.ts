@@ -44,7 +44,7 @@ function daysFromNow(days: number, hour = 20): string {
   return d.toISOString();
 }
 
-const RAW_EVENTS: Omit<EventItem, 'imageUrl'>[] = [
+const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
   {
     id: 'ev-1',
     name: 'Sinfonía bajo las estrellas',
@@ -338,7 +338,7 @@ const RAW_EVENTS: Omit<EventItem, 'imageUrl'>[] = [
 /** Cada evento recibe un póster SVG temático generado a partir de su nombre. */
 export const SEED_EVENTS: EventItem[] = RAW_EVENTS.map((e) => ({
   ...e,
-  imageUrl: eventImage(e),
+  imageUrl: e.imageUrl ?? eventImage(e),
 }));
 
 export const SEED_ORDERS: TicketOrder[] = [

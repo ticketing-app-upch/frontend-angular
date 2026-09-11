@@ -16,11 +16,11 @@ export interface Redemption {
 /**
  * Registro de entradas ya canjeadas en la puerta (control de acceso).
  *
- * Es el equivalente demo a la tabla de redenciones del backend: la primera
+ * Es el equivalente local a la tabla de redenciones del backend: la primera
  * vez que un QR válido se escanea se guarda aquí; a partir de entonces
  * cualquier reintento (una captura reenviada, la misma entrada dos veces)
  * se responde como "ya utilizada". Persiste en `localStorage` para que el
- * estado sobreviva al refresco durante una demostración.
+ * estado sobreviva al refresco de la sesión.
  */
 @Injectable({ providedIn: 'root' })
 export class RedemptionService {
@@ -56,7 +56,7 @@ export class RedemptionService {
     return { record, firstTime: true };
   }
 
-  /** Limpia el registro para volver a presentar la demo desde cero. */
+  /** Limpia el registro de validaciones local. */
   reset(): void {
     this._log.set({});
     this.save();

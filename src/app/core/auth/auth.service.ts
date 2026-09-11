@@ -24,20 +24,22 @@ export class AuthService {
   private readonly _token = signal<string | null>(this.restoreToken());
 
   readonly user = this._user.asReadonly();
-  readonly isAuthenticated = computed(() => this._token() !== null);
+  readonly isAuthenticated = computed(() => this._user() !== null && this._token() !== null);
   readonly isOrganizer = computed(() => this._user()?.role === 'ORGANIZER');
   readonly isClient = computed(() => this._user()?.role === 'CLIENT');
   readonly isAdmin = computed(() => this._user()?.role === 'ADMIN');
 
   get token(): string | null {
-    return this._token();
+    const token = this._token();
+    if (token && !sessionTokenValid(token)) { this.logout(); return null; }
+    return token;
   }
 
   login(payload: LoginPayload): Observable<AuthResponse> {
     const req = environment.useMock
       ? this.mockLogin(payload)
       : this.http.post<AuthResponse>(`${this.base}/auth/login`, payload);
-    return req.pipe(tap((res) => this.persistSession(res)));
+    return req.pipe(tap((res) => this.persistSession(res, payload.remember ?? true)));
   }
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
@@ -50,17 +52,18 @@ export class AuthService {
   logout(): void {
     this._token.set(null);
     this._user.set(null);
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    try { for (const storage of [localStorage, sessionStorage]) { storage.removeItem(TOKEN_KEY); storage.removeItem(USER_KEY); } } catch { /* sesión en memoria eliminada */ }
   }
 
   // --- Sesión ---------------------------------------------------------
-  private persistSession(res: AuthResponse): void {
+  private persistSession(res: AuthResponse, remember = true): void {
+    this.logout();
     this._token.set(res.token);
     this._user.set(res.user);
     try {
-      localStorage.setItem(TOKEN_KEY, res.token);
-      localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+      const storage = remember ? localStorage : sessionStorage;
+      storage.setItem(TOKEN_KEY, res.token);
+      storage.setItem(USER_KEY, JSON.stringify(res.user));
     } catch {
       /* almacenamiento no disponible */
     }
@@ -68,7 +71,8 @@ export class AuthService {
 
   private restoreToken(): string | null {
     try {
-      return localStorage.getItem(TOKEN_KEY);
+      const token = sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY);
+      return token && sessionTokenValid(token) ? token : null;
     } catch {
       return null;
     }
@@ -76,8 +80,10 @@ export class AuthService {
 
   private restoreUser(): User | null {
     try {
-      const raw = localStorage.getItem(USER_KEY);
-      return raw ? (JSON.parse(raw) as User) : null;
+      if (!this.restoreToken()) return null;
+      const raw = sessionStorage.getItem(USER_KEY) ?? localStorage.getItem(USER_KEY);
+      const user = raw ? JSON.parse(raw) as User : null;
+      return user && typeof user.id === 'string' && typeof user.fullName === 'string' && ['CLIENT', 'ORGANIZER', 'ADMIN'].includes(user.role) ? user : null;
     } catch {
       return null;
     }
@@ -95,6 +101,7 @@ export class AuthService {
   }
 
   private mockRegister(payload: RegisterPayload): Observable<AuthResponse> {
+    if (!['CLIENT', 'ORGANIZER'].includes(payload.role) || !payload.acceptedTerms) return mockError('Rol o aceptación de términos inválidos.', 422);
     const email = payload.email.trim().toLowerCase();
     if (this.store.users.some((u) => u.email.toLowerCase() === email)) {
       return mockError<AuthResponse>('Ya existe una cuenta con ese correo.', 409);
@@ -114,7 +121,7 @@ export class AuthService {
       user.organizer = {
         ...payload.organizer,
         // En un backend real quedaría 'PENDING' hasta revisión.
-        // Para la demo la dejamos verificada para poder publicar.
+        // Se verifica al registrarla para habilitar la publicación.
         verificationStatus: 'VERIFIED',
       };
     }
@@ -129,4 +136,13 @@ export class AuthService {
       user: { id, fullName, email, role, organizer, profile, marketingOptIn },
     };
   }
+}
+
+/** Solo vencimiento para UX; la autenticidad del JWT debe verificarse en el servidor. */
+export function sessionTokenValid(token: string, now = Date.now()): boolean {
+  if (token.startsWith('mock.')) return environment.useMock && Number.isFinite(Number(token.split('.')[2])) && now - Number(token.split('.')[2]) < 86400000;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload.exp === 'number' && Number.isFinite(payload.exp) && payload.exp * 1000 > now;
+  } catch { return false; }
 }

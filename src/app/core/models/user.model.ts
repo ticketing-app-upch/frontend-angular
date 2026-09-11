@@ -67,6 +67,7 @@ export interface AuthResponse {
 }
 
 export interface LoginPayload {
+  remember?: boolean;
   email: string;
   password: string;
 }

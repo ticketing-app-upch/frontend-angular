@@ -6,6 +6,7 @@ import { mockError, mockResponse } from '../mock/mock-latency';
 import { MockStore } from '../mock/mock-store';
 import { computeCapacity } from '../models/event.model';
 import { User, UserRole } from '../models/user.model';
+import { AuthService } from '../auth/auth.service';
 
 export interface AdminMetrics {
   users: { total: number; clients: number; organizers: number; admins: number };
@@ -23,12 +24,14 @@ export interface AdminMetrics {
 @Injectable({ providedIn: 'root' })
 export class AdminService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
   private store = inject(MockStore);
   private base = environment.apiBackendUrl;
 
   /** Todos los usuarios, sin la contraseña. */
   users(): Observable<User[]> {
     if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
       return mockResponse(
         this.store.users
           .map(({ password: _pw, ...u }) => structuredClone(u) as User)
@@ -40,8 +43,10 @@ export class AdminService {
 
   setUserRole(id: string, role: UserRole): Observable<User> {
     if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
       const found = this.store.users.find((u) => u.id === id);
       if (!found) return mockError<User>('Usuario no encontrado.', 404);
+      if (id === this.auth.user()?.id && role !== 'ADMIN') return mockError('No puedes retirar tu propio acceso administrativo.', 409);
       this.store.updateUser(id, { role });
       const { password: _pw, ...u } = { ...found, role };
       return mockResponse(structuredClone(u) as User);
@@ -51,8 +56,13 @@ export class AdminService {
 
   deleteUser(id: string): Observable<void> {
     if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
+      if (id === this.auth.user()?.id) return mockError('No puedes eliminar tu propia cuenta administrativa.', 409);
       if (!this.store.users.some((u) => u.id === id)) {
         return mockError<void>('Usuario no encontrado.', 404);
+      }
+      if (this.store.orders.some(order => order.buyerId === id) || this.store.events.some(event => event.organizerId === id)) {
+        return mockError('El usuario tiene historial transaccional y no puede eliminarse.', 409);
       }
       this.store.removeUser(id);
       return mockResponse<void>(undefined);
@@ -62,6 +72,7 @@ export class AdminService {
 
   metrics(): Observable<AdminMetrics> {
     if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
       return mockResponse(this.buildMetrics());
     }
     return this.http.get<AdminMetrics>(`${this.base}/admin/metrics`);
@@ -92,7 +103,7 @@ export class AdminService {
       },
       ticketsSold: events.reduce((acc, e) => acc + computeCapacity(e).sold, 0),
       grossRevenue:
-        Math.round(confirmed.reduce((acc, o) => acc + o.total, 0) * 100) / 100,
+        Math.round((confirmed.reduce((acc, o) => acc + o.total, 0) + events.flatMap(e => e.zones).reduce((s, z) => s + (z.openingRevenue ?? 0), 0)) * 100) / 100,
     };
   }
 }

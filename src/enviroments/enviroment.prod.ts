@@ -11,11 +11,11 @@ export const environment = {
   useMock: true,
   mockLatencyMs: 200,
   /**
-   * DEMO: clave HMAC con la que la puerta `/validar` firma y verifica los QR
+   * Clave HMAC con la que la puerta `/validar` firma y verifica los QR
    * en el propio navegador. En un sistema real esto vive en el backend del
    * escáner y nunca llega al cliente.
    */
-  ticketSecret: 'aforo-demo-clave-de-firma-2026-no-usar-en-produccion',
+  ticketSecret: 'aforo-clave-local-de-firma-2026-no-usar-en-produccion',
   /**
    * Base absoluta que se incrusta en el QR. Vacío = usa el origen público
    * desde el que se sirvió la app (la URL de Pages/Netlify), que es lo que

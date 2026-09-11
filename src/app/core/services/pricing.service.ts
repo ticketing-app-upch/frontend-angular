@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin, map, throwError, timeout } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import { mockResponse } from '../mock/mock-latency';
 import { EventItem, Zone } from '../models/event.model';
+import { SERVICE_FEE_RATE, zonePrice } from '../models/ticketing-rules';
 
 export interface PriceQuoteItem {
   zoneId: string;
@@ -26,11 +27,10 @@ export interface PriceQuote {
   total: number;
 }
 
-const SERVICE_FEE_RATE = 0.06;
 
 /**
  * Puente hacia el microservicio de pricing (`apiPricingUrl`). En mock aplica
- * una regla simple de demanda: si la zona está > 85% vendida sube 12%.
+ * las reglas académicas de demanda, proximidad y baja venta.
  */
 @Injectable({ providedIn: 'root' })
 export class PricingService {
@@ -44,13 +44,26 @@ export class PricingService {
     if (environment.useMock) {
       return mockResponse(this.buildLocalQuote(event, items));
     }
-    return this.http.post<PriceQuote>(`${this.base}/quotes`, {
-      eventId: event.id,
-      items,
-    });
+    if (!items.length) return throwError(() => new Error('Selecciona al menos una zona.'));
+    return forkJoin(items.map(item => {
+      const zone = event.zones.find(z => z.id === item.zoneId);
+      if (!zone) return throwError(() => new Error('Zona no encontrada.'));
+      return this.http.post<{ precio_ajustado: number; motivo?: string }>(`${this.base}/v1/dynamic-price`, {
+        id_zona: zone.id, aforo_total: zone.capacity, aforo_disponible: zone.capacity - zone.sold,
+        fecha_evento: event.startsAt, fecha_publicacion: event.publishedAt, precio_base: zone.price,
+      }).pipe(map(response => {
+        if (typeof response.precio_ajustado !== 'number' || !Number.isFinite(response.precio_ajustado) || response.precio_ajustado < 0) throw new Error('Respuesta de precios inválida.');
+        return { zoneId: zone.id, zoneName: zone.name, basePrice: zone.price, quantity: item.quantity,
+          unitPrice: round2(response.precio_ajustado), note: response.motivo };
+      }));
+    })).pipe(timeout(10000), map(lines => {
+      const subtotal = round2(lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0));
+      const fee = round2(subtotal * SERVICE_FEE_RATE);
+      return { eventId: event.id, currency: 'PEN' as const, items: lines, subtotal, fee, total: round2(subtotal + fee) };
+    }));
   }
 
-  private buildLocalQuote(
+  buildLocalQuote(
     event: EventItem,
     items: { zoneId: string; quantity: number }[],
   ): PriceQuote {
@@ -58,7 +71,7 @@ export class PricingService {
       .map(({ zoneId, quantity }) => {
         const zone = event.zones.find((z) => z.id === zoneId);
         if (!zone || quantity <= 0) return null;
-        return this.priceZone(zone, quantity);
+        return this.priceZone(event, zone, quantity);
       })
       .filter((l): l is PriceQuoteItem => l !== null);
 
@@ -74,17 +87,15 @@ export class PricingService {
     };
   }
 
-  private priceZone(zone: Zone, quantity: number): PriceQuoteItem {
-    const demand = zone.capacity === 0 ? 0 : zone.sold / zone.capacity;
-    const surge = demand > 0.85;
-    const unitPrice = surge ? round2(zone.price * 1.12) : zone.price;
+  private priceZone(event: EventItem, zone: Zone, quantity: number): PriceQuoteItem {
+    const { unitPrice, note } = zonePrice(event, zone);
     return {
       zoneId: zone.id,
       zoneName: zone.name,
       basePrice: zone.price,
       unitPrice,
       quantity,
-      note: surge ? 'Alta demanda (+12%)' : undefined,
+      note,
     };
   }
 }

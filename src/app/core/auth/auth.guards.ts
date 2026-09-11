@@ -6,7 +6,7 @@ import { UserRole } from '../models/user.model';
 export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  if (auth.isAuthenticated()) {
+  if (auth.token && auth.isAuthenticated()) {
     return true;
   }
   return router.createUrlTree(['/auth/login'], {
@@ -22,7 +22,7 @@ export function roleGuard(...roles: UserRole[]): CanActivateFn {
   return () => {
     const auth = inject(AuthService);
     const router = inject(Router);
-    if (!auth.isAuthenticated()) {
+    if (!auth.token || !auth.isAuthenticated()) {
       return router.createUrlTree(['/auth/login']);
     }
     const role = auth.user()?.role;
@@ -40,7 +40,7 @@ export function roleGuard(...roles: UserRole[]): CanActivateFn {
 export const clientGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isOrganizer() ? router.createUrlTree(['/organizador/panel']) : true;
+  return auth.isClient() ? true : router.createUrlTree([auth.isAdmin() ? '/admin' : '/organizador/panel']);
 };
 
 /** Evita que un usuario ya autenticado vea login/registro. */

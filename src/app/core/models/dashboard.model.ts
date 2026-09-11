@@ -16,6 +16,7 @@ export interface RevenuePoint {
 }
 
 export interface DashboardStats {
+  byZone?: ZonePerformance[];
   totalRevenue: number;
   totalTicketsSold: number;
   totalCapacity: number;
@@ -23,4 +24,19 @@ export interface DashboardStats {
   publishedEvents: number;
   revenueSeries: RevenuePoint[];
   byEvent: EventPerformance[];
+}
+
+export interface ZonePerformance {
+  eventId: string;
+  eventName: string;
+  zoneId: string;
+  zoneName: string;
+  capacity: number;
+  sold: number;
+  revenue: number;
+  basePrice: number;
+  currentPrice: number;
+  priceReason: string;
+  startsAt: string;
+  publishedAt?: string;
 }

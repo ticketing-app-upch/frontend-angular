@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import { mockResponse } from '../mock/mock-latency';
 import { MockStore } from '../mock/mock-store';
+import { roundMoney, zonePrice } from '../models/ticketing-rules';
 import { computeCapacity } from '../models/event.model';
 import {
   DashboardStats,
@@ -11,6 +12,8 @@ import {
   RevenuePoint,
 } from '../models/dashboard.model';
 import { TicketOrder } from '../models/ticket.model';
+import { AuthService } from '../auth/auth.service';
+import { mockError } from '../mock/mock-latency';
 
 const MONTHS_ES = [
   'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
@@ -20,6 +23,7 @@ const MONTHS_ES = [
 @Injectable({ providedIn: 'root' })
 export class DashboardService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
   private store = inject(MockStore);
   private base = environment.apiBackendUrl;
 
@@ -28,6 +32,9 @@ export class DashboardService {
       return this.http.get<DashboardStats>(
         `${this.base}/organizers/${organizerId}/dashboard`,
       );
+    }
+    if (!this.auth.isAdmin() && !(this.auth.isOrganizer() && this.auth.user()?.id === organizerId)) {
+      return mockError('No tienes acceso a este panel.', 403);
     }
     return mockResponse(this.buildLocalStats(organizerId));
   }
@@ -46,7 +53,7 @@ export class DashboardService {
         const cap = computeCapacity(e);
         const revenue = orders
           .filter((o) => o.eventId === e.id)
-          .reduce((acc, o) => acc + o.total, 0);
+          .reduce((acc, o) => acc + o.subtotal, 0) + e.zones.reduce((acc, z) => acc + (z.openingRevenue ?? 0), 0);
         return {
           eventId: e.id,
           eventName: e.name,
@@ -74,6 +81,14 @@ export class DashboardService {
       publishedEvents: events.filter((e) => e.status === 'PUBLICADO').length,
       revenueSeries: this.buildRevenueSeries(orders),
       byEvent,
+      byZone: events.flatMap(event => event.zones.map(zone => {
+        const price = zonePrice(event, zone);
+        const revenue = (zone.openingRevenue ?? 0) + orders.filter(o => o.eventId === event.id)
+          .flatMap(o => o.lines).filter(l => l.zoneId === zone.id).reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+        return { eventId: event.id, eventName: event.name, zoneId: zone.id, zoneName: zone.name,
+          capacity: zone.capacity, sold: zone.sold, revenue: roundMoney(revenue), basePrice: zone.price,
+          currentPrice: price.unitPrice, priceReason: price.note, startsAt: event.startsAt, publishedAt: event.publishedAt };
+      })),
     };
   }
 
@@ -94,7 +109,7 @@ export class DashboardService {
         (created.getMonth() - oldest.getMonth());
       const bucket = buckets[idx];
       if (bucket) {
-        bucket.revenue = round2(bucket.revenue + order.total);
+        bucket.revenue = round2(bucket.revenue + order.subtotal);
         bucket.tickets += order.lines.reduce((a, l) => a + l.quantity, 0);
       }
     }

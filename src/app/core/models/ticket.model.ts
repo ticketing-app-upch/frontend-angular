@@ -27,4 +27,8 @@ export interface TicketOrder {
 export interface CreateOrderPayload {
   eventId: string;
   items: { zoneId: string; quantity: number }[];
+  expectedTotal?: number;
+  paymentMethod?: 'CARD' | 'WALLET';
+  paymentResult?: 'APPROVED' | 'DECLINED';
+  idempotencyKey?: string;
 }

@@ -5,6 +5,8 @@ import { environment } from '../../../enviroments/enviroment';
 import { mockError, mockResponse } from '../mock/mock-latency';
 import { MockStore } from '../mock/mock-store';
 import { EventCategory, EventItem } from '../models/event.model';
+import { AuthService } from '../auth/auth.service';
+import { eventIssues } from '../models/ticketing-rules';
 
 export interface EventFilter {
   search?: string;
@@ -15,6 +17,7 @@ export interface EventFilter {
 @Injectable({ providedIn: 'root' })
 export class EventService {
   private http = inject(HttpClient);
+  private auth = inject(AuthService);
   private store = inject(MockStore);
   private base = environment.apiBackendUrl;
 
@@ -33,7 +36,7 @@ export class EventService {
 
   getById(id: string): Observable<EventItem> {
     if (environment.useMock) {
-      const found = this.store.events.find((e) => e.id === id);
+      const found = this.store.events.find((e) => e.id === id && (e.status !== 'BORRADOR' || this.auth.isAdmin() || e.organizerId === this.auth.user()?.id));
       return found
         ? mockResponse(structuredClone(found))
         : mockError<EventItem>('Evento no encontrado.', 404);
@@ -44,6 +47,7 @@ export class EventService {
   /** Todos los eventos de la plataforma (cualquier organizador, cualquier estado). Solo admin. */
   listAll(): Observable<EventItem[]> {
     if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
       return mockResponse(
         [...this.store.events]
           .map((e) => structuredClone(e))
@@ -55,6 +59,9 @@ export class EventService {
 
   remove(id: string): Observable<void> {
     if (environment.useMock) {
+      const event = this.store.events.find(e => e.id === id);
+      if (!this.auth.isAdmin() && !(this.auth.isOrganizer() && event?.organizerId === this.auth.user()?.id)) return mockError('No tienes permisos para eliminar este evento.', 403);
+      if (this.store.events.find(e => e.id === id)?.zones.some(z => z.sold > 0) || this.store.orders.some(o => o.eventId === id)) return mockError('Un evento con ventas debe conservarse para proteger el historial de entradas.', 409);
       this.store.removeEvent(id);
       return mockResponse<void>(undefined);
     }
@@ -64,6 +71,7 @@ export class EventService {
   /** Eventos que pertenecen a un organizador (incluye borradores). */
   listByOrganizer(organizerId: string): Observable<EventItem[]> {
     if (environment.useMock) {
+      if (!this.auth.isAdmin() && !(this.auth.isOrganizer() && this.auth.user()?.id === organizerId)) return mockError('No tienes acceso a estos eventos.', 403);
       return mockResponse(
         this.store.events
           .filter((e) => e.organizerId === organizerId)
@@ -76,9 +84,14 @@ export class EventService {
   }
 
   save(event: EventItem): Observable<EventItem> {
+    const previous = this.store.events.find(e => e.id === event.id);
+    if (environment.useMock && !this.auth.isAdmin() && !(this.auth.isOrganizer() && event.organizerId === this.auth.user()?.id && (!previous || previous.organizerId === this.auth.user()?.id))) return mockError('No tienes permisos para editar este evento.', 403);
+    const issues = eventIssues(event, environment.useMock ? previous : undefined);
+    if (issues.length) return mockError<EventItem>(issues[0], 422);
     if (environment.useMock) {
-      this.store.upsertEvent(structuredClone(event));
-      return mockResponse(structuredClone(event));
+      const saved = { ...structuredClone(event), id: event.id || `ev-${crypto.randomUUID()}` };
+      this.store.upsertEvent(saved);
+      return mockResponse(saved);
     }
     const isNew = !event.id;
     return isNew

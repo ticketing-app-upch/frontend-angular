@@ -88,7 +88,7 @@ function timingSafeEqual(a: string, b: string): boolean {
  *
  * En un sistema real esta clase vive en el backend / la app del escáner y la
  * clave nunca llega al navegador; aquí corre en el cliente para poder
- * demostrar el flujo completo sin servidor.
+ * completar el flujo mientras se integra el servidor.
  */
 @Injectable({ providedIn: 'root' })
 export class TicketTokenService {
@@ -100,7 +100,7 @@ export class TicketTokenService {
   );
 
   get configured(): boolean {
-    return this.secret.length > 0;
+    return environment.useMock && this.secret.length > 0;
   }
 
   /** Base efectiva del enlace que se codifica en el QR. */
@@ -142,6 +142,7 @@ export class TicketTokenService {
 
   /** Firma los claims y devuelve el token `payload.firma` (base64url). */
   sign(claims: TicketClaims): string {
+    if (!this.configured) throw new Error('Los pases reales deben emitirse desde el backend.');
     const payload = bytesToB64url(textEncoder.encode(JSON.stringify(claims)));
     const mac = bytesToB64url(
       new Uint8Array(sha256.hmac.array(this.secret, payload)),
@@ -185,6 +186,7 @@ export class TicketTokenService {
       return fail('malformed');
     }
 
+    if (!claims || claims.v !== CLAIM_VERSION || !Number.isFinite(claims.exp) || !Number.isInteger(claims.stp) || !Number.isInteger(claims.qty) || claims.qty < 1 || claims.qty > 6 || typeof claims.oid !== 'string' || typeof claims.cod !== 'string') return fail('malformed');
     const stepDrift = Math.abs(this.step(at) - claims.stp);
     if (typeof claims.exp === 'number' && claims.exp * 1000 < at) {
       return fail('expired', claims, stepDrift);
