@@ -655,6 +655,22 @@
   .summary { position: static; }
 }
 
+@media (max-width: 460px) {
+  /* El nombre del sector ocupa toda la fila; precio y stepper bajan debajo. */
+  .zrow {
+    grid-template-columns: 12px 1fr auto;
+    row-gap: 0.5rem;
+  }
+  .swatch { grid-row: 1; }
+  .zmeta { grid-column: 2 / -1; grid-row: 1; }
+  .zprice { grid-column: 2; grid-row: 2; justify-self: start; }
+  .stepper { grid-column: 3; grid-row: 2; }
+
+  .done { margin: 1.5rem 1rem 2.5rem; padding: 2rem 1.25rem; }
+  .done-actions { flex-direction: column; }
+  .done-actions a { width: 100%; }
+}
+
 @media (max-width: 600px) {
   .map-modal-backdrop { padding: 8px; padding-top: 8px; align-items: stretch; }
   .map-modal { max-height: calc(100dvh - 16px); border-radius: 18px; }
