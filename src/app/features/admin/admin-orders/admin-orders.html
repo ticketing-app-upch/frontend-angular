@@ -1,0 +1,63 @@
+@if (loading()) {
+  <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
+} @else if (items().length === 0) {
+  <tkt-empty-state icon="receipt" title="Sin compras" />
+} @else {
+  <div class="adm-card">
+    <div class="adm-scroll">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Evento</th>
+            <th>Comprador</th>
+            <th class="ta-right">Entradas</th>
+            <th class="ta-right">Total</th>
+            <th>Estado</th>
+            <th>Fecha</th>
+            <th class="ta-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (o of items(); track o.id) {
+            <tr>
+              <td class="mono">{{ o.code }}</td>
+              <td class="strong">{{ o.eventName }}</td>
+              <td class="muted">{{ o.buyerName }}</td>
+              <td class="ta-right">{{ qty(o) }}</td>
+              <td class="ta-right">
+                {{ o.total | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+              </td>
+              <td>
+                <span class="adm-chip" [class]="'st-' + o.status">
+                  {{ o.status | titlecase }}
+                </span>
+              </td>
+              <td class="muted">{{ o.createdAt | date: "d MMM y" }}</td>
+              <td class="ta-right">
+                @if (o.status === 'CANCELADA') {
+                  <span class="muted">—</span>
+                } @else if (confirmId() === o.id) {
+                  <span class="confirm">
+                    ¿Cancelar?
+                    <button mat-button color="warn" (click)="confirmCancel(o)">Sí</button>
+                    <button mat-button (click)="cancelAsk()">No</button>
+                  </span>
+                } @else {
+                  <button
+                    mat-button
+                    class="del"
+                    [disabled]="busyId() === o.id"
+                    (click)="askCancel(o)"
+                  >
+                    <mat-icon>block</mat-icon> Cancelar
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

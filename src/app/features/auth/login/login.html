@@ -1,0 +1,104 @@
+<div class="auth-split">
+  <!-- Panel de marca con degradados -->
+  <aside class="auth-aside">
+    <span class="aside-orb orb-a" aria-hidden="true"></span>
+    <span class="aside-orb orb-b" aria-hidden="true"></span>
+    <span class="aside-grid" aria-hidden="true"></span>
+
+    <div class="aside-inner">
+      <a routerLink="/eventos" class="aside-brand">
+        <mat-icon>confirmation_number</mat-icon> Aforo
+      </a>
+
+      <div class="aside-copy">
+        <h2>Tus entradas,<br /><span class="accent">a un toque.</span></h2>
+        <p>Entra para comprar, elegir tu zona y llevar el ticket en el celular.</p>
+
+        <ul class="aside-points">
+          <li><mat-icon>bolt</mat-icon> Compra en segundos</li>
+          <li><mat-icon>event_seat</mat-icon> Elige zona y aforo en vivo</li>
+          <li><mat-icon>qr_code_2</mat-icon> Acceso con código QR</li>
+        </ul>
+      </div>
+
+      <p class="aside-foot">Acceso seguro para asistentes y organizadores</p>
+    </div>
+  </aside>
+
+  <!-- Formulario -->
+  <div class="auth-main">
+    <mat-card class="auth-card">
+      @if (loading()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+      <div class="head">
+        <h1>Ingresar</h1>
+        <p class="tkt-muted">Bienvenido de vuelta. Usa tu correo y contraseña.</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Correo</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="email" />
+          <mat-icon matSuffix>mail</mat-icon>
+          @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+            <mat-error>Ingresa tu correo.</mat-error>
+          }
+          @if (form.controls.email.hasError('email')) {
+            <mat-error>Correo no válido.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Contraseña</mat-label>
+          <input
+            matInput
+            [type]="hide() ? 'password' : 'text'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            type="button"
+            mat-icon-button
+            matSuffix
+            (click)="hide.set(!hide())"
+            [attr.aria-label]="hide() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+          >
+            <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
+          </button>
+          @if (form.controls.password.invalid && form.controls.password.touched) {
+            <mat-error>Mínimo 4 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="form-row">
+          <mat-checkbox formControlName="remember">Recuérdame</mat-checkbox>
+          <a href="#" class="forgot" (click)="forgotPassword($event)">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+          @if (loading()) { Ingresando… } @else { Ingresar }
+        </button>
+      </form>
+
+      <div class="quick-access">
+        <span class="quick-access-label">Acceso de prueba</span>
+        <div class="quick-access-btns">
+          <button mat-stroked-button type="button" (click)="fill('organizador')">
+            <mat-icon>campaign</mat-icon> Organizador de prueba
+          </button>
+          <button mat-stroked-button type="button" (click)="fill('cliente')">
+            <mat-icon>person</mat-icon> Usuario de prueba
+          </button>
+        </div>
+      </div>
+
+      <p class="alt">
+        ¿No tienes cuenta?
+        <a routerLink="/auth/registro">Crear una</a>
+      </p>
+    </mat-card>
+  </div>
+</div>

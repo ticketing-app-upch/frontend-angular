@@ -1,0 +1,16 @@
+# Config de despliegue para Netlify.
+# (Cloudflare Pages no lee este archivo: usa public/_redirects y estos mismos
+#  valores configurados en su panel — build command y output directory.)
+
+[build]
+  command = "npm run build"
+  publish = "dist/tkt/browser"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Respaldo del SPA fallback por si public/_redirects no se copiara.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

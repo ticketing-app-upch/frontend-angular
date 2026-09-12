@@ -1,0 +1,92 @@
+<div class="gate" [attr.data-tone]="view().tone">
+  <div class="card">
+    <div class="verdict">
+      <mat-icon>{{ view().icon }}</mat-icon>
+      <h1>{{ view().title }}</h1>
+      <p>{{ view().detail }}</p>
+    </div>
+
+    @if (claims(); as c) {
+      <dl class="claims">
+        <div><dt>Evento</dt><dd>{{ c.evt }}</dd></div>
+        <div><dt>Recinto</dt><dd>{{ c.ven }}</dd></div>
+        <div><dt>Titular</dt><dd>{{ c.who }}</dd></div>
+        <div><dt>Zona</dt><dd>{{ c.zon }}</dd></div>
+        <div><dt>Entradas</dt><dd>{{ c.qty }}</dd></div>
+        <div><dt>Código</dt><dd class="mono">{{ c.cod }}</dd></div>
+        <div>
+          <dt>Firma</dt>
+          <dd class="sig" [class.bad]="check()?.reason === 'bad-signature'">
+            <mat-icon inline>{{
+              check()?.reason === 'bad-signature' ? 'close' : 'verified'
+            }}</mat-icon>
+            {{
+              check()?.reason === 'bad-signature'
+                ? 'no coincide'
+                : 'HMAC-SHA256 verificada'
+            }}
+          </dd>
+        </div>
+        @if (check()?.reason === 'stale' || check()?.reason === 'ok') {
+          <div>
+            <dt>Intervalo</dt>
+            <dd>
+              {{ check()?.stepDrift === 0 ? 'al día' : 'desfase de ' + check()?.stepDrift }}
+            </dd>
+          </div>
+        }
+        <div>
+          <dt>Vigencia</dt>
+          <dd>hasta {{ c.exp * 1000 | date: "d MMM y, HH:mm" }}</dd>
+        </div>
+      </dl>
+    }
+
+    @if (verdict() === 'reused' && firstAccess(); as first) {
+      <p class="note warn">
+        Primer ingreso registrado {{ relativeTime(first.at) }}
+        ({{ first.at | date: 'd MMM, HH:mm:ss' }}).
+      </p>
+    } @else if (verdict() === 'valid' && firstAccess(); as first) {
+      <p class="note ok">
+        Ingreso registrado {{ first.at | date: 'HH:mm:ss' }}.
+      </p>
+    }
+
+    <div class="actions">
+      <button mat-flat-button (click)="rescan()">
+        <mat-icon>refresh</mat-icon> Volver a evaluar
+      </button>
+      <button mat-stroked-button (click)="resetValidation()">
+        <mat-icon>restart_alt</mat-icon> Reiniciar validación
+      </button>
+      <a mat-button routerLink="/eventos">Ir a Aforo</a>
+    </div>
+
+    @if (rawToken()) {
+      <button type="button" class="debug-toggle" (click)="toggleDebug()">
+        {{ showDebug() ? 'Ocultar' : 'Ver' }} contenido del código
+      </button>
+      @if (showDebug()) {
+        <div class="debug">
+          <p>
+            El QR lleva una URL <code>/validar#payload.firma</code>. Cambia un
+            carácter del token y el resultado pasa a <strong>inválido</strong>:
+            la firma deja de cuadrar con el payload.
+          </p>
+          <label>Token</label>
+          <pre class="mono wrap">{{ rawToken() }}</pre>
+          @if (prettyPayload()) {
+            <label>Payload decodificado</label>
+            <pre class="mono">{{ prettyPayload() }}</pre>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  <p class="foot">
+    Puerta de validación de entradas. La verificación confirma la vigencia y el
+    estado de uso de cada código.
+  </p>
+</div>

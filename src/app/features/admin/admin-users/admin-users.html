@@ -1,0 +1,66 @@
+@if (loading()) {
+  <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
+} @else if (users().length === 0) {
+  <tkt-empty-state icon="group_off" title="Sin usuarios" />
+} @else {
+  <div class="adm-card">
+    <div class="adm-scroll">
+      <table class="adm-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Rol</th>
+            <th class="ta-right">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (u of users(); track u.id) {
+            <tr>
+              <td>
+                <div class="who">
+                  <span class="avatar">{{ initials(u.fullName) }}</span>
+                  <span>{{ u.fullName }}</span>
+                  @if (isSelf(u)) { <span class="tu">tú</span> }
+                </div>
+              </td>
+              <td class="muted">{{ u.email }}</td>
+              <td>
+                <mat-select
+                  class="role-select"
+                  [ngModel]="u.role"
+                  (ngModelChange)="changeRole(u, $event)"
+                  [disabled]="isSelf(u) || busyId() === u.id"
+                  hideSingleSelectionIndicator
+                >
+                  @for (r of roles; track r) {
+                    <mat-option [value]="r">{{ roleLabel[r] }}</mat-option>
+                  }
+                </mat-select>
+              </td>
+              <td class="ta-right">
+                @if (confirmId() === u.id) {
+                  <span class="confirm">
+                    ¿Eliminar?
+                    <button mat-button color="warn" (click)="confirmDelete(u)">Sí</button>
+                    <button mat-button (click)="cancelDelete()">No</button>
+                  </span>
+                } @else {
+                  <button
+                    mat-icon-button
+                    class="del"
+                    [disabled]="isSelf(u) || busyId() === u.id"
+                    (click)="askDelete(u)"
+                    aria-label="Eliminar usuario"
+                  >
+                    <mat-icon>delete_outline</mat-icon>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

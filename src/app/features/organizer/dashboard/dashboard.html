@@ -1,0 +1,102 @@
+<div class="tkt-page">
+  <div class="tkt-cluster head">
+    <div>
+      <h1 class="tkt-section-title">Panel del organizador</h1>
+      <p class="tkt-section-sub">Ocupación y recaudación de tus eventos.</p>
+    </div>
+    <span class="tkt-spacer"></span>
+    <a mat-flat-button class="tkt-cta" routerLink="/organizador/eventos/nuevo">
+      <mat-icon>add</mat-icon> Nuevo evento
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><mat-progress-spinner mode="indeterminate" diameter="42" /></div>
+  } @else if (stats(); as s) {
+    <div class="stat-grid">
+      <tkt-stat-card
+        icon="payments"
+        label="Recaudación total"
+        [value]="s.totalRevenue | currency: 'PEN' : 'symbol-narrow' : '1.2-2'"
+        hint="Venta de entradas · sin comisión"
+      />
+      <tkt-stat-card
+        icon="confirmation_number"
+        label="Entradas vendidas"
+        [value]="s.totalTicketsSold | number"
+        [hint]="'de ' + (s.totalCapacity | number) + ' de aforo'"
+      />
+      <tkt-stat-card
+        icon="donut_large"
+        label="Ocupación promedio"
+        [value]="s.averageOccupancy | percent: '1.0-1'"
+      />
+      <tkt-stat-card
+        icon="event_available"
+        label="Eventos publicados"
+        [value]="s.publishedEvents"
+      />
+    </div>
+
+    <tkt-zone-insights [rows]="s.byZone ?? []" />
+    <div class="panel">
+      <div class="panel-head">
+        <h2><mat-icon>show_chart</mat-icon> Recaudación · últimos 6 meses</h2>
+      </div>
+      <tkt-bar-chart [data]="chartData()" />
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2><mat-icon>leaderboard</mat-icon> Rendimiento por evento</h2>
+        <a routerLink="/organizador/eventos" class="link">Gestionar eventos</a>
+      </div>
+
+      @if (s.byEvent.length === 0) {
+        <tkt-empty-state
+          icon="insights"
+          title="Sin datos todavía"
+          message="Publica un evento y registra ventas para ver métricas."
+        />
+      } @else {
+        <div class="perf-scroll">
+          <table class="perf">
+            <thead>
+              <tr>
+                <th>Evento</th>
+                <th>Fecha</th>
+                <th class="occ-col">Ocupación</th>
+                <th class="num">Vendidas</th>
+                <th class="num">Recaudación</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of s.byEvent; track row.eventId) {
+                <tr>
+                  <td class="ev-name">{{ row.eventName }}</td>
+                  <td class="muted">{{ row.startsAt | date: 'd MMM y' }}</td>
+                  <td>
+                    <div class="occ-cell">
+                      <tkt-capacity-bar
+                        [sold]="row.sold"
+                        [total]="row.capacity"
+                        [showLabel]="false"
+                      />
+                      <span class="occ-pct">{{ row.occupancy | percent: '1.0-0' }}</span>
+                    </div>
+                  </td>
+                  <td class="num muted">
+                    {{ row.sold | number }} / {{ row.capacity | number }}
+                  </td>
+                  <td class="num strong">
+                    {{ row.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+</div>
