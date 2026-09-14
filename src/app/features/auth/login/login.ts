@@ -15,6 +15,8 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UserRole } from '../../../core/models/user.model';
+import { PASSWORD_PATTERN } from '../../../core/auth/password-policy';
+import { DEMO_CREDENTIALS } from '../../../core/mock/mock-data';
 
 @Component({
   selector: 'tkt-login',
@@ -45,15 +47,12 @@ export class Login {
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(4)]],
+    password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
     remember: [true],
   });
 
-  fill(kind: 'organizador' | 'cliente'): void {
-    this.form.patchValue({
-      email: `${kind}@tkt.pe`,
-      password: kind,
-    });
+  fill(kind: 'ORGANIZER' | 'CLIENT'): void {
+    this.form.patchValue(DEMO_CREDENTIALS[kind]);
   }
 
   private homeFor(role: UserRole): string {

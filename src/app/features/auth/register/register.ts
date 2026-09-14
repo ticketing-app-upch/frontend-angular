@@ -36,15 +36,13 @@ import {
   OrganizerType,
   PublicRole,
 } from '../../../core/models/user.model';
+import { PASSWORD_PATTERN } from '../../../core/auth/password-policy';
 
 const DOC_PATTERNS: Record<DocType, RegExp> = {
   DNI: /^\d{8}$/,
   CE: /^\d{9,12}$/,
   PASAPORTE: /^[A-Za-z0-9]{6,12}$/,
 };
-
-/** Mínimo 8 caracteres, con al menos una mayúscula, un número y un carácter especial. */
-const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
 
 @Component({
   selector: 'tkt-register',
