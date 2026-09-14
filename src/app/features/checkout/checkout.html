@@ -15,10 +15,7 @@
 } @else if (event(); as ev) {
   <!-- Cabecera oscura del evento -->
   <header class="evhero" [class.is-match]="match() !== null">
-    <span
-      class="evhero-bg"
-      [style.background-image]="'url(' + ev.imageUrl + ')'"
-    ></span>
+    <span class="evhero-bg" [style.background-image]="'url(' + ev.imageUrl + ')'"></span>
     <div class="evhero-shade"></div>
 
     <div class="evhero-inner">
@@ -51,8 +48,8 @@
         <h2>¡Compra confirmada!</h2>
         <p class="code">{{ ord.code }}</p>
         <p class="tkt-muted">
-          {{ ord.lines.length }} tipo(s) de entrada enviados a tu cuenta ·
-          total {{ ord.total | currency: 'PEN' : 'symbol-narrow' }}.
+          {{ ord.lines.length }} tipo(s) de entrada enviados a tu cuenta · total
+          {{ ord.total | currency: 'PEN' : 'symbol-narrow' }}.
         </p>
         <div class="done-actions">
           <button mat-flat-button (click)="goToTickets()">Ver mis entradas</button>
@@ -90,7 +87,13 @@
         <!-- Modal de zoom del plano -->
         @if (mapZoom()) {
           <div class="map-modal-backdrop" (click)="closeMap()">
-            <div class="map-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="map-modal-title">
+            <div
+              class="map-modal"
+              (click)="$event.stopPropagation()"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="map-modal-title"
+            >
               <!-- Cabecera del modal -->
               <div class="map-modal-head">
                 @if (match(); as m) {
@@ -102,7 +105,10 @@
                 }
                 <div class="map-modal-info">
                   <h3 id="map-modal-title">{{ ev.name }}</h3>
-                  <p><mat-icon inline>place</mat-icon> {{ ev.venue }}, {{ ev.city }} · plano {{ venueShapeLabel() }} referencial</p>
+                  <p>
+                    <mat-icon inline>place</mat-icon> {{ ev.venue }}, {{ ev.city }} · plano
+                    {{ venueShapeLabel() }} referencial
+                  </p>
                 </div>
                 <button class="map-modal-close" (click)="closeMap()" aria-label="Cerrar plano">
                   <mat-icon>close</mat-icon>
@@ -128,10 +134,19 @@
                 aria-label="Zonas y precios"
               >
                 <div class="legend-resize-handle" (pointerdown)="startLegendResize($event)">
-                  <span class="grabber" role="separator" aria-orientation="horizontal" aria-label="Arrastra para cambiar la altura de la leyenda"></span>
+                  <span
+                    class="grabber"
+                    role="separator"
+                    aria-orientation="horizontal"
+                    aria-label="Arrastra para cambiar la altura de la leyenda"
+                  ></span>
                   <div class="legend-sheet-title">
                     <b>Zonas y precios</b>
-                    <small>{{ legendCollapsed() ? 'Mostrar selector' : 'Arrastra para dar más espacio al plano' }}</small>
+                    <small>{{
+                      legendCollapsed()
+                        ? 'Mostrar selector'
+                        : 'Arrastra para dar más espacio al plano'
+                    }}</small>
                   </div>
                   <button
                     type="button"
@@ -139,9 +154,13 @@
                     (pointerdown)="$event.stopPropagation()"
                     (click)="toggleLegend()"
                     [attr.aria-expanded]="!legendCollapsed()"
-                    [attr.aria-label]="legendCollapsed() ? 'Mostrar zonas y precios' : 'Ocultar zonas y precios'"
+                    [attr.aria-label]="
+                      legendCollapsed() ? 'Mostrar zonas y precios' : 'Ocultar zonas y precios'
+                    "
                   >
-                    <mat-icon>{{ legendCollapsed() ? 'keyboard_arrow_up' : 'keyboard_arrow_down' }}</mat-icon>
+                    <mat-icon>{{
+                      legendCollapsed() ? 'keyboard_arrow_up' : 'keyboard_arrow_down'
+                    }}</mat-icon>
                   </button>
                 </div>
                 @if (!legendCollapsed()) {
@@ -149,10 +168,27 @@
                     @for (z of ev.zones; track z.id; let i = $index) {
                       <div class="legend-item" [class.sold]="zoneAvailable(z.id) === 0">
                         <span class="legend-dot" [style.background]="zoneColor(i)"></span>
-                        <span class="legend-name">{{ z.name }} · {{ unitPrice(z) | currency: 'PEN' : 'symbol-narrow' }}</span>
-                        <button type="button" (click)="change(z.id, -1)" [disabled]="currentQty(z.id) === 0" [attr.aria-label]="'Quitar una entrada de ' + z.name"><mat-icon>remove</mat-icon></button>
+                        <span class="legend-name"
+                          >{{ z.name }} ·
+                          {{ unitPrice(z) | currency: 'PEN' : 'symbol-narrow' }}</span
+                        >
+                        <button
+                          type="button"
+                          (click)="change(z.id, -1)"
+                          [disabled]="currentQty(z.id) === 0"
+                          [attr.aria-label]="'Quitar una entrada de ' + z.name"
+                        >
+                          <mat-icon>remove</mat-icon>
+                        </button>
                         <b>{{ currentQty(z.id) }}</b>
-                        <button type="button" (click)="change(z.id, 1)" [disabled]="!canAdd(z.id)" [attr.aria-label]="'Agregar una entrada de ' + z.name"><mat-icon>add</mat-icon></button>
+                        <button
+                          type="button"
+                          (click)="change(z.id, 1)"
+                          [disabled]="!canAdd(z.id)"
+                          [attr.aria-label]="'Agregar una entrada de ' + z.name"
+                        >
+                          <mat-icon>add</mat-icon>
+                        </button>
                       </div>
                     }
                   </div>
@@ -160,7 +196,15 @@
               </section>
               <div class="map-modal-footer">
                 <span>{{ totalQty() }} de {{ maxPerOrder() }} entradas seleccionadas</span>
-                <button mat-flat-button class="tkt-cta" type="button" (click)="closeMap()" [disabled]="!hasSelection()">Continuar con mi selección</button>
+                <button
+                  mat-flat-button
+                  class="tkt-cta"
+                  type="button"
+                  (click)="closeMap()"
+                  [disabled]="!hasSelection()"
+                >
+                  Continuar con mi selección
+                </button>
               </div>
             </div>
           </div>
@@ -173,7 +217,9 @@
             <span class="limit">
               <mat-icon inline>info</mat-icon>
               Máx. {{ maxPerOrder() }} por compra
-              @if (hasSelection()) { · quedan {{ remaining() }} }
+              @if (hasSelection()) {
+                · quedan {{ remaining() }}
+              }
             </span>
           </div>
 
@@ -227,23 +273,34 @@
                 <ul class="sum-lines">
                   @for (l of selectedLines(); track l.zone.id) {
                     <li>
-                      <span>{{ l.zone.name }} <b>× {{ l.qty }}</b></span>
-                      <span>{{ unitPrice(l.zone) * l.qty | currency: 'PEN' : 'symbol-narrow' }}</span>
+                      <span
+                        >{{ l.zone.name }} <b>× {{ l.qty }}</b></span
+                      >
+                      <span>{{
+                        unitPrice(l.zone) * l.qty | currency: 'PEN' : 'symbol-narrow'
+                      }}</span>
                     </li>
                   }
                 </ul>
                 <dl class="sum-totals">
-                  <div><dt>Subtotal</dt><dd>{{ provisional().subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
-                  <div><dt>Comisión de servicio</dt><dd>{{ provisional().fee | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
-                  <div class="grand"><dt>Total</dt><dd>{{ provisional().total | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                  <div>
+                    <dt>Subtotal</dt>
+                    <dd>{{ provisional().subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Comisión de servicio</dt>
+                    <dd>{{ provisional().fee | currency: 'PEN' : 'symbol-narrow' }}</dd>
+                  </div>
+                  <div class="grand">
+                    <dt>Total</dt>
+                    <dd>{{ provisional().total | currency: 'PEN' : 'symbol-narrow' }}</dd>
+                  </div>
                 </dl>
                 <button mat-flat-button class="tkt-cta cta" (click)="startReview()">
                   Continuar al pago
                 </button>
               } @else {
-                <p class="sum-empty tkt-muted">
-                  Elige uno o más sectores para ver el total.
-                </p>
+                <p class="sum-empty tkt-muted">Elige uno o más sectores para ver el total.</p>
               }
             } @else {
               <h2 class="panel-title">Confirma tu compra</h2>
@@ -258,20 +315,37 @@
                     <li>
                       <span>
                         {{ it.zoneName }} <b>× {{ it.quantity }}</b>
-                        @if (it.note) { <em class="tag">{{ it.note }}</em> }
+                        @if (it.note) {
+                          <em class="tag">{{ it.note }}</em>
+                        }
                       </span>
-                      <span>{{ it.unitPrice * it.quantity | currency: 'PEN' : 'symbol-narrow' }}</span>
+                      <span>{{
+                        it.unitPrice * it.quantity | currency: 'PEN' : 'symbol-narrow'
+                      }}</span>
                     </li>
                   }
                 </ul>
                 <dl class="sum-totals">
-                  <div><dt>Subtotal</dt><dd>{{ q.subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
-                  <div><dt>Comisión de servicio</dt><dd>{{ q.fee | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
-                  <div class="grand"><dt>Total</dt><dd>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</dd></div>
+                  <div>
+                    <dt>Subtotal</dt>
+                    <dd>{{ q.subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd>
+                  </div>
+                  <div>
+                    <dt>Comisión de servicio</dt>
+                    <dd>{{ q.fee | currency: 'PEN' : 'symbol-narrow' }}</dd>
+                  </div>
+                  <div class="grand">
+                    <dt>Total</dt>
+                    <dd>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</dd>
+                  </div>
                 </dl>
-                <p class="quote-clock">Vigencia: {{ secondsLeft() }} s. Esta cotización no reserva cupos.</p>
+                <p class="quote-clock">
+                  Vigencia: {{ secondsLeft() }} s. Esta cotización no reserva cupos.
+                </p>
                 @if (secondsLeft() === 0) {
-                  <button mat-stroked-button (click)="requestQuote()" [disabled]="placing()">Actualizar cotización</button>
+                  <button mat-stroked-button (click)="requestQuote()" [disabled]="placing()">
+                    Actualizar cotización
+                  </button>
                 }
                 <button
                   mat-flat-button
@@ -297,10 +371,24 @@
 
       @if (paymentGateway() && quote(); as q) {
         <div class="payment-backdrop" (click)="closePaymentGateway()">
-          <section class="payment-gateway" role="dialog" aria-modal="true" aria-labelledby="payment-title" (click)="$event.stopPropagation()">
+          <section
+            class="payment-gateway"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="payment-title"
+            (click)="$event.stopPropagation()"
+          >
             <header class="gateway-head">
-              <div class="gateway-brand"><mat-icon>shield</mat-icon><span>Aforo Pay</span></div>
-              <button type="button" class="gateway-close" (click)="closePaymentGateway()" [disabled]="placing()" aria-label="Cerrar pasarela"><mat-icon>close</mat-icon></button>
+              <div class="gateway-brand"><mat-icon>shield</mat-icon><span>AlpaTeck Pay</span></div>
+              <button
+                type="button"
+                class="gateway-close"
+                (click)="closePaymentGateway()"
+                [disabled]="placing()"
+                aria-label="Cerrar pasarela"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
             </header>
             <div class="gateway-merchant">
               <span>Pago para</span>
@@ -309,16 +397,47 @@
             </div>
             <h2 id="payment-title">Elige tu medio de pago</h2>
             <div class="payment-options" role="radiogroup" aria-label="Medios de pago">
-              <button type="button" [class.active]="paymentMethod === 'CARD'" [attr.aria-checked]="paymentMethod === 'CARD'" role="radio" (click)="paymentMethod = 'CARD'">
-                <mat-icon>credit_card</mat-icon><span><b>Tarjeta</b><small>Visa, Mastercard y American Express</small></span><mat-icon class="check">{{ paymentMethod === 'CARD' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              <button
+                type="button"
+                [class.active]="paymentMethod === 'CARD'"
+                [attr.aria-checked]="paymentMethod === 'CARD'"
+                role="radio"
+                (click)="paymentMethod = 'CARD'"
+              >
+                <mat-icon>credit_card</mat-icon
+                ><span><b>Tarjeta</b><small>Visa, Mastercard y American Express</small></span
+                ><mat-icon class="check">{{
+                  paymentMethod === 'CARD' ? 'check_circle' : 'radio_button_unchecked'
+                }}</mat-icon>
               </button>
-              <button type="button" [class.active]="paymentMethod === 'WALLET'" [attr.aria-checked]="paymentMethod === 'WALLET'" role="radio" (click)="paymentMethod = 'WALLET'">
-                <mat-icon>account_balance_wallet</mat-icon><span><b>Billetera digital</b><small>Yape, Plin y pagos con QR</small></span><mat-icon class="check">{{ paymentMethod === 'WALLET' ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
+              <button
+                type="button"
+                [class.active]="paymentMethod === 'WALLET'"
+                [attr.aria-checked]="paymentMethod === 'WALLET'"
+                role="radio"
+                (click)="paymentMethod = 'WALLET'"
+              >
+                <mat-icon>account_balance_wallet</mat-icon
+                ><span><b>Billetera digital</b><small>Yape, Plin y pagos con QR</small></span
+                ><mat-icon class="check">{{
+                  paymentMethod === 'WALLET' ? 'check_circle' : 'radio_button_unchecked'
+                }}</mat-icon>
               </button>
             </div>
-            <p class="gateway-protection"><mat-icon>lock</mat-icon> Tu información se gestiona mediante una conexión protegida.</p>
-            <button mat-flat-button class="gateway-pay" (click)="confirm()" [disabled]="placing() || secondsLeft() === 0">
-              @if (placing()) { Procesando pago… } @else { Pagar {{ q.total | currency: 'PEN' : 'symbol-narrow' }} }
+            <p class="gateway-protection">
+              <mat-icon>lock</mat-icon> Tu información se gestiona mediante una conexión protegida.
+            </p>
+            <button
+              mat-flat-button
+              class="gateway-pay"
+              (click)="confirm()"
+              [disabled]="placing() || secondsLeft() === 0"
+            >
+              @if (placing()) {
+                Procesando pago…
+              } @else {
+                Pagar {{ q.total | currency: 'PEN' : 'symbol-narrow' }}
+              }
             </button>
             <p class="gateway-expiry">La cotización vence en {{ secondsLeft() }} s.</p>
           </section>

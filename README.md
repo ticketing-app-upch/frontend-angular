@@ -89,7 +89,7 @@ src/app/
 
 ## Funciones destacadas del frontend
 
-- Catálogo responsive con favoritos locales, comparación, filtros combinados, orden y “Aforo Match” por presupuesto y tamaño de grupo.
+- Catálogo responsive con favoritos locales, comparación, filtros combinados, orden y “AlpaTeck Match” por presupuesto y tamaño de grupo.
 - Planos interactivos distintos para Monumental, Estadio Nacional, San Marcos, teatros, arenas/coliseos y zonas generales. El modal ampliado permite selección múltiple.
 - Precio dinámico visible con motivo, cotización de dos minutos, comisión desglosada, idempotencia y pago aprobado/rechazado de prueba.
 - Panel por evento y por zona, laboratorio de escenarios de precio y exportación CSV protegida contra fórmulas.
