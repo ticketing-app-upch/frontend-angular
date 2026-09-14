@@ -8,6 +8,7 @@ import {
   inject,
   input,
   signal,
+  untracked,
 } from '@angular/core';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -173,7 +174,12 @@ export class Checkout {
       this.loading.set(true);
       this.notFound.set(false);
       this.order.set(null);
-      this.backToSelection();
+      // backToSelection() lee this.placing() (para no cortar una compra en
+      // curso); sin untracked(), ese read queda como dependencia de este
+      // effect — y como placing() cambia durante confirm(), el effect se
+      // reejecuta justo cuando la compra se confirma y borra la orden que
+      // recién se acaba de guardar.
+      untracked(() => this.backToSelection());
       const request = this.events.getById(id).subscribe({
         next: (ev) => {
           this.event.set(ev);
