@@ -28,6 +28,28 @@ export class AdminService {
   private store = inject(MockStore);
   private base = environment.apiBackendUrl;
 
+  /** Crea una nueva cuenta ADMIN. Es la única forma de dar acceso administrativo. */
+  createAdmin(payload: { fullName: string; email: string; password: string }): Observable<User> {
+    if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
+      const email = payload.email.trim().toLowerCase();
+      if (this.store.users.some((u) => u.email.toLowerCase() === email)) {
+        return mockError<User>('Ya existe una cuenta con ese correo.', 409);
+      }
+      const user: User & { password: string } = {
+        id: `u-${crypto.randomUUID().slice(0, 8)}`,
+        fullName: payload.fullName.trim(),
+        email,
+        role: 'ADMIN',
+        password: payload.password,
+      };
+      this.store.addUser(user);
+      const { password: _pw, ...u } = user;
+      return mockResponse(structuredClone(u) as User);
+    }
+    return this.http.post<User>(`${this.base}/admin/users`, { ...payload, role: 'ADMIN' });
+  }
+
   /** Todos los usuarios, sin la contraseña. */
   users(): Observable<User[]> {
     if (environment.useMock) {
@@ -41,17 +63,37 @@ export class AdminService {
     return this.http.get<User[]>(`${this.base}/admin/users`);
   }
 
+  /**
+   * Cambia el rol de un usuario. Solo aplica entre cuentas ADMIN (crear un
+   * nuevo administrador o quitarle el acceso): el rol de clientes y
+   * organizadores es fijo desde este panel, por diseño.
+   */
   setUserRole(id: string, role: UserRole): Observable<User> {
     if (environment.useMock) {
       if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
       const found = this.store.users.find((u) => u.id === id);
       if (!found) return mockError<User>('Usuario no encontrado.', 404);
+      if (found.role !== 'ADMIN') return mockError('El rol de clientes y organizadores no se puede cambiar.', 409);
       if (id === this.auth.user()?.id && role !== 'ADMIN') return mockError('No puedes retirar tu propio acceso administrativo.', 409);
       this.store.updateUser(id, { role });
       const { password: _pw, ...u } = { ...found, role };
       return mockResponse(structuredClone(u) as User);
     }
     return this.http.patch<User>(`${this.base}/admin/users/${id}`, { role });
+  }
+
+  /** Habilita o inhabilita una cuenta (no puede iniciar sesión mientras está inhabilitada). */
+  setUserActive(id: string, active: boolean): Observable<User> {
+    if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
+      const found = this.store.users.find((u) => u.id === id);
+      if (!found) return mockError<User>('Usuario no encontrado.', 404);
+      if (id === this.auth.user()?.id) return mockError('No puedes inhabilitar tu propia cuenta.', 409);
+      this.store.updateUser(id, { active });
+      const { password: _pw, ...u } = { ...found, active };
+      return mockResponse(structuredClone(u) as User);
+    }
+    return this.http.patch<User>(`${this.base}/admin/users/${id}`, { active });
   }
 
   deleteUser(id: string): Observable<void> {

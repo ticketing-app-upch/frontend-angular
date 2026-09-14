@@ -4,11 +4,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { AdminService } from '../../../core/services/admin.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { User, UserRole } from '../../../core/models/user.model';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
+import { CreateAdminDialog } from './create-admin-dialog';
 
 @Component({
   selector: 'tkt-admin-users',
@@ -19,6 +22,7 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
     MatIconModule,
     MatProgressSpinnerModule,
     MatSelectModule,
+    MatTooltipModule,
     EmptyState,
   ],
   templateUrl: './admin-users.html',
@@ -28,6 +32,7 @@ export class AdminUsers {
   private admin = inject(AdminService);
   private auth = inject(AuthService);
   private notify = inject(NotificationService);
+  private dialog = inject(MatDialog);
 
   readonly loading = signal(true);
   readonly users = signal<User[]>([]);
@@ -47,6 +52,15 @@ export class AdminUsers {
 
   isSelf(u: User): boolean {
     return u.id === this.auth.user()?.id;
+  }
+
+  /** El rol solo puede tocarse entre cuentas ADMIN (crearlas o quitarles el acceso). */
+  canChangeRole(u: User): boolean {
+    return u.role === 'ADMIN';
+  }
+
+  isActive(u: User): boolean {
+    return u.active !== false;
   }
 
   initials(name: string): string {
@@ -74,6 +88,38 @@ export class AdminUsers {
         this.notify.error(err?.message ?? 'No se pudo cambiar el rol.');
       },
     });
+  }
+
+  toggleActive(u: User): void {
+    const active = !this.isActive(u);
+    this.busyId.set(u.id);
+    this.admin.setUserActive(u.id, active).subscribe({
+      next: () => {
+        this.users.update((list) =>
+          list.map((x) => (x.id === u.id ? { ...x, active } : x)),
+        );
+        this.busyId.set(null);
+        this.notify.success(
+          active ? `${u.fullName} fue habilitado.` : `${u.fullName} fue inhabilitado.`,
+        );
+      },
+      error: (err) => {
+        this.busyId.set(null);
+        this.notify.error(err?.message ?? 'No se pudo cambiar el estado de la cuenta.');
+      },
+    });
+  }
+
+  createAdmin(): void {
+    this.dialog
+      .open(CreateAdminDialog, { width: 'min(460px, 94vw)', autoFocus: false })
+      .afterClosed()
+      .subscribe((user?: User) => {
+        if (!user) return;
+        this.users.update((list) =>
+          [...list, user].sort((a, b) => a.fullName.localeCompare(b.fullName)),
+        );
+      });
   }
 
   askDelete(u: User): void {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -71,10 +71,33 @@ export class EventList {
   readonly featuredIndex = signal(0);
   readonly featured = computed(() => this.featuredEvents()[this.featuredIndex()]);
   readonly publicCount = computed(() => this.allEvents().length);
+  /** El carrusel del destacado se pausa mientras el mouse está encima. */
+  readonly featuredPaused = signal(false);
+  private autoplayTimer: ReturnType<typeof setInterval> | null = null;
+  private readonly AUTOPLAY_MS = 6000;
+
+  private advanceFeatured(): void {
+    const total = this.featuredEvents().length;
+    if (total > 1) this.featuredIndex.update(i => (i + 1) % total);
+  }
+  private startAutoplay(): void {
+    this.stopAutoplay();
+    if (this.featuredEvents().length <= 1) return;
+    this.autoplayTimer = setInterval(() => {
+      if (!this.featuredPaused()) this.advanceFeatured();
+    }, this.AUTOPLAY_MS);
+  }
+  private stopAutoplay(): void {
+    if (this.autoplayTimer !== null) {
+      clearInterval(this.autoplayTimer);
+      this.autoplayTimer = null;
+    }
+  }
   nextFeatured(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.featuredIndex.update(i => (i + 1) % this.featuredEvents().length);
+    this.advanceFeatured();
+    this.startAutoplay();
   }
   readonly filtered = computed(() => {
     const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -105,7 +128,14 @@ export class EventList {
       this.search.set(p.get('q') ?? ''); this.category.set(this.categories.some(c => c.value === p.get('category')) ? p.get('category')! : 'TODAS');
       this.savedOnly.set(p.get('saved') === '1'); this.date.set(['week', 'month'].includes(p.get('when') ?? '') ? p.get('when')! : 'any');
     });
-    inject(DestroyRef).onDestroy(() => sub.unsubscribe());
+    inject(DestroyRef).onDestroy(() => {
+      sub.unsubscribe();
+      this.stopAutoplay();
+    });
+    effect(() => {
+      this.featuredEvents();
+      this.startAutoplay();
+    });
     this.load();
   }
   load(): void {

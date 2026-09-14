@@ -29,6 +29,15 @@ h1{font-size:clamp(40px,5.3vw,70px);line-height:1.02;letter-spacing:-.055em;marg
 .text-button{display:inline-flex;gap:5px;align-items:center;background:none;color:inherit;border:0;font-size:14px}
 .trust{display:flex;flex-wrap:wrap;gap:20px;color:var(--muted);font-size:12px}.trust span{display:flex;align-items:center;gap:6px}
 .feature-container { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; }
+.feature-float { animation: feature-float 5.5s ease-in-out infinite; }
+.feature-float:hover { animation-play-state: paused; }
+@keyframes feature-float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -10px, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-float { animation: none; }
+}
 .feature-next { position: absolute; right: -20px; top: calc(50% - 12px); transform: translateY(-50%); width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(20,20,30,0.6); backdrop-filter: blur(8px); color: white; display: grid; place-items: center; z-index: 10; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; pointer-events: none; }
 .feature-container:hover .feature-next { opacity: 1; pointer-events: auto; right: 10px; }
 .feature-next:hover { background: rgba(20,20,30,0.9); transform: translateY(-50%) scale(1.05); }
