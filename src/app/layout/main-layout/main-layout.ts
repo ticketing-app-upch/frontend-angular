@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/auth/auth.service';
+import { epicEnabled } from '../../core/demo-scope';
 
 @Component({
   selector: 'tkt-main-layout',
@@ -24,6 +25,9 @@ import { AuthService } from '../../core/auth/auth.service';
   styleUrl: './main-layout.scss',
 })
 export class MainLayout {
+  readonly epicEnabled = epicEnabled;
+  /** A dónde manda el logo y el "cerrar sesión": catálogo si ya está prendido, si no la landing segura. */
+  readonly homeLink = epicEnabled(2) ? '/eventos' : '/bienvenida';
   readonly dark = signal(false);
   private router = inject(Router);
   constructor() {
@@ -47,7 +51,7 @@ export class MainLayout {
 
   logout(): void {
     this.auth.logout();
-    void this.router.navigate(['/eventos']);
+    void this.router.navigateByUrl(this.homeLink);
   }
 
   initials(name: string): string {

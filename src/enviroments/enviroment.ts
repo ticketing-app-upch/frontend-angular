@@ -13,6 +13,13 @@ export const environment = {
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
   /**
+   * Épicas habilitadas en este build (ver `core/demo-scope.ts`). Esta rama es
+   * feat/demo-2-auth: solo Épica 1 (registro + login). Para trabajar en el
+   * resto del catálogo/compra/paneles, hacé `git checkout feat/frontend-mvp`
+   * (ahí queda todo prendido) o subí este número a mano en tu copia local.
+   */
+  enabledEpics: [1],
+  /**
    * Clave HMAC con la que se firman los QR de las entradas y con la
    * que la puerta (`/validar`) verifica su autenticidad. En un sistema real
    * esta clave vive SOLO en el backend / la app del escáner, nunca en el
