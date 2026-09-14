@@ -59,6 +59,8 @@ export interface User {
   profile?: ClientProfile;
   organizer?: OrganizerProfile;
   marketingOptIn?: boolean;
+  /** Cuenta inhabilitada por un administrador; no puede iniciar sesión. Por defecto `true`. */
+  active?: boolean;
 }
 
 export interface AuthResponse {

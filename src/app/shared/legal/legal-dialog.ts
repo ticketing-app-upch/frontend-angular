@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
 import {
   MAT_DIALOG_DATA,
   MatDialogModule,
 } from '@angular/material/dialog';
 
 export type LegalDoc = 'terms' | 'privacy';
+export type LegalRole = 'CLIENTE' | 'ORGANIZADOR';
 
 interface Block {
   h: string;
@@ -26,11 +26,11 @@ interface Doc {
 @Component({
   selector: 'tkt-legal-dialog',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MatDialogModule, MatButtonModule, MatIconModule, MatTabsModule],
+  imports: [MatDialogModule, MatButtonModule, MatIconModule],
   template: `
     <div class="legal">
       <header>
-        <h2 mat-dialog-title>Documentos legales</h2>
+        <h2 mat-dialog-title>{{ doc.title }}</h2>
         <button
           mat-icon-button
           mat-dialog-close
@@ -41,33 +41,27 @@ interface Doc {
         </button>
       </header>
 
-      <mat-tab-group [selectedIndex]="startIndex" mat-stretch-tabs="false">
-        @for (doc of docs; track doc.key) {
-          <mat-tab [label]="doc.title">
-            <mat-dialog-content>
-              <p class="updated">{{ doc.updated }}</p>
+      <mat-dialog-content>
+        <p class="updated">{{ doc.updated }}</p>
 
-              @for (b of doc.blocks; track b.h) {
-                <section>
-                  <h3>
-                    {{ b.h }}
-                    @if (b.tag) {
-                      <span class="tag" [class.org]="b.tag === 'ORGANIZADOR'">
-                        {{ b.tag }}
-                      </span>
-                    }
-                  </h3>
-                  @for (line of b.p; track line) {
-                    <p>{{ line }}</p>
-                  }
-                </section>
+        @for (b of visibleBlocks; track $index) {
+          <section>
+            <h3>
+              {{ b.h }}
+              @if (b.tag) {
+                <span class="tag" [class.org]="b.tag === 'ORGANIZADOR'">
+                  {{ b.tag }}
+                </span>
               }
-
-              <p class="disclaimer">{{ doc.disclaimer }}</p>
-            </mat-dialog-content>
-          </mat-tab>
+            </h3>
+            @for (line of b.p; track line) {
+              <p>{{ line }}</p>
+            }
+          </section>
         }
-      </mat-tab-group>
+
+        <p class="disclaimer">{{ doc.disclaimer }}</p>
+      </mat-dialog-content>
 
       <mat-dialog-actions align="end">
         <button mat-flat-button mat-dialog-close>Entendido</button>
@@ -148,11 +142,12 @@ interface Doc {
   `,
 })
 export class LegalDialog {
-  private data = inject<{ key?: LegalDoc }>(MAT_DIALOG_DATA, { optional: true });
+  private data = inject<{ key?: LegalDoc; role?: LegalRole }>(
+    MAT_DIALOG_DATA,
+    { optional: true },
+  );
 
-  readonly startIndex = this.data?.key === 'privacy' ? 1 : 0;
-
-  readonly docs: Doc[] = [
+  private static readonly docs: Doc[] = [
     {
       key: 'terms',
       title: 'Términos y Condiciones',
@@ -275,4 +270,13 @@ export class LegalDialog {
         'Este texto es informativo y no constituye asesoría legal.',
     },
   ];
+
+  readonly doc: Doc = LegalDialog.docs.find(
+    (d) => d.key === (this.data?.key ?? 'terms'),
+  )!;
+
+  /** Solo bloques generales o los que corresponden al rol desde el que se abrió. */
+  readonly visibleBlocks: Block[] = this.doc.blocks.filter(
+    (b) => !b.tag || !this.data?.role || b.tag === this.data.role,
+  );
 }

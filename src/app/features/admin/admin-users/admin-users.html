@@ -1,3 +1,10 @@
+<div class="toolbar">
+  <button mat-flat-button type="button" (click)="createAdmin()">
+    <mat-icon>admin_panel_settings</mat-icon>
+    Nuevo administrador
+  </button>
+</div>
+
 @if (loading()) {
   <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
 } @else if (users().length === 0) {
@@ -22,6 +29,7 @@
                   <span class="avatar">{{ initials(u.fullName) }}</span>
                   <span>{{ u.fullName }}</span>
                   @if (isSelf(u)) { <span class="tu">tú</span> }
+                  @if (!isActive(u)) { <span class="inactive">inhabilitado</span> }
                 </div>
               </td>
               <td class="muted">{{ u.email }}</td>
@@ -30,7 +38,8 @@
                   class="role-select"
                   [ngModel]="u.role"
                   (ngModelChange)="changeRole(u, $event)"
-                  [disabled]="isSelf(u) || busyId() === u.id"
+                  [disabled]="!canChangeRole(u) || isSelf(u) || busyId() === u.id"
+                  [matTooltip]="canChangeRole(u) ? '' : 'El rol de clientes y organizadores no se puede cambiar.'"
                   hideSingleSelectionIndicator
                 >
                   @for (r of roles; track r) {
@@ -45,11 +54,20 @@
                     <button mat-button color="warn" (click)="confirmDelete(u)">Sí</button>
                     <button mat-button (click)="cancelDelete()">No</button>
                   </span>
-                } @else {
+                } @else if (!canChangeRole(u)) {
+                  <button
+                    mat-icon-button
+                    [disabled]="busyId() === u.id"
+                    (click)="toggleActive(u)"
+                    [attr.aria-label]="isActive(u) ? 'Inhabilitar usuario' : 'Habilitar usuario'"
+                    [matTooltip]="isActive(u) ? 'Inhabilitar' : 'Habilitar'"
+                  >
+                    <mat-icon>{{ isActive(u) ? 'block' : 'check_circle_outline' }}</mat-icon>
+                  </button>
                   <button
                     mat-icon-button
                     class="del"
-                    [disabled]="isSelf(u) || busyId() === u.id"
+                    [disabled]="busyId() === u.id"
                     (click)="askDelete(u)"
                     aria-label="Eliminar usuario"
                   >

@@ -11,7 +11,11 @@
       <div class="trust"><span><mat-icon>confirmation_number</mat-icon> {{ publicCount() }} experiencias</span><span><mat-icon>tune</mat-icon> Tú eliges el presupuesto</span></div>
     </div>
     @if (featured(); as event) {
-      <div class="feature-container">
+      <div
+        class="feature-container feature-float"
+        (mouseenter)="featuredPaused.set(true)"
+        (mouseleave)="featuredPaused.set(false)"
+      >
         <a class="feature" [routerLink]="['/eventos', event.id]">
           <img [src]="event.imageUrl" [alt]="event.name" fetchpriority="high" />
           @if (matchArt(event.name, event.category); as m) {
