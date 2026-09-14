@@ -47,11 +47,11 @@ Cuando el backend esté listo, poner `useMock: false` y los mismos servicios peg
 
 **Cuentas de prueba** (botones de acceso rápido en la pantalla de login):
 
-| Rol         | Correo               | Contraseña    |
-| ----------- | -------------------- | ------------- |
-| Organizador | `organizador@tkt.pe` | `organizador` |
-| Cliente     | `cliente@tkt.pe`     | `cliente`     |
-| Admin       | `admin@tkt.pe`       | `admin`       |
+| Rol         | Correo               | Contraseña       |
+| ----------- | -------------------- | ---------------- |
+| Organizador | `organizador@tkt.pe` | `Organizador1$`  |
+| Cliente     | `cliente@tkt.pe`     | `Cliente1$`      |
+| Admin       | `admin@tkt.pe`       | `Admin123$`      |
 
 Para reiniciar la data: borrar la clave `tkt.mock.v1` de `localStorage`.
 
