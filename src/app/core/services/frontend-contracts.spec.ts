@@ -9,6 +9,7 @@ import { TicketService } from './ticket.service';
 import { DashboardService } from './dashboard.service';
 import { AuthService } from '../auth/auth.service';
 import { MockStore } from '../mock/mock-store';
+import { DEMO_CREDENTIALS } from '../mock/mock-data';
 import { EventItem } from '../models/event.model';
 
 const makeEvent = (): EventItem => ({ id: '', organizerId: 'u-org', name: 'Evento contractual', description: 'Descripción de prueba para el contrato.',
@@ -54,7 +55,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
     localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.mockLatencyMs = 0;
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     auth = TestBed.inject(AuthService); store = TestBed.inject(MockStore); tickets = TestBed.inject(TicketService);
-    await firstValueFrom(auth.login({ email: 'cliente@tkt.pe', password: 'cliente' }));
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
     event = { ...makeEvent(), id: 'test-event', organizerId: 'u-org-1' }; store.upsertEvent(event);
   });
   afterEach(() => { environment.mockLatencyMs = originalLatency; localStorage.clear(); sessionStorage.clear(); });
@@ -87,7 +88,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   });
   it('cancelación admin libera stock una sola vez', async () => {
     const order = await firstValueFrom(tickets.createOrder(payload()));
-    await firstValueFrom(auth.login({ email: 'admin@tkt.pe', password: 'admin' }));
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.ADMIN));
     await firstValueFrom(tickets.setStatus(order.id, 'CANCELADA'));
     expect(event.zones[0].sold).toBe(0);
     await expect(firstValueFrom(tickets.setStatus(order.id, 'CANCELADA'))).rejects.toMatchObject({ status: 409 });
@@ -98,12 +99,12 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   });
   it('el dashboard por zona coincide con el total sin comisión', async () => {
     await firstValueFrom(tickets.createOrder(payload()));
-    await firstValueFrom(auth.login({ email: 'organizador@tkt.pe', password: 'organizador' }));
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.ORGANIZER));
     const stats = await firstValueFrom(TestBed.inject(DashboardService).stats(event.organizerId));
     expect(stats.byZone?.reduce((sum, row) => sum + row.revenue, 0)).toBeCloseTo(stats.totalRevenue, 2);
   });
   it('sesión sin recordar usa sessionStorage', async () => {
-    await firstValueFrom(auth.login({ email: 'cliente@tkt.pe', password: 'cliente', remember: false }));
+    await firstValueFrom(auth.login({ ...DEMO_CREDENTIALS.CLIENT, remember: false }));
     expect(localStorage.getItem('tkt.token')).toBeNull(); expect(sessionStorage.getItem('tkt.token')).toBeTruthy();
     auth.logout(); expect(sessionStorage.getItem('tkt.token')).toBeNull();
   });

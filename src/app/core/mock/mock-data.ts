@@ -12,27 +12,39 @@ export interface SeedUser extends User {
   password: string;
 }
 
+/**
+ * Credenciales de las cuentas de demo, en un solo lugar para que el seed y
+ * los botones de "Acceso de prueba" del login (`login.ts`) nunca se
+ * desalineen. Cumplen la misma regla de contraseña que exige el registro
+ * (ver `password-policy.ts`).
+ */
+export const DEMO_CREDENTIALS = {
+  ORGANIZER: { email: 'organizador@tkt.pe', password: 'Organizador1$' },
+  CLIENT: { email: 'cliente@tkt.pe', password: 'Cliente1$' },
+  ADMIN: { email: 'admin@tkt.pe', password: 'Admin123$' },
+} as const;
+
 export const SEED_USERS: SeedUser[] = [
   {
     id: 'u-org-1',
     fullName: 'José Manuel Ames',
-    email: 'organizador@tkt.pe',
-    password: 'organizador',
+    email: DEMO_CREDENTIALS.ORGANIZER.email,
+    password: DEMO_CREDENTIALS.ORGANIZER.password,
     role: 'ORGANIZER',
   },
   {
     id: 'u-cli-1',
     fullName: 'Jesús Morales',
-    email: 'cliente@tkt.pe',
-    password: 'cliente',
+    email: DEMO_CREDENTIALS.CLIENT.email,
+    password: DEMO_CREDENTIALS.CLIENT.password,
     role: 'CLIENT',
   },
   {
     // Cuenta de administrador: se crea aquí, nunca desde el registro público.
     id: 'u-adm-1',
     fullName: 'Admin Aforo',
-    email: 'admin@tkt.pe',
-    password: 'admin',
+    email: DEMO_CREDENTIALS.ADMIN.email,
+    password: DEMO_CREDENTIALS.ADMIN.password,
     role: 'ADMIN',
   },
 ];
