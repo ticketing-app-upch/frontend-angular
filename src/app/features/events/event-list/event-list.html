@@ -43,7 +43,7 @@
   </section>
   @if (planner()) {
     <section class="planner" aria-label="Planificador por presupuesto">
-      <div><span class="eyebrow">AFORO MATCH</span><h2>Un buen plan también cuida tu bolsillo.</h2><p>Buscamos una zona con cupos para tu grupo. El total incluye el 6% de servicio.</p></div>
+      <div><span class="eyebrow">ALPATECK MATCH</span><h2>Un buen plan también cuida tu bolsillo.</h2><p>Buscamos una zona con cupos para tu grupo. El total incluye el 6% de servicio.</p></div>
       <div class="planner-controls"><label>¿Cuántos van? <select aria-label="Personas del grupo" [ngModel]="party()" (ngModelChange)="party.set(+$event); page.set(1)">@for(n of [1,2,3,4,5,6]; track n){<option [value]="n">{{ n }} {{ n === 1 ? 'persona' : 'personas' }}</option>}</select></label>
       <label>Presupuesto total <strong>{{ budget() | currency:'PEN':'symbol-narrow':'1.0-0' }}</strong><input type="range" min="50" max="3000" step="50" aria-label="Presupuesto total en soles" [ngModel]="budget()" (ngModelChange)="budget.set(+$event); page.set(1)" /></label></div>
       <button class="icon-button" aria-label="Cerrar planificador" (click)="planner.set(false)"><mat-icon>close</mat-icon></button>

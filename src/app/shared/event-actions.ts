@@ -9,11 +9,11 @@ const escapeIcs = (value: string) => value.replace(/\\/g, '\\\\').replace(/\r?\n
 export function calendarContent(event: Pick<EventItem, 'id' | 'name' | 'startsAt' | 'venue' | 'city'>): string {
   const date = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   return [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Aforo//Agenda//ES', 'CALSCALE:GREGORIAN',
-    'BEGIN:VEVENT', 'UID:' + escapeIcs(event.id) + '@aforo.local', 'DTSTAMP:' + date(new Date()),
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//AlpaTeck//Agenda//ES', 'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT', 'UID:' + escapeIcs(event.id) + '@alpateck.local', 'DTSTAMP:' + date(new Date()),
     'DTSTART:' + date(new Date(event.startsAt)), 'SUMMARY:' + escapeIcs(event.name),
     'LOCATION:' + escapeIcs(event.venue + ', ' + event.city),
-    'DESCRIPTION:Consulta tu entrada en Aforo. La duración no ha sido confirmada.',
+    'DESCRIPTION:Consulta tu entrada en AlpaTeck. La duración no ha sido confirmada.',
     'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', 'DESCRIPTION:Tu evento comienza en dos horas',
     'END:VALARM', 'END:VEVENT', 'END:VCALENDAR', '',
   ].join('\r\n');

@@ -83,7 +83,7 @@ export class MyTickets {
         <body>
           <div class="ticket">
             <div class="header">
-              <p style="font-weight: bold; color: #f43f5e; margin-bottom: 15px;">AFORO TICKETING</p>
+              <p style="font-weight: bold; color: #f43f5e; margin-bottom: 15px;">ALPATECK TICKETING</p>
               <h1>${order.eventName}</h1>
               <p>${new DatePipe('en-US').transform(order.eventStartsAt, "EEE d 'de' MMM, y · HH:mm")}</p>
               <p>${order.eventVenue}</p>

@@ -13,7 +13,7 @@ import { csvCell, downloadFile } from '../../../shared/event-actions';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="insights">
-      <div class="heading"><div><span class="eyebrow">AFORO PULSE / INTELIGENCIA POR ZONA</span><h2>Cada sector cuenta una historia.</h2><p>Ventas de entradas sin comisión. Exporta datos y explora escenarios sin modificar tus eventos.</p></div>
+      <div class="heading"><div><span class="eyebrow">ALPATECK PULSE / INTELIGENCIA POR ZONA</span><h2>Cada sector cuenta una historia.</h2><p>Ventas de entradas sin comisión. Exporta datos y explora escenarios sin modificar tus eventos.</p></div>
         <button mat-stroked-button (click)="exportCsv()" [disabled]="!filtered().length"><mat-icon>download</mat-icon> Exportar CSV</button></div>
       <label class="event-filter">Evento <select [ngModel]="eventId()" (ngModelChange)="eventId.set($event)"><option value="">Todos mis eventos</option>@for (event of events(); track event.id) { <option [value]="event.id">{{ event.name }}</option> }</select></label>
       @if (!rows().length) { <p>Sin métricas por zona. Registra eventos o conecta el endpoint del panel con el campo byZone.</p> }

@@ -55,7 +55,7 @@ const VERDICTS: Record<Verdict, VerdictView> = {
     icon: 'gpp_bad',
     title: 'Entrada inválida o alterada',
     detail:
-      'La firma no coincide con el contenido del código. No corresponde a un pase emitido por Aforo.',
+      'La firma no coincide con el contenido del código. No corresponde a un pase emitido por AlpaTeck.',
   },
   expired: {
     tone: 'bad',
