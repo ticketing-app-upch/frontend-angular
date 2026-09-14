@@ -3,8 +3,7 @@
   <div class="bar-inner">
     <a class="brand" routerLink="/eventos">
       <mat-icon>confirmation_number</mat-icon>
-      <span class="brand-name">Aforo</span>
-      <span class="brand-tag">ticketing en vivo</span>
+      <span class="brand-name">AlpaTeck</span>
     </a>
 
     <nav class="links" aria-label="Navegación principal">
@@ -22,7 +21,13 @@
     </nav>
 
     <span class="tkt-spacer"></span>
-    <button mat-icon-button (click)="toggleTheme()" [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"><mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon></button>
+    <button
+      mat-icon-button
+      (click)="toggleTheme()"
+      [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"
+    >
+      <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+    </button>
 
     @if (isAuthenticated()) {
       <button mat-button [matMenuTriggerFor]="menu" class="account">
@@ -34,7 +39,13 @@
         <div class="menu-head">
           <strong>{{ user()!.fullName }}</strong>
           <span>{{ user()!.email }}</span>
-          <span class="role">{{ user()!.role === 'ADMIN' ? 'Administrador' : user()!.role === 'ORGANIZER' ? 'Organizador' : 'Asistente' }}</span>
+          <span class="role">{{
+            user()!.role === 'ADMIN'
+              ? 'Administrador'
+              : user()!.role === 'ORGANIZER'
+                ? 'Organizador'
+                : 'Asistente'
+          }}</span>
         </div>
         <mat-divider />
         @if (isClient()) {
@@ -53,9 +64,7 @@
           </a>
         }
         <mat-divider />
-        <button mat-menu-item (click)="logout()">
-          <mat-icon>logout</mat-icon> Cerrar sesión
-        </button>
+        <button mat-menu-item (click)="logout()"><mat-icon>logout</mat-icon> Cerrar sesión</button>
       </mat-menu>
     } @else {
       <a mat-button routerLink="/auth/login">Ingresar</a>
@@ -70,10 +79,22 @@
 
 <nav class="mobile-nav" aria-label="Navegación móvil">
   <a routerLink="/eventos" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
-  <a routerLink="/eventos" [queryParams]="{saved:'1'}"><mat-icon>favorite_border</mat-icon>Guardados</a>
-  @if (isOrganizer()) { <a routerLink="/organizador/panel" routerLinkActive="active"><mat-icon>insights</mat-icon>Panel</a> }
-  @else if (isAdmin()) { <a routerLink="/admin" routerLinkActive="active"><mat-icon>admin_panel_settings</mat-icon>Admin</a> }
-  @else { <a routerLink="/mis-entradas" routerLinkActive="active"><mat-icon>confirmation_number</mat-icon>Entradas</a> }
+  <a routerLink="/eventos" [queryParams]="{ saved: '1' }"
+    ><mat-icon>favorite_border</mat-icon>Guardados</a
+  >
+  @if (isOrganizer()) {
+    <a routerLink="/organizador/panel" routerLinkActive="active"
+      ><mat-icon>insights</mat-icon>Panel</a
+    >
+  } @else if (isAdmin()) {
+    <a routerLink="/admin" routerLinkActive="active"
+      ><mat-icon>admin_panel_settings</mat-icon>Admin</a
+    >
+  } @else {
+    <a routerLink="/mis-entradas" routerLinkActive="active"
+      ><mat-icon>confirmation_number</mat-icon>Entradas</a
+    >
+  }
   <a routerLink="/ayuda" routerLinkActive="active"><mat-icon>help_outline</mat-icon>Ayuda</a>
 </nav>
 <footer class="foot">
