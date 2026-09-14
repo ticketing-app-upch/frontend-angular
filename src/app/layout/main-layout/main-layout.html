@@ -50,7 +50,7 @@
               ? 'Administrador'
               : user()!.role === 'ORGANIZER'
                 ? 'Organizador'
-                : 'Asistente'
+                : 'Cliente'
           }}</span>
         </div>
         <mat-divider />
@@ -90,9 +90,7 @@
       ><mat-icon>favorite_border</mat-icon>Guardados</a
     >
   } @else {
-    <a [routerLink]="homeLink" routerLinkActive="active"
-      ><mat-icon>explore</mat-icon>Inicio</a
-    >
+    <a [routerLink]="homeLink" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
   }
   @if (isOrganizer() && epicEnabled(5)) {
     <a routerLink="/organizador/panel" routerLinkActive="active"
@@ -111,7 +109,7 @@
 </nav>
 <footer class="foot">
   <div class="foot-inner">
-    <span>© {{ year }} Aforo · Tu próxima experiencia</span>
+    <span>© {{ year }} AlpaTeck · Tu próxima experiencia</span>
     <a routerLink="/ayuda">Centro de ayuda</a>
   </div>
 </footer>

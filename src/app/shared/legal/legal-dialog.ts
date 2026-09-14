@@ -159,9 +159,9 @@ export class LegalDialog {
       updated: 'Última revisión: setiembre 2026',
       blocks: [
         {
-          h: '1. Qué es Aforo',
+          h: '1. Qué es AlpaTeck',
           p: [
-            'Aforo es una plataforma que conecta a organizadores de eventos con personas que desean comprar entradas. Aforo no organiza los eventos ni garantiza su realización.',
+            'AlpaTeck es una plataforma que conecta a organizadores de eventos con personas que desean comprar entradas. AlpaTeck no organiza los eventos ni garantiza su realización.',
           ],
         },
         {
@@ -176,7 +176,7 @@ export class LegalDialog {
           h: '3. Compra de entradas',
           tag: 'CLIENTE',
           p: [
-            'El precio mostrado incluye la comisión de servicio de Aforo.',
+            'El precio mostrado incluye la comisión de servicio de AlpaTeck.',
             'La compra queda confirmada cuando recibes el código en "Mis entradas".',
             'Cada transacción tiene un máximo de entradas definido por el organizador.',
             'Las entradas son personales; la reventa por canales no oficiales puede anular su validez.',
@@ -191,7 +191,7 @@ export class LegalDialog {
             'Declaras contar con las autorizaciones, licencias y permisos necesarios para realizar el evento.',
             'Eres el único responsable frente al público por la realización del evento, su contenido, la seguridad del recinto y el cumplimiento de la normativa aplicable.',
             'La información publicada (fecha, lugar, aforo, precios y condiciones) debe ser exacta y mantenerse actualizada.',
-            'Aforo puede revisar tu cuenta y tu documentación antes de habilitar la publicación, y suspender publicaciones que incumplan estos términos o la ley.',
+            'AlpaTeck puede revisar tu cuenta y tu documentación antes de habilitar la publicación, y suspender publicaciones que incumplan estos términos o la ley.',
             'La liquidación de lo recaudado se realiza a la cuenta que registres, descontando la comisión de servicio y los impuestos que correspondan.',
             'Debes atender los reclamos de los compradores y gestionar las devoluciones si el evento se cancela, reprograma o cambia de forma sustancial.',
             'Los eventos se publican para realizarse en Lima, Perú, aunque tu organización tenga domicilio en el extranjero.',
@@ -200,18 +200,18 @@ export class LegalDialog {
         {
           h: '5. Uso de la plataforma',
           p: [
-            'No está permitido usar Aforo con fines fraudulentos, cargar contenido de terceros sin derechos, vulnerar la seguridad del servicio ni automatizar compras.',
+            'No está permitido usar AlpaTeck con fines fraudulentos, cargar contenido de terceros sin derechos, vulnerar la seguridad del servicio ni automatizar compras.',
           ],
         },
         {
           h: '6. Disponibilidad y cambios',
           p: [
-            'El servicio se ofrece "tal cual". Aforo puede modificar o interrumpir funciones y actualizar estos términos; los cambios relevantes se comunican con anticipación razonable.',
+            'El servicio se ofrece "tal cual". AlpaTeck puede modificar o interrumpir funciones y actualizar estos términos; los cambios relevantes se comunican con anticipación razonable.',
           ],
         },
         {
           h: '7. Contacto',
-          p: ['Consultas sobre estos términos: soporte@aforo.pe.'],
+          p: ['Consultas sobre estos términos: soporte@alpateck.pe.'],
         },
       ],
       disclaimer:
@@ -261,7 +261,7 @@ export class LegalDialog {
         {
           h: '5. Tus derechos',
           p: [
-            'Puedes acceder, rectificar, actualizar o solicitar la eliminación de tus datos, y retirar tu consentimiento para comunicaciones comerciales, escribiendo a privacidad@aforo.pe.',
+            'Puedes acceder, rectificar, actualizar o solicitar la eliminación de tus datos, y retirar tu consentimiento para comunicaciones comerciales, escribiendo a privacidad@alpateck.pe.',
           ],
         },
         {
