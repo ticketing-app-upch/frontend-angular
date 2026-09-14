@@ -97,6 +97,9 @@ export class AuthService {
     if (!found || found.password !== payload.password) {
       return mockError<AuthResponse>('Credenciales inválidas.', 401);
     }
+    if (found.active === false) {
+      return mockError<AuthResponse>('Esta cuenta fue inhabilitada. Contacta a soporte.', 403);
+    }
     return mockResponse(this.toAuthResponse(found));
   }
 

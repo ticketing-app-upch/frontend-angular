@@ -31,6 +31,8 @@ import {
   CountryPick,
 } from '../../../shared/country-field/country-field';
 import { flagEmoji, normalize } from '../../../shared/countries';
+import { PERU_REGIONS } from '../../../shared/peru-regions';
+import { LIMA_DISTRICTS } from '../../../shared/lima-districts';
 import {
   DocType,
   OrganizerType,
@@ -86,6 +88,8 @@ export class Register {
     { value: 'F', label: 'Femenino' },
     { value: 'M', label: 'Masculino' },
   ];
+  readonly peruRegions = PERU_REGIONS;
+  readonly limaDistricts = LIMA_DISTRICTS;
 
   readonly form = this.fb.nonNullable.group({
     firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -278,6 +282,12 @@ export class Register {
     }
     const canEdit = isPeru || p.hasPeruvianNationality.value;
     if (canEdit) {
+      // La ciudad ahora se elige de una lista (regiones del Perú); si el
+      // valor previo no es una región válida (ej. texto libre del país
+      // anterior), se limpia para que el select quede vacío.
+      if (!PERU_REGIONS.includes(p.city.value)) {
+        p.city.setValue('', { emitEvent: false });
+      }
       p.city.enable({ emitEvent: false });
     } else {
       p.city.setValue('', { emitEvent: false });
@@ -285,11 +295,14 @@ export class Register {
     }
     p.city.updateValueAndValidity({ emitEvent: false });
 
-    // Distrito solo aplica a Lima: si escriben otro departamento en Ciudad,
-    // se bloquea y se limpia.
+    // Distrito solo aplica a Lima: se elige de una lista de distritos de
+    // Lima Metropolitana, y solo se habilita si la ciudad elegida es Lima.
     const cityIsLima = normalize(p.city.value ?? '').trim() === 'lima';
-    const districtOk = canEdit && (p.city.value.trim() === '' || cityIsLima);
+    const districtOk = canEdit && cityIsLima;
     if (districtOk) {
+      if (!LIMA_DISTRICTS.includes(p.district.value)) {
+        p.district.setValue('', { emitEvent: false });
+      }
       p.district.enable({ emitEvent: false });
     } else {
       p.district.setValue('', { emitEvent: false });
@@ -343,7 +356,7 @@ export class Register {
   openLegal(doc: LegalDoc, event: Event): void {
     event.preventDefault();
     this.dialog.open(LegalDialog, {
-      data: { key: doc },
+      data: { key: doc, role: this.isOrganizer() ? 'ORGANIZADOR' : 'CLIENTE' },
       width: 'min(680px, 94vw)',
       maxWidth: '94vw',
       autoFocus: false,

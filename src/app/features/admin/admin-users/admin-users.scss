@@ -1,5 +1,11 @@
 :host { display: block; }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.85rem;
+}
+
 .center { display: grid; place-items: center; min-height: 30vh; }
 
 .who {
@@ -29,6 +35,16 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
   color: var(--mat-sys-primary);
+}
+.inactive {
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+  color: var(--mat-sys-error);
 }
 
 .muted { color: var(--mat-sys-on-surface-variant); }
