@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, clientGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
+import { epicGuard } from './core/demo-scope';
 
 export const routes: Routes = [
   {
@@ -8,31 +9,40 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'eventos', pathMatch: 'full' },
       {
+        // Landing "segura": no depende de ninguna épica encendida. Cuando el
+        // catálogo (Épica 2) todavía no está habilitado, todo rebota acá.
+        path: 'bienvenida',
+        loadComponent: () => import('./features/bienvenida/bienvenida').then((m) => m.Bienvenida),
+        title: 'Bienvenida · Aforo',
+      },
+      {
         path: 'ayuda',
         loadComponent: () => import('./features/help/help').then((m) => m.Help),
         title: 'Ayuda · Aforo',
       },
       {
         path: 'eventos',
+        canActivate: [epicGuard(2)],
         loadComponent: () =>
           import('./features/events/event-list/event-list').then((m) => m.EventList),
         title: 'Eventos · AlpaTeck',
       },
       {
         path: 'eventos/:id',
+        canActivate: [epicGuard(2)],
         loadComponent: () =>
           import('./features/events/event-detail/event-detail').then((m) => m.EventDetail),
         title: 'Detalle del evento · Aforo',
       },
       {
         path: 'comprar/:eventId',
-        canActivate: [authGuard, clientGuard],
+        canActivate: [authGuard, clientGuard, epicGuard(3)],
         loadComponent: () => import('./features/checkout/checkout').then((m) => m.Checkout),
         title: 'Comprar entradas · Aforo',
       },
       {
         path: 'mis-entradas',
-        canActivate: [authGuard, clientGuard],
+        canActivate: [authGuard, clientGuard, epicGuard(3)],
         loadComponent: () =>
           import('./features/account/my-tickets/my-tickets').then((m) => m.MyTickets),
         title: 'Mis entradas · Aforo',
@@ -45,24 +55,28 @@ export const routes: Routes = [
           { path: '', redirectTo: 'panel', pathMatch: 'full' },
           {
             path: 'panel',
+            canActivate: [epicGuard(5)],
             loadComponent: () =>
               import('./features/organizer/dashboard/dashboard').then((m) => m.OrganizerDashboard),
             title: 'Panel del organizador · Aforo',
           },
           {
             path: 'eventos',
+            canActivate: [epicGuard(2)],
             loadComponent: () =>
               import('./features/organizer/event-manage/event-manage').then((m) => m.EventManage),
             title: 'Mis eventos · Aforo',
           },
           {
             path: 'eventos/nuevo',
+            canActivate: [epicGuard(2)],
             loadComponent: () =>
               import('./features/organizer/event-form/event-form').then((m) => m.EventForm),
             title: 'Nuevo evento · Aforo',
           },
           {
             path: 'eventos/:id/editar',
+            canActivate: [epicGuard(2)],
             loadComponent: () =>
               import('./features/organizer/event-form/event-form').then((m) => m.EventForm),
             title: 'Editar evento · Aforo',

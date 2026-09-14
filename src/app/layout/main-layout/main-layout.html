@@ -1,19 +1,25 @@
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <header class="bar">
   <div class="bar-inner">
-    <a class="brand" routerLink="/eventos">
+    <a class="brand" [routerLink]="homeLink">
       <mat-icon>confirmation_number</mat-icon>
       <span class="brand-name">AlpaTeck</span>
     </a>
 
     <nav class="links" aria-label="Navegación principal">
-      <a routerLink="/eventos" routerLinkActive="active">Eventos</a>
-      @if (isClient()) {
+      @if (epicEnabled(2)) {
+        <a routerLink="/eventos" routerLinkActive="active">Eventos</a>
+      }
+      @if (isClient() && epicEnabled(3)) {
         <a routerLink="/mis-entradas" routerLinkActive="active">Mis entradas</a>
       }
       @if (isOrganizer()) {
-        <a routerLink="/organizador/panel" routerLinkActive="active">Panel</a>
-        <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
+        @if (epicEnabled(5)) {
+          <a routerLink="/organizador/panel" routerLinkActive="active">Panel</a>
+        }
+        @if (epicEnabled(2)) {
+          <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
+        }
       }
       @if (isAdmin()) {
         <a routerLink="/admin" routerLinkActive="active">Administración</a>
@@ -48,12 +54,12 @@
           }}</span>
         </div>
         <mat-divider />
-        @if (isClient()) {
+        @if (isClient() && epicEnabled(3)) {
           <a mat-menu-item routerLink="/mis-entradas">
             <mat-icon>local_activity</mat-icon> Mis entradas
           </a>
         }
-        @if (isOrganizer()) {
+        @if (isOrganizer() && epicEnabled(5)) {
           <a mat-menu-item routerLink="/organizador/panel">
             <mat-icon>insights</mat-icon> Panel del organizador
           </a>
@@ -78,11 +84,17 @@
 </main>
 
 <nav class="mobile-nav" aria-label="Navegación móvil">
-  <a routerLink="/eventos" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
-  <a routerLink="/eventos" [queryParams]="{ saved: '1' }"
-    ><mat-icon>favorite_border</mat-icon>Guardados</a
-  >
-  @if (isOrganizer()) {
+  @if (epicEnabled(2)) {
+    <a routerLink="/eventos" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
+    <a routerLink="/eventos" [queryParams]="{ saved: '1' }"
+      ><mat-icon>favorite_border</mat-icon>Guardados</a
+    >
+  } @else {
+    <a [routerLink]="homeLink" routerLinkActive="active"
+      ><mat-icon>explore</mat-icon>Inicio</a
+    >
+  }
+  @if (isOrganizer() && epicEnabled(5)) {
     <a routerLink="/organizador/panel" routerLinkActive="active"
       ><mat-icon>insights</mat-icon>Panel</a
     >
@@ -90,7 +102,7 @@
     <a routerLink="/admin" routerLinkActive="active"
       ><mat-icon>admin_panel_settings</mat-icon>Admin</a
     >
-  } @else {
+  } @else if (epicEnabled(3)) {
     <a routerLink="/mis-entradas" routerLinkActive="active"
       ><mat-icon>confirmation_number</mat-icon>Entradas</a
     >
