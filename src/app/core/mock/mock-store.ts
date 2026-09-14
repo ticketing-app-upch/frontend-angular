@@ -39,7 +39,7 @@ function seedRevision(): string {
  */
 @Injectable({ providedIn: 'root' })
 export class MockStore {
-  private readonly rev = 'aforo-v2';
+  private readonly rev = seedRevision();
   private data: StoreShape = this.load();
 
   private load(): StoreShape {
@@ -47,7 +47,7 @@ export class MockStore {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw) as PersistedShape;
-        if (parsed?.data && Array.isArray(parsed.data.events) && Array.isArray(parsed.data.orders) && Array.isArray(parsed.data.users)) {
+        if (parsed?.rev === this.rev && parsed?.data && Array.isArray(parsed.data.events) && Array.isArray(parsed.data.orders) && Array.isArray(parsed.data.users)) {
           return this.upgrade(parsed.data);
         }
       }
