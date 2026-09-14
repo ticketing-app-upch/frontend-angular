@@ -43,6 +43,9 @@ const DOC_PATTERNS: Record<DocType, RegExp> = {
   PASAPORTE: /^[A-Za-z0-9]{6,12}$/,
 };
 
+/** Mínimo 8 caracteres, con al menos una mayúscula, un número y un carácter especial. */
+const PASSWORD_PATTERN = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
 @Component({
   selector: 'tkt-register',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -90,7 +93,7 @@ export class Register {
     firstName: ['', [Validators.required, Validators.minLength(2)]],
     lastName: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(6)]],
+    password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
     role: ['CLIENT' as PublicRole, Validators.required],
 
     personal: this.fb.nonNullable.group({

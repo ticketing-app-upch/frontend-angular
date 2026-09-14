@@ -48,7 +48,7 @@ El frontend usa internamente `CLIENT` / `ORGANIZER` / `ADMIN`; equivalen a `Asis
 ```
 
 - `profile` es obligatorio cuando `role: "CLIENT"`; se omite y en su lugar va `organizer` (mismos campos, sin `verificationStatus`) cuando `role: "ORGANIZER"`.
-- Validaciones que el backend debe repetir (el frontend ya las aplica en UI, pero no son de fiar si vienen del cliente): correo único, `role` ∈ {`CLIENT`, `ORGANIZER`}, `acceptedTerms === true`, contraseña con el mínimo de complejidad que se defina.
+- Validaciones que el backend debe repetir (el frontend ya las aplica en UI, pero no son de fiar si vienen del cliente): correo único, `role` ∈ {`CLIENT`, `ORGANIZER`}, `acceptedTerms === true`, contraseña con **mínimo 8 caracteres, al menos una mayúscula, un número y un carácter especial** (regex de referencia en `register.ts`: `/^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/`).
 - Respuesta `201`: mismo cuerpo que login (ver abajo). Errores: `409` correo ya registrado, `422` rol/datos inválidos.
 - El backend debe hashear la contraseña (p. ej. bcrypt/argon2) antes de guardar; nunca se persiste ni se retorna en texto plano.
 
