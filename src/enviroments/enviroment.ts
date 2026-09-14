@@ -14,12 +14,10 @@ export const environment = {
   mockLatencyMs: 450,
   /**
    * Épicas habilitadas en este build (ver `core/demo-scope.ts`). Esta rama es
-   * feat/demo-3-eventos-compra: Épica 1 (auth) + Épica 2 (eventos y zonas) +
-   * Épica 3 (compra con control de concurrencia). Para ver todo, hacé
-   * `git checkout feat/frontend-mvp` o subí este número a mano en tu copia
-   * local.
+   * feat/demo-4-pricing-dashboard: las 5 épicas completas, incluyendo precio
+   * dinámico (microservicio Python) y el dashboard del organizador.
    */
-  enabledEpics: [1, 2, 3],
+  enabledEpics: [1, 2, 3, 4, 5],
   /**
    * Clave HMAC con la que se firman los QR de las entradas y con la
    * que la puerta (`/validar`) verifica su autenticidad. En un sistema real

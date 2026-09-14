@@ -11,7 +11,7 @@ export const environment = {
   useMock: true,
   mockLatencyMs: 200,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
-  enabledEpics: [1, 2, 3],
+  enabledEpics: [1, 2, 3, 4, 5],
   /**
    * Clave HMAC con la que la puerta `/validar` firma y verifica los QR
    * en el propio navegador. En un sistema real esto vive en el backend del
