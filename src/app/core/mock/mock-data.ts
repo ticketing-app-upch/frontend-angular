@@ -42,7 +42,7 @@ export const SEED_USERS: SeedUser[] = [
   {
     // Cuenta de administrador: se crea aquí, nunca desde el registro público.
     id: 'u-adm-1',
-    fullName: 'Admin Aforo',
+    fullName: 'Admin AlpaTeck',
     email: DEMO_CREDENTIALS.ADMIN.email,
     password: DEMO_CREDENTIALS.ADMIN.password,
     role: 'ADMIN',

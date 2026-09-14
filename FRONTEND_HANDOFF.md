@@ -1,27 +1,27 @@
-# Entrega técnica del frontend Aforo
+# Entrega técnica del frontend AlpaTeck
 
 Este documento separa lo que ya funciona en Angular de lo que necesariamente debe autorizar el backend. Para producción, el backend debe autorizar y registrar cada operación.
 
 ## Cobertura de los lineamientos
 
-| Requisito del proyecto | Implementación frontend | Responsabilidad pendiente |
-| --- | --- | --- |
-| Usuarios Admin / Organizador / Asistente | Rutas por rol, sesión recordada o temporal, expiración de JWT y permisos también en servicios mock | PHP debe cifrar contraseñas, emitir/verificar JWT y aplicar permisos en cada endpoint |
-| Eventos y zonas | Alta/edición, capacidad física, zonas únicas, ventas inmutables y máximo 6 | PHP debe validar nuevamente y conservar el historial |
-| Consulta por categoría, fecha o lugar | Filtros combinados, búsqueda sin tildes, orden y URL compartible | `GET /events` debe aceptar filtros equivalentes |
-| Compra sin sobreventa | UX de selección, cotización, límite 6, revalidación, idempotencia y error de stock | PHP/MySQL debe ejecutar `START TRANSACTION`, `SELECT ... FOR UPDATE`, validar stock, insertar ticket y `COMMIT/ROLLBACK` |
-| Precio dinámico | Reglas exactas visibles y probadas; endpoint Python por zona | Python es la autoridad de precio; PHP debe volver a comprobar el total antes de confirmar |
-| Ticket inmutable | La orden guarda zona, cantidad y precio pagado; la UI no edita tickets | API debe prohibir `PUT/PATCH/DELETE` de tickets confirmados |
-| Dashboard por zona | Ocupación, entradas, recaudación sin comisión, precio vigente, CSV y laboratorio de precios | Endpoint debe retornar datos agregados desde MySQL |
+| Requisito del proyecto                 | Implementación frontend                                                                            | Responsabilidad pendiente                                                                                                |
+| -------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Usuarios Admin / Organizador / Cliente | Rutas por rol, sesión recordada o temporal, expiración de JWT y permisos también en servicios mock | PHP debe cifrar contraseñas, emitir/verificar JWT y aplicar permisos en cada endpoint                                    |
+| Eventos y zonas                        | Alta/edición, capacidad física, zonas únicas, ventas inmutables y máximo 6                         | PHP debe validar nuevamente y conservar el historial                                                                     |
+| Consulta por categoría, fecha o lugar  | Filtros combinados, búsqueda sin tildes, orden y URL compartible                                   | `GET /events` debe aceptar filtros equivalentes                                                                          |
+| Compra sin sobreventa                  | UX de selección, cotización, límite 6, revalidación, idempotencia y error de stock                 | PHP/MySQL debe ejecutar `START TRANSACTION`, `SELECT ... FOR UPDATE`, validar stock, insertar ticket y `COMMIT/ROLLBACK` |
+| Precio dinámico                        | Reglas exactas visibles y probadas; endpoint Python por zona                                       | Python es la autoridad de precio; PHP debe volver a comprobar el total antes de confirmar                                |
+| Ticket inmutable                       | La orden guarda zona, cantidad y precio pagado; la UI no edita tickets                             | API debe prohibir `PUT/PATCH/DELETE` de tickets confirmados                                                              |
+| Dashboard por zona                     | Ocupación, entradas, recaudación sin comisión, precio vigente, CSV y laboratorio de precios        | Endpoint debe retornar datos agregados desde MySQL                                                                       |
 
 ## Mapa de contratos por demo
 
-| Demo | Épicas | Contratos que necesita el backend |
-| --- | --- | --- |
-| Demo 2 (Semana 8) | 1 | Registro, Login |
-| Demo 3 (Semana 11) | 1, 2, 3 | + Catálogo de eventos, Gestión de eventos, Compra transaccional |
-| Demo 4 (Semana 14) | 1‑5 | + Precio dinámico, Dashboard del organizador |
-| Extra (no es una épica del cronograma) | — | Administración (panel admin), Validación/redención de entradas en la puerta |
+| Demo                                   | Épicas  | Contratos que necesita el backend                                           |
+| -------------------------------------- | ------- | --------------------------------------------------------------------------- |
+| Demo 2 (Semana 8)                      | 1       | Registro, Login                                                             |
+| Demo 3 (Semana 11)                     | 1, 2, 3 | + Catálogo de eventos, Gestión de eventos, Compra transaccional             |
+| Demo 4 (Semana 14)                     | 1‑5     | + Precio dinámico, Dashboard del organizador                                |
+| Extra (no es una épica del cronograma) | —       | Administración (panel admin), Validación/redención de entradas en la puerta |
 
 ## Contratos esperados
 
@@ -29,7 +29,7 @@ Este documento separa lo que ya funciona en Angular de lo que necesariamente deb
 
 `POST {apiBackendUrl}/auth/register`
 
-El frontend usa internamente `CLIENT` / `ORGANIZER` / `ADMIN`; equivalen a `Asistente` / `Organizador` / `Administrador` en la historia de usuario. **El registro público nunca acepta `role: "ADMIN"`** — esa cuenta se crea solo por fuera (seed o panel de administración), así que el backend debe rechazar cualquier intento de registrarla por este endpoint.
+El frontend usa internamente `CLIENT` / `ORGANIZER` / `ADMIN`; equivalen a `Cliente` / `Organizador` / `Administrador` en la historia de usuario. **El registro público nunca acepta `role: "ADMIN"`** — esa cuenta se crea solo por fuera (seed o panel de administración), así que el backend debe rechazar cualquier intento de registrarla por este endpoint.
 
 ```json
 {
@@ -40,9 +40,15 @@ El frontend usa internamente `CLIENT` / `ORGANIZER` / `ADMIN`; equivalen a `Asis
   "acceptedTerms": true,
   "marketingOptIn": false,
   "profile": {
-    "country": "PE", "city": "Lima", "district": "Miraflores",
-    "hasPeruvianNationality": true, "docType": "DNI", "docNumber": "12345678",
-    "gender": "F", "phoneCode": "+51", "phone": "987654321"
+    "country": "PE",
+    "city": "Lima",
+    "district": "Miraflores",
+    "hasPeruvianNationality": true,
+    "docType": "DNI",
+    "docNumber": "12345678",
+    "gender": "F",
+    "phoneCode": "+51",
+    "phone": "987654321"
   }
 }
 ```
@@ -66,8 +72,11 @@ Respuesta `200` (mismo shape para registro y login):
 {
   "token": "<JWT firmado por el backend>",
   "user": {
-    "id": "u-123", "fullName": "Ana Torres", "email": "ana@correo.com",
-    "role": "CLIENT", "marketingOptIn": false,
+    "id": "u-123",
+    "fullName": "Ana Torres",
+    "email": "ana@correo.com",
+    "role": "CLIENT",
+    "marketingOptIn": false,
     "profile": { "...": "solo si role=CLIENT" },
     "organizer": { "...": "solo si role=ORGANIZER, incluye verificationStatus" }
   }
@@ -174,14 +183,30 @@ Solo el propio organizador o un admin (`403` para cualquier otro). Respuesta agr
   "publishedEvents": 3,
   "revenueSeries": [{ "label": "Ago", "revenue": 42000, "tickets": 210 }],
   "byEvent": [
-    { "eventId": "ev-1", "eventName": "…", "startsAt": "…", "capacity": 900, "sold": 780, "occupancy": 0.867, "revenue": 148200 }
+    {
+      "eventId": "ev-1",
+      "eventName": "…",
+      "startsAt": "…",
+      "capacity": 900,
+      "sold": 780,
+      "occupancy": 0.867,
+      "revenue": 148200
+    }
   ],
   "byZone": [
     {
-      "eventId": "ev-1", "eventName": "…", "zoneId": "z-1a", "zoneName": "Occidente Lateral A",
-      "capacity": 900, "sold": 780, "revenue": 148200,
-      "basePrice": 190, "currentPrice": 228, "priceReason": "Últimos cupos · +20%",
-      "startsAt": "…", "publishedAt": "…"
+      "eventId": "ev-1",
+      "eventName": "…",
+      "zoneId": "z-1a",
+      "zoneName": "Occidente Lateral A",
+      "capacity": 900,
+      "sold": 780,
+      "revenue": 148200,
+      "basePrice": 190,
+      "currentPrice": 228,
+      "priceReason": "Últimos cupos · +20%",
+      "startsAt": "…",
+      "publishedAt": "…"
     }
   ]
 }
@@ -250,7 +275,7 @@ Para añadir un plano real con permiso de uso, registra el archivo en `VENUE_MAP
 - `src/app/core/demo-scope.ts`: qué épicas están encendidas en cada rama (`enabledEpics` en `enviroment.ts`).
 - `src/app/core/http-timeout.interceptor.ts`: corta cualquier petición a nuestras APIs que no responda en 15s.
 - `src/app/core/services/ticket-token.service.ts` y `redemption.service.ts`: emisión/verificación de QR y registro de canjes — hoy 100% local, ver "Validación y redención de entradas" arriba.
-- `src/app/features/events/event-list/`: catálogo, comparación, favoritos y Aforo Match.
+- `src/app/features/events/event-list/`: catálogo, comparación, favoritos y AlpaTeck Match.
 - `src/app/shared/zone-map/zone-map.ts`: planos interactivos.
 - `src/app/features/checkout/`: selección, cotización y pasarela de pago.
 - `src/app/features/organizer/dashboard/zone-insights.ts`: reporte por zona, laboratorio de precios y CSV.
