@@ -90,9 +90,11 @@
             >
               <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
             </button>
-            <mat-hint>Usa 6 caracteres o más, única para esta cuenta.</mat-hint>
-            @if (form.controls.password.invalid && form.controls.password.touched) {
-              <mat-error>Mínimo 6 caracteres.</mat-error>
+            <mat-hint>Mínimo 8 caracteres, con mayúscula, número y carácter especial.</mat-hint>
+            @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+              <mat-error>Ingresa una contraseña.</mat-error>
+            } @else if (form.controls.password.invalid && form.controls.password.touched) {
+              <mat-error>Mínimo 8 caracteres, con mayúscula, número y carácter especial.</mat-error>
             }
           </mat-form-field>
         </section>
