@@ -16,6 +16,60 @@ Este documento separa lo que ya funciona en Angular de lo que necesariamente deb
 
 ## Contratos esperados
 
+### Registro (HU-07A · Épica 1 / Demo 2)
+
+`POST {apiBackendUrl}/auth/register`
+
+El frontend usa internamente `CLIENT` / `ORGANIZER` / `ADMIN`; equivalen a `Asistente` / `Organizador` / `Administrador` en la historia de usuario. **El registro público nunca acepta `role: "ADMIN"`** — esa cuenta se crea solo por fuera (seed o panel de administración), así que el backend debe rechazar cualquier intento de registrarla por este endpoint.
+
+```json
+{
+  "fullName": "Ana Torres",
+  "email": "ana@correo.com",
+  "password": "contraseña-en-texto-plano-solo-por-HTTPS",
+  "role": "CLIENT",
+  "acceptedTerms": true,
+  "marketingOptIn": false,
+  "profile": {
+    "country": "PE", "city": "Lima", "district": "Miraflores",
+    "hasPeruvianNationality": true, "docType": "DNI", "docNumber": "12345678",
+    "gender": "F", "phoneCode": "+51", "phone": "987654321"
+  }
+}
+```
+
+- `profile` es obligatorio cuando `role: "CLIENT"`; se omite y en su lugar va `organizer` (mismos campos, sin `verificationStatus`) cuando `role: "ORGANIZER"`.
+- Validaciones que el backend debe repetir (el frontend ya las aplica en UI, pero no son de fiar si vienen del cliente): correo único, `role` ∈ {`CLIENT`, `ORGANIZER`}, `acceptedTerms === true`, contraseña con el mínimo de complejidad que se defina.
+- Respuesta `201`: mismo cuerpo que login (ver abajo). Errores: `409` correo ya registrado, `422` rol/datos inválidos.
+- El backend debe hashear la contraseña (p. ej. bcrypt/argon2) antes de guardar; nunca se persiste ni se retorna en texto plano.
+
+### Login (HU-07B · Épica 1 / Demo 2)
+
+`POST {apiBackendUrl}/auth/login`
+
+```json
+{ "email": "ana@correo.com", "password": "contraseña-en-texto-plano-solo-por-HTTPS" }
+```
+
+Respuesta `200` (mismo shape para registro y login):
+
+```json
+{
+  "token": "<JWT firmado por el backend>",
+  "user": {
+    "id": "u-123", "fullName": "Ana Torres", "email": "ana@correo.com",
+    "role": "CLIENT", "marketingOptIn": false,
+    "profile": { "...": "solo si role=CLIENT" },
+    "organizer": { "...": "solo si role=ORGANIZER, incluye verificationStatus" }
+  }
+}
+```
+
+- El JWT debe incluir el rol (p. ej. claim `role`) y `exp` en segundos Unix — `sessionTokenValid()` en `auth.service.ts` valida la expiración en el cliente, pero la autenticidad y el rol efectivo siempre los decide el backend en cada request, nunca el token que el cliente dice tener.
+- Toda request subsecuente al backend viaja con `Authorization: Bearer <token>` (ver `auth.interceptor.ts`); un `401` fuera de `/auth/*` cierra la sesión local y redirige a `/auth/login`.
+- Errores: `401` credenciales inválidas (mismo mensaje genérico para correo inexistente o password incorrecta, para no filtrar qué correos existen).
+- El rol determina qué rutas puede ver el usuario (`roleGuard(...)` en `auth.guards.ts`); el backend debe aplicar la misma restricción por rol en cada endpoint protegido, no confiar en que el frontend oculte los botones.
+
 ### Precio dinámico
 
 `POST {apiPricingUrl}/v1/dynamic-price`

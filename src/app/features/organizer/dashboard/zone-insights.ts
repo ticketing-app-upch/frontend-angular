@@ -21,7 +21,7 @@ import { csvCell, downloadFile } from '../../../shared/event-actions';
         @for (row of filtered(); track row.eventId + row.zoneId) {
           <button class="zone-card" [class.selected]="selectedKey() === row.eventId + ':' + row.zoneId" (click)="select(row)">
             <span class="event-name">{{ row.eventName }}</span><strong>{{ row.zoneName }}</strong>
-            <div class="occupancy" [style.--fill]="(row.capacity ? row.sold / row.capacity * 100 : 0) + '%'"><span>{{ row.capacity ? row.sold / row.capacity : 0 | percent:'1.0-0' }}</span></div>
+            <div class="occupancy" [style.--fill]="(row.capacity ? row.sold / row.capacity * 100 : 0) + '%'"><span>{{ (row.capacity ? row.sold / row.capacity : 0) | percent:'1.0-0' }}</span></div>
             <span>{{ row.sold }} / {{ row.capacity }} entradas</span><b>{{ row.revenue | currency:'PEN':'symbol-narrow':'1.2-2' }}</b>
             <span class="price-note">{{ row.currentPrice | currency:'PEN':'symbol-narrow' }} · {{ row.priceReason }}</span>
             <span class="explore">Simular este sector ↗</span>
@@ -75,6 +75,10 @@ export class ZoneInsights {
   exportCsv(): void {
     const records = [['Evento', 'Zona', 'Capacidad', 'Vendidas', 'Disponibles', 'Recaudación sin comisión', 'Precio base', 'Precio actual'],
       ...this.filtered().map(r => [r.eventName, r.zoneName, r.capacity, r.sold, r.capacity - r.sold, r.revenue.toFixed(2), r.basePrice.toFixed(2), r.currentPrice.toFixed(2)])];
-    downloadFile('\uFEFF' + records.map(row => row.map(csvCell).join(',')).join('\r\n'), 'aforo-zonas.csv', 'text/csv;charset=utf-8');
+    // "sep=," le indica a Excel el delimitador a usar sin importar el separador
+    // regional configurado (en instalaciones en espa\u00F1ol suele ser ";"), evitando
+    // que vuelque toda la fila sin dividir en columnas.
+    const csv = '\uFEFF' + 'sep=,\r\n' + records.map(row => row.map(csvCell).join(',')).join('\r\n');
+    downloadFile(csv, 'aforo-zonas.csv', 'text/csv;charset=utf-8');
   }
 }
