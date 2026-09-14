@@ -21,6 +21,7 @@ Este documento separa lo que ya funciona en Angular de lo que necesariamente deb
 | Demo 2 (Semana 8) | 1 | Registro, Login |
 | Demo 3 (Semana 11) | 1, 2, 3 | + Catálogo de eventos, Gestión de eventos, Compra transaccional |
 | Demo 4 (Semana 14) | 1‑5 | + Precio dinámico, Dashboard del organizador |
+| Extra (no es una épica del cronograma) | — | Administración (panel admin), Validación/redención de entradas en la puerta |
 
 ## Contratos esperados
 
@@ -190,6 +191,45 @@ Solo el propio organizador o un admin (`403` para cualquier otro). Respuesta agr
 - `averageOccupancy` y `occupancy` van en 0..1 (el frontend los formatea a `%`).
 - `byZone` alimenta el "Price Lab" (simulador) y el CSV exportable — son solo lectura, ningún cambio ahí debe persistir en el backend.
 
+### Administración (panel admin, extra — no es una épica del cronograma)
+
+Todo exclusivo del rol `ADMIN` (`roleGuard('ADMIN')`); cualquier otro rol recibe `403`.
+
+- `GET {apiBackendUrl}/admin/users` — todos los usuarios, **sin el campo de contraseña** (ni hasheada).
+- `PATCH {apiBackendUrl}/admin/users/:id` con `{ "role": "ORGANIZER" }` — cambia el rol de un usuario. `409` si el admin intenta quitarse su propio rol de administrador a sí mismo.
+- `DELETE {apiBackendUrl}/admin/users/:id` — `409` si el admin intenta borrarse a sí mismo, o si el usuario tiene historial (compras hechas como cliente, eventos publicados como organizador) — igual que con eventos, no se borra lo que tiene rastro transaccional.
+- `GET {apiBackendUrl}/admin/events` — ya cubierto arriba (gestión de eventos).
+- `GET {apiBackendUrl}/admin/orders` — todas las órdenes de la plataforma.
+- `PATCH {apiBackendUrl}/orders/:id` con `{ "status": "CANCELADA" }` — cancela una orden confirmada y **libera el aforo de vuelta** a la(s) zona(s) correspondientes. `409` si la orden ya no está `CONFIRMADA` o si alguna de sus entradas ya fue canjeada en la puerta (no se cancela algo que ya se usó).
+- `GET {apiBackendUrl}/admin/metrics` — contadores para el resumen del panel:
+
+```json
+{
+  "users": { "total": 40, "clients": 30, "organizers": 9, "admins": 1 },
+  "events": { "total": 14, "published": 12, "drafts": 2 },
+  "orders": { "total": 500, "confirmed": 480, "cancelled": 20 },
+  "ticketsSold": 87994,
+  "grossRevenue": 10938850
+}
+```
+
+### Validación y redención de entradas (puerta `/validar`, extra — no es una épica del cronograma)
+
+**Esto es lo único del documento que hoy NO tiene ninguna rama `useMock:false`** — todo el QR (emisión, firma HMAC y verificación) corre 100% en el navegador con una clave embebida en `enviroment.ts` (`ticketSecret`), solo para poder demostrar el flujo completo sin backend. Es la pieza de seguridad más urgente a reemplazar antes de cualquier uso real: **una clave dentro de Angular la puede leer cualquiera que abra las herramientas de desarrollador**, así que hoy cualquiera podría, en teoría, firmarse su propio ticket válido.
+
+Propuesta de contrato para cuando el backend tome esto (`TicketTokenService` y `RedemptionService` en el frontend quedarían reemplazados por estas dos llamadas):
+
+- `GET {apiBackendUrl}/orders/:id/pass` — el backend firma y devuelve el payload del QR vigente (rotativo, como un TOTP) para una orden del comprador autenticado. Solo el dueño de la orden o un admin.
+  ```json
+  { "token": "payload.firma-generada-en-el-backend", "expiresInMs": 30000 }
+  ```
+- `POST {apiBackendUrl}/redemptions` con `{ "token": "…" }` — valida la firma y el estado (aforo/QR) **de forma atómica** (dos escáneres a la vez no deben poder marcar la misma entrada como válida dos veces) y registra el canje. Respuestas: `200` con los datos de la entrada si es la primera vez; `409` si ya estaba canjeada (con la fecha/hora del primer canje, igual que hoy hace `RedemptionService.redeem()` localmente); `410` si expiró; `401/403` si quien escanea no tiene permiso de puerta.
+- El backend nunca debe exponer la clave de firma a ningún cliente (ni Angular ni la app del escáner la deben tener embebida); firma y verifica siempre server-side.
+
+## Peticiones colgadas / timeouts
+
+Toda petición HTTP hacia `apiBackendUrl` o `apiPricingUrl` tiene un límite de 15 segundos (`http-timeout.interceptor.ts`); pasado ese tiempo, Angular corta la espera y el componente muestra su mensaje de error habitual en vez de dejar el spinner girando para siempre. `pricing.service.ts` usa un límite más estricto (10s), documentado como regla de negocio en la sección de precio dinámico. Si el backend real necesita más de 15s para alguna operación pesada (p. ej. un reporte grande), avisen para subir el límite en ese endpoint puntual — no es intención bajar la barra general.
+
 ## Planos y selección
 
 `venueShape()` clasifica el recinto y `tkt-zone-map` genera una vista de zonas, no asientos numerados: esa es la granularidad exigida por el proyecto. El Monumental utiliza `public/events/map-monumental.webp` con polígonos; Nacional usa óvalo; San Marcos, rectángulo; teatros, plateas frente al escenario; Arena 1 y Dibós, anillos. Los demás eventos usan bandas coloreadas frente a un escenario. Todos son referenciales y responden al stock de cada zona.
@@ -208,6 +248,8 @@ Para añadir un plano real con permiso de uso, registra el archivo en `VENUE_MAP
 
 - `src/app/core/models/ticketing-rules.ts`: reglas puras de precio, aforo y compra.
 - `src/app/core/demo-scope.ts`: qué épicas están encendidas en cada rama (`enabledEpics` en `enviroment.ts`).
+- `src/app/core/http-timeout.interceptor.ts`: corta cualquier petición a nuestras APIs que no responda en 15s.
+- `src/app/core/services/ticket-token.service.ts` y `redemption.service.ts`: emisión/verificación de QR y registro de canjes — hoy 100% local, ver "Validación y redención de entradas" arriba.
 - `src/app/features/events/event-list/`: catálogo, comparación, favoritos y Aforo Match.
 - `src/app/shared/zone-map/zone-map.ts`: planos interactivos.
 - `src/app/features/checkout/`: selección, cotización y pasarela de pago.

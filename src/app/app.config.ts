@@ -16,6 +16,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 
 import { routes } from './app.routes';
 import { authInterceptor } from './core/auth/auth.interceptor';
+import { httpTimeoutInterceptor } from './core/http-timeout.interceptor';
 
 registerLocaleData(localeEsPe);
 
@@ -32,7 +33,7 @@ export const appConfig: ApplicationConfig = {
         anchorScrolling: 'enabled',
       }),
     ),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([httpTimeoutInterceptor, authInterceptor])),
     provideAnimationsAsync(),
   ],
 };
