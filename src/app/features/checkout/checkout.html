@@ -503,44 +503,50 @@
             @if (paymentMethod === 'CARD') {
               <div class="card-form">
                 <label class="card-field">
-                  <span>Número de tarjeta</span>
+                  <span>Número de tarjeta*</span>
                   <input
                     type="text"
                     inputmode="numeric"
                     autocomplete="cc-number"
                     placeholder="1234 5678 9012 3456"
                     maxlength="19"
+                    required
+                    pattern="[\d ]{15,19}"
                     [ngModel]="cardNumber"
                     (ngModelChange)="onCardNumberInput($event)"
                     [disabled]="placing()"
                   />
                 </label>
                 <label class="card-field">
-                  <span>Nombre en la tarjeta</span>
+                  <span>Nombre en la tarjeta*</span>
                   <input
                     type="text"
                     autocomplete="cc-name"
                     placeholder="Como figura en la tarjeta"
+                    required
+                    minlength="3"
                     [(ngModel)]="cardName"
                     [disabled]="placing()"
                   />
                 </label>
                 <div class="card-field-row">
                   <label class="card-field">
-                    <span>Vencimiento</span>
+                    <span>Vencimiento*</span>
                     <input
                       type="text"
                       inputmode="numeric"
                       autocomplete="cc-exp"
                       placeholder="MM/AA"
                       maxlength="5"
+                      required
+                      pattern="(0[1-9]|1[0-2])\/\d{2}"
                       [ngModel]="cardExpiry"
                       (ngModelChange)="onCardExpiryInput($event)"
                       [disabled]="placing()"
                     />
                   </label>
                   <label class="card-field">
-                    <span>CVV</span>
+                    <span>CVV*</span>
                     <input
                       type="text"
                       tktDigitsOnly
@@ -548,6 +554,8 @@
                       autocomplete="cc-csc"
                       placeholder="123"
                       maxlength="4"
+                      required
+                      pattern="\d{3,4}"
                       [(ngModel)]="cardCvv"
                       [disabled]="placing()"
                     />
