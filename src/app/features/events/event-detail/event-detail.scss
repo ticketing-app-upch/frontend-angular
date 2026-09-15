@@ -6,16 +6,19 @@
 
 .banner {
   position: relative;
-  height: calc(100svh - 64px);
-  min-height: 460px;
-  max-height: 900px;
+  /* Sube por detrás de la barra superior (sticky, semitransparente) para
+   * que la imagen llene la pantalla completa, no solo lo que queda debajo. */
+  margin-top: calc(-1 * var(--tkt-header-h));
+  height: 100svh;
+  min-height: 520px;
+  max-height: 980px;
   overflow: hidden;
 }
 
 .banner.is-match {
-  height: calc(100svh - 64px);
-  min-height: 520px;
-  max-height: 900px;
+  height: 100svh;
+  min-height: 560px;
+  max-height: 980px;
 }
 
 .banner img {
@@ -489,6 +492,108 @@
 @media (max-width: 900px) {
   .detail-grid { grid-template-columns: 1fr; gap: 1.75rem; }
   .buy-box { position: static; }
+}
+
+/* ---------- Información legal y patrocinios ---------- */
+.event-legal {
+  position: relative;
+  z-index: 1;
+  margin-top: 3.5rem;
+  padding-block: 3rem;
+  background: var(--mat-sys-inverse-surface);
+  color: var(--mat-sys-inverse-on-surface);
+}
+
+.legal-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+}
+
+.legal-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.legal-card {
+  padding: 1.25rem 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 16%, transparent);
+  border-radius: 16px;
+}
+
+.legal-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0 0 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.legal-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 78%, transparent);
+}
+
+.legal-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 70%, transparent);
+}
+.legal-links button { color: inherit; }
+.legal-links .dot { opacity: 0.5; }
+
+.sponsors {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 14%, transparent);
+}
+
+.sponsors-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 62%, transparent);
+}
+
+.sponsor-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1.6rem;
+}
+
+.sponsor-logo {
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: -0.01em;
+  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 55%, transparent);
+  opacity: 0.85;
+}
+
+.legal-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 14%, transparent);
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .legal-cards { grid-template-columns: 1fr; }
 }
 
 @media (prefers-reduced-motion: reduce) {

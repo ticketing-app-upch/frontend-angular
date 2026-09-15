@@ -17,6 +17,8 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { LegalDialog, LegalDoc } from '../../../shared/legal/legal-dialog';
 import { EventService } from '../../../core/services/event.service';
 import {
   computeCapacity,
@@ -56,6 +58,7 @@ export class EventDetail {
   readonly price = zonePrice;
   private events = inject(EventService);
   private auth = inject(AuthService);
+  private dialog = inject(MatDialog);
 
   /** Ligado desde la ruta `eventos/:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
@@ -117,5 +120,16 @@ export class EventDetail {
 
   zoneAvailable(sold: number, capacity: number): number {
     return Math.max(0, capacity - sold);
+  }
+
+  openLegal(doc: LegalDoc): void {
+    this.dialog.open(LegalDialog, {
+      data: { key: doc, role: 'CLIENTE' },
+      width: 'min(680px, 94vw)',
+      maxWidth: '94vw',
+      autoFocus: false,
+      backdropClass: 'tkt-legal-backdrop',
+      panelClass: 'tkt-legal-panel',
+    });
   }
 }

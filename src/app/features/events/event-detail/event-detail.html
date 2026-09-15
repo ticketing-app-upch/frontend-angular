@@ -186,4 +186,54 @@
       </div>
     </aside>
   </div>
+
+  <section class="event-legal">
+    <div class="tkt-page legal-inner">
+      <div class="legal-cards">
+        <div class="legal-card">
+          <h3><mat-icon>policy</mat-icon> Cambios y devoluciones</h3>
+          <p>
+            Si el evento se reprograma o cancela, se devuelve el valor de la
+            entrada; la comisión de servicio no es reembolsable salvo que la
+            ley disponga lo contrario. La organización es responsable de
+            comunicar cualquier cambio con anticipación.
+          </p>
+        </div>
+        <div class="legal-card">
+          <h3><mat-icon>accessible</mat-icon> Personas con discapacidad</h3>
+          <p>
+            De acuerdo con la Ley N.º 29973, las personas con discapacidad
+            debidamente acreditadas acceden a un descuento presentando su
+            carné de CONADIS o certificado médico vigente, además de su
+            documento de identidad, válido para una (1) entrada.
+          </p>
+        </div>
+      </div>
+
+      <div class="legal-links">
+        <button mat-button type="button" (click)="openLegal('terms')">
+          Términos y condiciones
+        </button>
+        <span class="dot" aria-hidden="true">·</span>
+        <button mat-button type="button" (click)="openLegal('privacy')">
+          Política de privacidad
+        </button>
+      </div>
+
+      <div class="sponsors">
+        <span class="sponsors-label">Con el respaldo de</span>
+        <div class="sponsor-row">
+          <span class="sponsor-logo">Banco Andino</span>
+          <span class="sponsor-logo">Radio Vibra</span>
+          <span class="sponsor-logo">Cervecería del Sur</span>
+          <span class="sponsor-logo">Moda Norte</span>
+          <span class="sponsor-logo">APDAYC</span>
+        </div>
+      </div>
+
+      <div class="legal-brand">
+        <mat-icon>confirmation_number</mat-icon> AlpaTeck
+      </div>
+    </div>
+  </section>
 }
