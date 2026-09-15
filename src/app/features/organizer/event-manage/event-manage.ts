@@ -6,6 +6,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -26,6 +29,9 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
     CapacityBar,
     EmptyState,
   ],

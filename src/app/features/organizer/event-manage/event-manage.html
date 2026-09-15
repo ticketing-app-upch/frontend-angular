@@ -12,24 +12,29 @@
 
   @if (!loading() && items().length > 0) {
     <div class="filters">
-      <label class="searchbox">
-        <mat-icon>search</mat-icon>
+      <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+        <mat-icon matPrefix>search</mat-icon>
         <input
+          matInput
           type="search"
           placeholder="Buscar por nombre, recinto o ciudad…"
           [ngModel]="search()"
           (ngModelChange)="search.set($event)"
         />
-      </label>
-      <label class="select-field">
-        <mat-icon>location_on</mat-icon>
-        <select [ngModel]="venue()" (ngModelChange)="venue.set($event)">
-          <option value="">Todos los recintos</option>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="venue-field" subscriptSizing="dynamic">
+        <mat-icon matPrefix>location_on</mat-icon>
+        <mat-select
+          [ngModel]="venue()"
+          (ngModelChange)="venue.set($event)"
+          panelClass="tkt-venue-panel"
+        >
+          <mat-option value="">Todos los recintos</mat-option>
           @for (v of venues(); track v) {
-            <option [value]="v">{{ v }}</option>
+            <mat-option [value]="v">{{ v }}</mat-option>
           }
-        </select>
-      </label>
+        </mat-select>
+      </mat-form-field>
     </div>
     <nav class="categories" aria-label="Filtrar por tipo de evento">
       @for (c of categories; track c.value) {

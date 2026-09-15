@@ -6,52 +6,18 @@
 .filters {
   display: flex;
   flex-wrap: wrap;
+  align-items: flex-start;
   gap: 0.75rem;
   margin-bottom: 0.85rem;
 }
+.filters mat-form-field { width: auto; }
 
-.searchbox {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 1 1 260px;
-  padding: 0.6rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 14%, transparent);
-  background: var(--mat-sys-surface);
+.search-field { flex: 1 1 260px; }
+.venue-field { flex: 0 1 260px; }
+.search-field mat-icon[matPrefix],
+.venue-field mat-icon[matPrefix] {
+  margin-right: 0.5rem;
   color: var(--mat-sys-on-surface-variant);
-}
-.searchbox mat-icon { flex: none; font-size: 1.15rem; width: 1.15rem; height: 1.15rem; }
-.searchbox input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: none;
-  color: var(--mat-sys-on-surface);
-  font: inherit;
-  outline: none;
-}
-
-.select-field {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex: 0 1 240px;
-  padding: 0.6rem 0.9rem;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 14%, transparent);
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface-variant);
-}
-.select-field mat-icon { flex: none; font-size: 1.15rem; width: 1.15rem; height: 1.15rem; }
-.select-field select {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: none;
-  color: var(--mat-sys-on-surface);
-  font: inherit;
-  outline: none;
 }
 
 .categories {
