@@ -42,8 +42,8 @@
   </section>
   <section class="search-panel" aria-label="Buscar experiencias">
     <div class="searchbox"><mat-icon>search</mat-icon><input type="search" aria-label="Buscar evento, artista o lugar" placeholder="Un artista, un evento, un lugar…" [ngModel]="search()" (ngModelChange)="search.set($event); sync()" /></div>
-    <label class="select-field"><mat-icon>calendar_today</mat-icon><select aria-label="Cuándo" [ngModel]="date()" (ngModelChange)="date.set($event); sync()"><option value="any">Cualquier fecha</option><option value="week">Próximos 7 días</option><option value="month">Próximos 30 días</option></select></label>
-    <label class="select-field venue"><mat-icon>location_on</mat-icon><select aria-label="Recinto" [ngModel]="venue()" (ngModelChange)="venue.set($event); page.set(1)"><option value="">Todos los recintos</option>@for (v of venues(); track v) { <option [value]="v">{{ v }}</option> }</select></label>
+    <div class="select-field"><mat-icon>calendar_today</mat-icon><mat-select aria-label="Cuándo" [ngModel]="date()" (ngModelChange)="date.set($event); sync()" panelClass="tkt-filter-panel"><mat-option value="any">Cualquier fecha</mat-option><mat-option value="week">Próximos 7 días</mat-option><mat-option value="month">Próximos 30 días</mat-option></mat-select></div>
+    <div class="select-field venue"><mat-icon>location_on</mat-icon><mat-select aria-label="Recinto" [ngModel]="venue()" (ngModelChange)="venue.set($event); page.set(1)" panelClass="tkt-filter-panel"><mat-option value="">Todos los recintos</mat-option>@for (v of venues(); track v) { <mat-option [value]="v">{{ v }}</mat-option> }</mat-select></div>
   </section>
   @if (planner()) {
     <section class="planner" aria-label="Planificador por presupuesto">

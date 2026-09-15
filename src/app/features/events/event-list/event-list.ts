@@ -3,6 +3,7 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EventService } from '../../../core/services/event.service';
 import { DiscoveryService } from '../../../core/services/discovery.service';
@@ -30,7 +31,7 @@ export class EventCompare {
 @Component({
   selector: 'tkt-event-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, FormsModule, CurrencyPipe, DatePipe, DecimalPipe, MatIconModule, MatDialogModule],
+  imports: [RouterLink, FormsModule, CurrencyPipe, DatePipe, DecimalPipe, MatIconModule, MatSelectModule, MatDialogModule],
   templateUrl: './event-list.html',
   styleUrl: './event-list.scss',
 })
