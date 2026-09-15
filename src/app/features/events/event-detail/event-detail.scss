@@ -6,12 +6,16 @@
 
 .banner {
   position: relative;
-  height: min(46vh, 420px);
+  height: calc(100svh - 64px);
+  min-height: 460px;
+  max-height: 900px;
   overflow: hidden;
 }
 
 .banner.is-match {
-  height: min(62vh, 560px);
+  height: calc(100svh - 64px);
+  min-height: 520px;
+  max-height: 900px;
 }
 
 .banner img {
@@ -137,7 +141,7 @@
 .banner-text h1 {
   margin: 0.9rem 0 0;
   max-width: 24ch;
-  font-size: clamp(1.95rem, 4.2vw, 2.95rem);
+  font-size: clamp(1.95rem, 5vw, 3.4rem);
   font-weight: 800;
   letter-spacing: -0.03em;
   word-spacing: 0.02em;
@@ -221,63 +225,59 @@
   white-space: pre-line;
 }
 
-/* ---------- Zonas ---------- */
-.zones {
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-}
-
-.zone {
-  position: relative;
-  padding: 1.15rem 1.25rem 1.2rem 1.45rem;
-  background: color-mix(in srgb, var(--mat-sys-primary) 4%, var(--mat-sys-surface));
-  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 9%, transparent);
+/* ---------- Tabla de zonas y precios ---------- */
+.price-table {
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
   border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 1px 2px rgba(20, 12, 45, 0.04);
-  transition:
-    border-color 0.16s ease,
-    transform 0.16s ease,
-    box-shadow 0.16s ease;
+  background: var(--mat-sys-surface);
 }
 
-/* barra de acento a la izquierda según estado */
-.zone::before {
-  content: '';
-  position: absolute;
-  inset: 0.55rem auto 0.55rem 0;
-  width: 4px;
-  border-radius: 0 4px 4px 0;
+.price-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.3fr;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.95rem 1.25rem;
+}
+
+.price-row + .price-row {
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+}
+
+.price-head-row {
+  padding-block: 0.65rem;
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface));
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary);
+}
+
+.price-row.gone { opacity: 0.55; }
+
+.sector {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.swatch {
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 3px;
   background: linear-gradient(180deg, var(--mat-sys-primary), var(--tkt-accent));
 }
-.zone.low::before {
-  background: linear-gradient(180deg, var(--tkt-accent-soft), var(--tkt-accent-strong));
-}
-.zone.gone::before {
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 26%, transparent);
-}
+.price-row:nth-of-type(3n) .swatch { background: linear-gradient(180deg, var(--tkt-accent), var(--tkt-accent-strong)); }
+.price-row:nth-of-type(3n + 1) .swatch { background: linear-gradient(180deg, var(--mat-sys-tertiary, var(--mat-sys-primary)), var(--mat-sys-primary)); }
+.price-row.gone .swatch { background: color-mix(in srgb, var(--mat-sys-on-surface) 30%, transparent); }
 
-.zone:not(.gone):hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--mat-sys-primary) 32%, transparent);
-  box-shadow: 0 18px 40px -22px rgba(76, 29, 149, 0.45);
-}
-
-.zone.gone {
-  opacity: 0.6;
-}
-
-.zone-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 0.7rem;
-}
-
-.zone-name {
+.sector-name {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
   font-weight: 700;
@@ -301,20 +301,35 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.zone-price {
-  flex: none;
-  font-size: 1.25rem;
+.price {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: color-mix(in srgb, var(--tkt-accent-strong) 85%, var(--mat-sys-on-surface));
 }
-
-.zone-foot {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 0.55rem;
-  font-size: 0.8rem;
+.price small {
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--mat-sys-on-surface-variant);
+}
+
+.avail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.avail small {
+  font-size: 0.76rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+@media (max-width: 640px) {
+  .price-row { grid-template-columns: 1fr; gap: 0.4rem; }
+  .price-head-row { display: none; }
+  .price { flex-direction: row; align-items: baseline; gap: 0.5rem; }
 }
 
 /* ---------- Caja de compra ---------- */

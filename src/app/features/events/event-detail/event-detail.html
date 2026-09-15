@@ -65,19 +65,25 @@
         <p class="desc">{{ ev.description }}</p>
       </section>
 
-      <section class="block">
-        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Estimación dinámica por entrada + 6% de servicio. El total se confirma antes del pago.</p>
-        <div class="zones">
+      <section class="block" id="precios">
+        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Precio dinámico por disponibilidad y demanda + 6% de servicio. El total se confirma antes del pago.</p>
+        <div class="price-table">
+          <div class="price-row price-head-row">
+            <span>Sector</span>
+            <span>Precio</span>
+            <span>Disponibilidad</span>
+          </div>
           @for (zone of ev.zones; track zone.id) {
             @let avail = zoneAvailable(zone.sold, zone.capacity);
             @let pct = zone.capacity ? (zone.sold / zone.capacity) * 100 : 0;
             <div
-              class="zone"
+              class="price-row"
               [class.gone]="avail === 0"
               [class.low]="avail > 0 && pct >= 90"
             >
-              <div class="zone-top">
-                <span class="zone-name">
+              <span class="sector">
+                <span class="swatch"></span>
+                <span class="sector-name">
                   {{ zone.name }}
                   @if (avail === 0) {
                     <span class="zone-tag sold">Agotada</span>
@@ -85,25 +91,25 @@
                     <span class="zone-tag low">Quedan {{ avail | number }}</span>
                   }
                 </span>
-                <span class="zone-price">
-                  {{ price(ev, zone).unitPrice | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
-                </span>
-              </div>
-              <tkt-capacity-bar
-                [sold]="zone.sold"
-                [total]="zone.capacity"
-                [showLabel]="false"
-              />
-              <div class="zone-foot">
-                <span>
+              </span>
+              <span class="price">
+                {{ price(ev, zone).unitPrice | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                <small>{{ price(ev, zone).note }}</small>
+              </span>
+              <span class="avail">
+                <tkt-capacity-bar
+                  [sold]="zone.sold"
+                  [total]="zone.capacity"
+                  [showLabel]="false"
+                />
+                <small>
                   @if (avail === 0) {
                     Sin disponibilidad
                   } @else {
-                    {{ avail | number }} entradas disponibles
+                    {{ avail | number }} disponibles · {{ pct | number: '1.0-0' }}% ocupado
                   }
-                </span>
-                <span>{{ price(ev, zone).note }}</span><span>{{ pct | number: '1.0-0' }}% ocupado</span>
-              </div>
+                </small>
+              </span>
             </div>
           }
         </div>
