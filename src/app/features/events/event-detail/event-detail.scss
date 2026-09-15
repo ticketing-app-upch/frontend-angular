@@ -204,6 +204,11 @@
 
 .block + .block { margin-top: 2.5rem; }
 
+#precios,
+#discapacidad {
+  scroll-margin-top: calc(var(--tkt-header-h) + 1rem);
+}
+
 .block .tkt-section-title {
   margin-bottom: 1rem;
   display: flex;
@@ -492,6 +497,114 @@
 @media (max-width: 900px) {
   .detail-grid { grid-template-columns: 1fr; gap: 1.75rem; }
   .buy-box { position: static; }
+}
+
+/* ---------- Franja de compra y descuentos ---------- */
+.promo-cta {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+  padding-block: 3rem;
+  background: radial-gradient(
+      60rem 26rem at 50% -10%,
+      color-mix(in srgb, var(--tkt-accent) 30%, transparent),
+      transparent 70%
+    ),
+    #0b0710;
+  color: #fff;
+}
+
+/* estrellitas sutiles, como en la referencia */
+.promo-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 30%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 28% 74%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 46% 18%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 64% 62%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 82% 38%, #fff, transparent),
+    radial-gradient(1.5px 1.5px at 93% 80%, #fff, transparent);
+}
+
+.promo-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  text-align: center;
+}
+
+.promo-inner h2 {
+  margin: 0;
+  max-width: 46ch;
+  font-size: clamp(1.35rem, 2.6vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.promo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.promo-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--tkt-accent-soft), var(--tkt-accent-strong));
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 12px 26px -12px color-mix(in srgb, var(--tkt-accent-strong) 70%, transparent);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.promo-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 32px -12px color-mix(in srgb, var(--tkt-accent-strong) 80%, transparent);
+}
+.promo-btn mat-icon {
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.promo-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 0;
+  background: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.82rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+.promo-info:hover { color: #fff; }
+.promo-info mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+
+@media (max-width: 640px) {
+  .promo-actions { flex-direction: column; align-items: stretch; }
+  .promo-btn { justify-content: center; }
 }
 
 /* ---------- Información legal y patrocinios ---------- */

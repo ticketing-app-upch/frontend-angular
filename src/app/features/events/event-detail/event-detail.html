@@ -53,6 +53,26 @@
     </div>
   </div>
 
+  <section class="promo-cta">
+    <div class="tkt-page promo-inner">
+      <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
+      <div class="promo-actions">
+        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
+          <mat-icon>local_offer</mat-icon> Descubrimiento −10%
+        </button>
+        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
+          <mat-icon>confirmation_number</mat-icon> Precio regular
+        </button>
+        <button type="button" class="promo-btn" (click)="scrollToId('discapacidad')">
+          <mat-icon>accessible</mat-icon> Pers. con discapacidad
+        </button>
+      </div>
+      <button type="button" class="promo-info" (click)="scrollToId('precios')">
+        <mat-icon inline>info</mat-icon> ¿Cómo comprar en la web?
+      </button>
+    </div>
+  </section>
+
   <div class="tkt-page detail-grid">
     <div class="about">
       <div class="tkt-cluster" style="margin-bottom:24px">
@@ -199,7 +219,7 @@
             comunicar cualquier cambio con anticipación.
           </p>
         </div>
-        <div class="legal-card">
+        <div class="legal-card" id="discapacidad">
           <h3><mat-icon>accessible</mat-icon> Personas con discapacidad</h3>
           <p>
             De acuerdo con la Ley N.º 29973, las personas con discapacidad

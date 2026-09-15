@@ -122,6 +122,10 @@ export class EventDetail {
     return Math.max(0, capacity - sold);
   }
 
+  scrollToId(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   openLegal(doc: LegalDoc): void {
     this.dialog.open(LegalDialog, {
       data: { key: doc, role: 'CLIENTE' },
