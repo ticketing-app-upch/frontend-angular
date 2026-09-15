@@ -6,7 +6,8 @@ export const SERVICE_FEE_RATE = 0.06;
 /** Descuento por discapacidad (Ley N.º 29973): −20%, válido para 1 entrada por orden. */
 export const ACCESSIBLE_DISCOUNT_RATE = 0.2;
 export const ACCESSIBLE_MAX_QTY = 1;
-export const roundMoney = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
+export const roundMoney = (value: number): number =>
+  Math.round((value + Number.EPSILON) * 100) / 100;
 const DAY = 86_400_000;
 
 /**
@@ -29,7 +30,12 @@ export function zonePrice(
   const scarce = zone.capacity > 0 && available / zone.capacity < 0.15;
   const soon = days >= 0 && days < 3;
   // El recargo tiene precedencia cuando ambas reglas coinciden.
-  const multiplier = scarce || soon ? 1.2 : age > 30 && zone.capacity > 0 && zone.sold / zone.capacity < 0.1 ? 0.9 : 1;
+  const multiplier =
+    scarce || soon
+      ? 1.2
+      : age > 30 && zone.capacity > 0 && zone.sold / zone.capacity < 0.1
+        ? 0.9
+        : 1;
   const base = zone.price * multiplier;
   if (accessible) {
     return {
@@ -39,7 +45,9 @@ export function zonePrice(
       available,
     };
   }
-  const bankDiscount = bank ? event.bankDiscounts?.find((d) => d.bank === bank && d.enabled) : undefined;
+  const bankDiscount = bank
+    ? event.bankDiscounts?.find((d) => d.bank === bank && d.enabled)
+    : undefined;
   if (bankDiscount) {
     return {
       unitPrice: roundMoney(base * (1 - bankDiscount.percent / 100)),
@@ -48,45 +56,83 @@ export function zonePrice(
       available,
     };
   }
-  const note = scarce ? 'Últimos cupos · +20%' : soon ? 'Evento próximo · +20%' : multiplier < 1 ? 'Descubrimiento · −10%' : 'Precio base';
+  const note = scarce
+    ? 'Últimos cupos · +20%'
+    : soon
+      ? 'Evento próximo · +20%'
+      : multiplier < 1
+        ? 'Descuento · −10%'
+        : 'Precio base';
   return { unitPrice: roundMoney(base), multiplier, note, available };
 }
 
 export function eventIssues(event: EventItem, previous?: EventItem): string[] {
   const issues: string[] = [];
-  if (event.name.trim().length < 4 || event.description.trim().length < 20) issues.push('Completa el nombre y la descripción.');
-  if (!Number.isFinite(Date.parse(event.startsAt)) || Date.parse(event.startsAt) <= Date.now()) issues.push('La fecha debe estar en el futuro.');
-  if (!Number.isInteger(event.maxPerOrder) || event.maxPerOrder < 1 || event.maxPerOrder > MAX_TICKETS) issues.push('El límite por compra debe ser de 1 a 6 entradas.');
+  if (event.name.trim().length < 4 || event.description.trim().length < 20)
+    issues.push('Completa el nombre y la descripción.');
+  if (!Number.isFinite(Date.parse(event.startsAt)) || Date.parse(event.startsAt) <= Date.now())
+    issues.push('La fecha debe estar en el futuro.');
+  if (
+    !Number.isInteger(event.maxPerOrder) ||
+    event.maxPerOrder < 1 ||
+    event.maxPerOrder > MAX_TICKETS
+  )
+    issues.push('El límite por compra debe ser de 1 a 6 entradas.');
   if (!event.venue.trim() || !event.city.trim()) issues.push('Indica el recinto y la ciudad.');
-  if (!Number.isInteger(event.venueCapacity) || (event.venueCapacity ?? 0) < 1) issues.push('Declara la capacidad física del recinto.');
+  if (!Number.isInteger(event.venueCapacity) || (event.venueCapacity ?? 0) < 1)
+    issues.push('Declara la capacidad física del recinto.');
   if (!event.zones.length) issues.push('Agrega al menos una zona.');
-  if (event.zones.reduce((sum, zone) => sum + zone.capacity, 0) > (event.venueCapacity ?? 0)) issues.push('Las zonas superan la capacidad física del recinto.');
+  if (event.zones.reduce((sum, zone) => sum + zone.capacity, 0) > (event.venueCapacity ?? 0))
+    issues.push('Las zonas superan la capacidad física del recinto.');
   const names = new Set<string>();
   for (const zone of event.zones) {
     const name = zone.name.trim().toLocaleLowerCase();
     if (!name || names.has(name)) issues.push('Cada zona debe tener un nombre único.');
     names.add(name);
-    if (!Number.isInteger(zone.capacity) || zone.capacity < 1 || !Number.isInteger(zone.sold) || zone.sold < 0 || zone.sold > zone.capacity) issues.push('El aforo debe ser entero y no puede ser menor que las entradas vendidas.');
-    if (!Number.isFinite(zone.price) || zone.price < 0) issues.push('El precio debe ser un número positivo o cero.');
+    if (
+      !Number.isInteger(zone.capacity) ||
+      zone.capacity < 1 ||
+      !Number.isInteger(zone.sold) ||
+      zone.sold < 0 ||
+      zone.sold > zone.capacity
+    )
+      issues.push('El aforo debe ser entero y no puede ser menor que las entradas vendidas.');
+    if (!Number.isFinite(zone.price) || zone.price < 0)
+      issues.push('El precio debe ser un número positivo o cero.');
   }
   for (const old of previous?.zones ?? []) {
-    const next = event.zones.find(zone => zone.id === old.id);
-    if (old.sold > 0 && (!next || next.capacity < old.sold || next.name !== old.name)) issues.push('No puedes eliminar o renombrar una zona con ventas ni reducirla por debajo de las entradas vendidas.');
-    if (next && next.sold !== old.sold) issues.push('Las ventas se calculan desde las compras y no son editables.');
+    const next = event.zones.find((zone) => zone.id === old.id);
+    if (old.sold > 0 && (!next || next.capacity < old.sold || next.name !== old.name))
+      issues.push(
+        'No puedes eliminar o renombrar una zona con ventas ni reducirla por debajo de las entradas vendidas.',
+      );
+    if (next && next.sold !== old.sold)
+      issues.push('Las ventas se calculan desde las compras y no son editables.');
   }
   return [...new Set(issues)];
 }
 
 export function purchaseIssue(event: EventItem, items: OrderItem[]): string | null {
-  if (event.status !== 'PUBLICADO' || Date.parse(event.startsAt) <= Date.now()) return 'Este evento no está disponible para comprar.';
+  if (event.status !== 'PUBLICADO' || Date.parse(event.startsAt) <= Date.now())
+    return 'Este evento no está disponible para comprar.';
   const total = items.reduce((sum, item) => sum + item.quantity, 0);
-  if (!items.length || items.some(item => !Number.isInteger(item.quantity) || item.quantity < 1) || total > Math.min(MAX_TICKETS, event.maxPerOrder)) return 'Selecciona cantidades enteras de 1 a 6 entradas, respetando el límite del evento.';
-  if (new Set(items.map(item => item.zoneId)).size !== items.length) return 'La selección contiene zonas duplicadas.';
-  const accessibleQty = items.filter(item => item.accessible).reduce((sum, item) => sum + item.quantity, 0);
-  if (accessibleQty > ACCESSIBLE_MAX_QTY) return `El descuento por discapacidad es válido para ${ACCESSIBLE_MAX_QTY} entrada por compra.`;
+  if (
+    !items.length ||
+    items.some((item) => !Number.isInteger(item.quantity) || item.quantity < 1) ||
+    total > Math.min(MAX_TICKETS, event.maxPerOrder)
+  )
+    return 'Selecciona cantidades enteras de 1 a 6 entradas, respetando el límite del evento.';
+  if (new Set(items.map((item) => item.zoneId)).size !== items.length)
+    return 'La selección contiene zonas duplicadas.';
+  const accessibleQty = items
+    .filter((item) => item.accessible)
+    .reduce((sum, item) => sum + item.quantity, 0);
+  if (accessibleQty > ACCESSIBLE_MAX_QTY)
+    return `El descuento por discapacidad es válido para ${ACCESSIBLE_MAX_QTY} entrada por compra.`;
   for (const item of items) {
-    const zone = event.zones.find(zone => zone.id === item.zoneId);
-    if (!zone || item.quantity > zone.capacity - zone.sold) return 'La disponibilidad cambió. Actualiza tu selección.';
+    const zone = event.zones.find((zone) => zone.id === item.zoneId);
+    if (!zone || item.quantity > zone.capacity - zone.sold)
+      return 'La disponibilidad cambió. Actualiza tu selección.';
   }
   return null;
 }
