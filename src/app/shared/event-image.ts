@@ -248,6 +248,20 @@ const VENUE_MAPS: Record<string, string> = {
 };
 
 /**
+ * El Estadio Nacional tiene dos planos oficiales distintos según el formato
+ * del evento: fútbol (tribunas Norte/Sur/Oriente/Occidente) o concierto
+ * (escenario + Campo A/B). Se elige por los nombres de zona del evento.
+ */
+const ESTADIO_NACIONAL_MAPS = {
+  concierto: '/events/estadio-nacional-conciertos.png',
+  futbol: '/events/estadio-nacional-partidos.jpg',
+};
+
+function isConcertLayout(zones: { name: string }[]): boolean {
+  return zones.some((z) => /^campo\s*a$/i.test(z.name.trim()));
+}
+
+/**
  * Zonas clicables sobre cada plano-imagen (coords 0..100, % del alto/ancho).
  * `match` se compara contra el nombre del sector del evento.
  */
@@ -292,6 +306,49 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
 };
 
 /**
+ * Hotspots del Estadio Nacional. Al tener dos planos-imagen distintos según
+ * el formato del evento (ver `ESTADIO_NACIONAL_MAPS`), se guardan aparte y se
+ * eligen en `venueHotspots` con el mismo criterio (`isConcertLayout`). Cuando
+ * un sector aparece dos veces en la foto (p. ej. Occidente Central a ambos
+ * lados del Palco), se repite la misma zona con dos polígonos distintos.
+ */
+const ESTADIO_NACIONAL_HOTSPOTS: Record<'concierto' | 'futbol', HotspotTemplate[]> = {
+  concierto: [
+    { match: /^or1$/, points: '4.9,32.9 21.1,32.9 21.1,51.7 4.9,51.7' },
+    { match: /^campo\s*a$/, points: '24.4,32 75.3,32 75.3,54.5 24.4,54.5' },
+    { match: /^occ1$/, points: '78.6,32.9 95.1,32.9 95.1,51.7 78.6,51.7' },
+    { match: /^or2$/, points: '4.9,54.8 21.1,54.8 21.1,84.6 4.9,84.6' },
+    { match: /^campo\s*b$/, points: '24.4,56.7 75.3,56.7 75.3,83 24.4,83' },
+    { match: /^occ2$/, points: '78.6,54.8 95.1,54.8 95.1,84.6 78.6,84.6' },
+    {
+      match: /^norte$/,
+      points:
+        '10,77 15,75.7 20,74.6 25,75.3 30,79.7 35,82.3 40,84.1 45,85 50,85.2 55,85 60,83.9 65,82.3 70,79.7 75,75.3 80,74.6 85,75.7 90,77 90,79.9 85,85 80,88.5 75,91.2 70,93.1 65,94.5 60,95.4 55,96 50,96.2 45,96 40,95.4 35,94.5 30,93.1 25,91.2 20,88.7 15,85 10,80.1',
+    },
+  ],
+  futbol: [
+    { match: /^oriente central$/, points: '30,5 60,5 60,23 30,23' },
+    { match: /^oriente lateral$/, points: '22.5,5 29.6,5 29.6,23.1 22.5,23.1' },
+    { match: /^oriente lateral$/, points: '60.8,5 67.4,5 67.4,23.1 60.8,23.1' },
+    { match: /^occidente central$/, points: '30.1,75.8 43.8,75.8 43.8,93.1 30.1,93.1' },
+    { match: /^occidente central$/, points: '48,75.8 59.9,75.8 59.9,93.1 48,93.1' },
+    { match: /^occidente lateral$/, points: '22.6,75 29.6,75 29.6,93.1 22.6,93.1' },
+    { match: /^occidente lateral$/, points: '60.8,74.6 67.4,74.6 67.4,92.7 60.8,92.7' },
+    { match: /palco/, points: '42.5,76.5 47.5,76.5 47.5,88 42.5,88' },
+    {
+      match: /^norte$/,
+      points:
+        '4,49 5,34.6 7,28.1 9,23.1 11,18.8 13,16.2 15,13.1 17,11.2 19,10 21,8.5 23,12.3 25,21.9 25,75.8 23,85.8 21,89.6 19,88.5 17,86.5 15,85 13,81.9 11,78.8 9,75.4 7,70.4 5,63.8',
+    },
+    {
+      match: /^sur$/,
+      points:
+        '66,19.2 68,10.4 70,8.5 72,10.4 74,12.3 76,14.2 78,17.3 80,20.8 82,24.6 84,30.8 86.5,49.5 86,58.5 84,68.1 82,72.7 80,77.7 78,80.8 76,83.8 74,85.8 72,87.7 70,89.6 68,88.5 66,78.5',
+    },
+  ],
+};
+
+/**
  * Configuración de planos SVG generados para estadios sin imagen real.
  * Cada entrada define la forma (shape) y cómo mapear los stands.
  */
@@ -325,9 +382,12 @@ function venueKey(venue: string): string {
   return venue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-export function venueMap(venue: string | undefined): string | null {
+export function venueMap(venue: string | undefined, zones: { name: string }[] = []): string | null {
   if (!venue) return null;
   const key = venueKey(venue);
+  if (key.includes('estadio nacional')) {
+    return isConcertLayout(zones) ? ESTADIO_NACIONAL_MAPS.concierto : ESTADIO_NACIONAL_MAPS.futbol;
+  }
   for (const k of Object.keys(VENUE_MAPS)) {
     if (key.includes(k)) return VENUE_MAPS[k];
   }
@@ -341,10 +401,12 @@ export function venueHotspots(
 ): { id: string; points: string }[] {
   if (!venue) return [];
   const key = venueKey(venue);
-  const tplKey = Object.keys(VENUE_MAP_HOTSPOTS).find((k) => key.includes(k));
-  if (!tplKey) return [];
+  const templates = key.includes('estadio nacional')
+    ? ESTADIO_NACIONAL_HOTSPOTS[isConcertLayout(zones) ? 'concierto' : 'futbol']
+    : VENUE_MAP_HOTSPOTS[Object.keys(VENUE_MAP_HOTSPOTS).find((k) => key.includes(k)) ?? ''];
+  if (!templates) return [];
   const out: { id: string; points: string }[] = [];
-  for (const t of VENUE_MAP_HOTSPOTS[tplKey]) {
+  for (const t of templates) {
     const z = zones.find((z) => t.match.test(z.name.toLowerCase()));
     if (z) out.push({ id: z.id, points: t.points });
   }

@@ -159,7 +159,7 @@ export class Checkout {
     return e ? matchArt(e.name, e.category) : null;
   });
 
-  readonly venuePlan = computed(() => venueMap(this.event()?.venue));
+  readonly venuePlan = computed(() => venueMap(this.event()?.venue, this.event()?.zones ?? []));
   readonly venueSpots = computed(() => {
     const e = this.event();
     return e ? venueHotspots(e.venue, e.zones) : [];
