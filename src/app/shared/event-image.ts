@@ -270,24 +270,23 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
     { match: /^occidente$/, points: '20,66 80,66 91,90 9,90' },
   ],
   'parque de la exposicion': [
-    // Bandas horizontales de abajo hacia arriba: la fila más cercana al
-    // escenario (VIP, la más cara, abajo) hasta la más alejada (General,
-    // la más barata, arriba). El borde exterior (frente y remate) sigue la
-    // curva real de la platea en la foto; las divisiones internas entre
-    // sectores son líneas rectas horizontales, para que se lea como pisos
-    // apilados y no como un barrido diagonal.
+    // Tres tajadas de lado a lado (no franjas de adelante hacia atrás): de
+    // la más cercana al escenario (VIP, izquierda) a la más cercana a la
+    // laguna (General, derecha), cada una abarcando toda la profundidad de
+    // la platea (de la primera a la última fila). El borde de arriba y de
+    // abajo sigue la curva real de la platea en la foto; los cortes entre
+    // sectores son verticales.
     {
       match: /^vip$/,
-      points: '40.5,58.5 47.5,63 55,67 62.5,67.5 70,65.5 77,57.5 79,48.5 79,51 40.5,51',
+      points: '40.5,58.5 47.5,63 53,65.9 53,25.3 47.5,26.5 40.5,31',
     },
     {
       match: /preferencial/,
-      points: '40.5,51 79,51 79,35 40.5,35',
+      points: '53,65.9 55,67 62.5,67.5 66,66.6 66,27 62.5,25.5 55,24.8 53,25.3',
     },
     {
       match: /general/,
-      points:
-        '40.5,35 79,35 78.5,38 76.5,33.5 69.5,28.5 62.5,25.5 55,24.8 47.5,26.5 40.5,31',
+      points: '66,66.6 70,65.5 77,57.5 79,48.5 78.5,38 76.5,33.5 69.5,28.5 66,27',
     },
   ],
 };
