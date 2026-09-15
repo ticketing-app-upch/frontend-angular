@@ -108,9 +108,10 @@ export class Register {
       gender: ['', Validators.required],
       // solo los dígitos del código; el "+" es fijo en la UI
       phoneCode: ['51', [Validators.required, Validators.pattern(/^\d{1,4}$/)]],
+      // Teléfono opcional: si se escribe algo, debe cumplir el patrón.
       phone: [
         '',
-        [Validators.required, Validators.pattern(/^\d{6,17}$/), Validators.maxLength(17)],
+        [Validators.pattern(/^\d{6,17}$/), Validators.maxLength(17)],
       ],
     }),
 
@@ -119,9 +120,10 @@ export class Register {
       displayName: ['', [Validators.required, Validators.minLength(2)]],
       taxId: ['', [Validators.required, Validators.pattern(/^(10|15|17|20)\d{9}$/)]],
       legalName: ['', Validators.required],
+      // Teléfono opcional: si se escribe algo, debe cumplir el patrón.
       phone: [
         '',
-        [Validators.required, Validators.pattern(/^\d{6,17}$/), Validators.maxLength(17)],
+        [Validators.pattern(/^\d{6,17}$/), Validators.maxLength(17)],
       ],
       country: ['PE', Validators.required],
       city: ['', Validators.required],
