@@ -211,7 +211,7 @@ export class Checkout {
           this.quantities.set(
             Object.fromEntries(ev.zones.map((z) => [z.id, 0])),
           );
-          // "Descubrimiento -10%": si el evento tiene un banco con ese
+          // "Descuento -10%": si el evento tiene un banco con ese
           // porcentaje habilitado, se aplica solo, sin que el comprador
           // tenga que elegirlo a mano.
           if (this.discountParam === '10') {

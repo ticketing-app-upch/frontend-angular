@@ -197,7 +197,7 @@
             [routerLink]="['/comprar', ev.id]"
             [queryParams]="{ descuento: '10' }"
           >
-            <mat-icon>local_offer</mat-icon> Descubrimiento −10%
+            <mat-icon>local_offer</mat-icon> Descuento −10%
           </a>
         } @else {
           <a
@@ -205,7 +205,7 @@
             routerLink="/auth/login"
             [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=10' }"
           >
-            <mat-icon>local_offer</mat-icon> Descubrimiento −10%
+            <mat-icon>local_offer</mat-icon> Descuento −10%
           </a>
         }
         @if (isAuthenticated()) {
