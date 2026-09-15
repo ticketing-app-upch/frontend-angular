@@ -72,12 +72,14 @@ export class Checkout {
   /** zoneId -> cantidad elegida */
   readonly quantities = signal<Record<string, number>>({});
 
+  private readonly discountParam = this.route.snapshot.queryParamMap.get('descuento');
+
   /** Descuento por discapacidad (Ley N.º 29973): -20%, máx. 1 entrada por orden. */
-  readonly accessibleMode = signal(
-    this.route.snapshot.queryParamMap.get('descuento') === 'discapacidad',
-  );
+  readonly accessibleMode = signal(this.discountParam === 'discapacidad');
+  /** El cuadro de descuento por discapacidad solo aparece si llegaron desde ese botón específico. */
+  readonly showAccessibleToggle = this.discountParam === 'discapacidad';
   /** Llegó desde "Precio regular": no se ofrece ningún descuento (ni discapacidad ni banco). */
-  readonly hideDiscounts = this.route.snapshot.queryParamMap.get('descuento') === 'regular';
+  readonly hideDiscounts = this.discountParam === 'regular';
   readonly accessibleMaxQty = ACCESSIBLE_MAX_QTY;
   readonly accessibleDiscountPct = ACCESSIBLE_DISCOUNT_RATE * 100;
 
@@ -209,6 +211,15 @@ export class Checkout {
           this.quantities.set(
             Object.fromEntries(ev.zones.map((z) => [z.id, 0])),
           );
+          // "Descubrimiento -10%": si el evento tiene un banco con ese
+          // porcentaje habilitado, se aplica solo, sin que el comprador
+          // tenga que elegirlo a mano.
+          if (this.discountParam === '10') {
+            const auto = normalizeBankDiscounts(ev.bankDiscounts).find(
+              (d) => d.enabled && d.percent === 10,
+            );
+            if (auto) this.selectedBank.set(auto.bank);
+          }
           this.loading.set(false);
         },
         error: () => {

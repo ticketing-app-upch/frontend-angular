@@ -192,14 +192,18 @@
       <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
       <div class="promo-actions">
         @if (isAuthenticated()) {
-          <a class="promo-btn" [routerLink]="['/comprar', ev.id]">
+          <a
+            class="promo-btn"
+            [routerLink]="['/comprar', ev.id]"
+            [queryParams]="{ descuento: '10' }"
+          >
             <mat-icon>local_offer</mat-icon> Descubrimiento −10%
           </a>
         } @else {
           <a
             class="promo-btn"
             routerLink="/auth/login"
-            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=10' }"
           >
             <mat-icon>local_offer</mat-icon> Descubrimiento −10%
           </a>
