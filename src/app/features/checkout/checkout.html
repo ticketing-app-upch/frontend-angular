@@ -499,6 +499,63 @@
                 }}</mat-icon>
               </button>
             </div>
+
+            @if (paymentMethod === 'CARD') {
+              <div class="card-form">
+                <label class="card-field">
+                  <span>Número de tarjeta</span>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="cc-number"
+                    placeholder="1234 5678 9012 3456"
+                    maxlength="19"
+                    [ngModel]="cardNumber"
+                    (ngModelChange)="onCardNumberInput($event)"
+                    [disabled]="placing()"
+                  />
+                </label>
+                <label class="card-field">
+                  <span>Nombre en la tarjeta</span>
+                  <input
+                    type="text"
+                    autocomplete="cc-name"
+                    placeholder="Como figura en la tarjeta"
+                    [(ngModel)]="cardName"
+                    [disabled]="placing()"
+                  />
+                </label>
+                <div class="card-field-row">
+                  <label class="card-field">
+                    <span>Vencimiento</span>
+                    <input
+                      type="text"
+                      inputmode="numeric"
+                      autocomplete="cc-exp"
+                      placeholder="MM/AA"
+                      maxlength="5"
+                      [ngModel]="cardExpiry"
+                      (ngModelChange)="onCardExpiryInput($event)"
+                      [disabled]="placing()"
+                    />
+                  </label>
+                  <label class="card-field">
+                    <span>CVV</span>
+                    <input
+                      type="text"
+                      tktDigitsOnly
+                      inputmode="numeric"
+                      autocomplete="cc-csc"
+                      placeholder="123"
+                      maxlength="4"
+                      [(ngModel)]="cardCvv"
+                      [disabled]="placing()"
+                    />
+                  </label>
+                </div>
+              </div>
+            }
+
             <p class="gateway-protection">
               <mat-icon>lock</mat-icon> Tu información se gestiona mediante una conexión protegida.
             </p>
@@ -506,7 +563,7 @@
               mat-flat-button
               class="gateway-pay"
               (click)="confirm()"
-              [disabled]="placing() || secondsLeft() === 0"
+              [disabled]="placing() || secondsLeft() === 0 || !cardValid()"
             >
               @if (placing()) {
                 Procesando pago…

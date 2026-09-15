@@ -27,6 +27,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { EventItem } from '../../core/models/event.model';
 import { TicketOrder } from '../../core/models/ticket.model';
 import { EmptyState } from '../../shared/empty-state/empty-state';
+import { DigitsOnly } from '../../shared/digits-only';
 import { ZoneMap, zoneColor } from '../../shared/zone-map/zone-map';
 import { matchArt, venueMap, venueHotspots, venueShape, VenueShape } from '../../shared/event-image';
 
@@ -44,6 +45,7 @@ import { matchArt, venueMap, venueHotspots, venueShape, VenueShape } from '../..
     MatIconModule,
     MatProgressSpinnerModule,
     EmptyState,
+    DigitsOnly,
     ZoneMap,
   ],
   templateUrl: './checkout.html',
@@ -63,6 +65,45 @@ export class Checkout {
   private expiresAt = 0;
   paymentMethod: 'CARD' | 'WALLET' = 'CARD';
   readonly paymentGateway = signal(false);
+
+  /** Datos de tarjeta (simulados: AlpaTeck Pay no procesa pagos reales). */
+  cardNumber = '';
+  cardName = '';
+  cardExpiry = '';
+  cardCvv = '';
+
+  /** Reformatea en grupos de 4 mientras se escribe (máx. 16 dígitos). */
+  onCardNumberInput(raw: string): void {
+    const digits = raw.replace(/\D/g, '').slice(0, 16);
+    this.cardNumber = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+  }
+
+  /** Inserta la barra tras los primeros 2 dígitos (MM/AA). */
+  onCardExpiryInput(raw: string): void {
+    const digits = raw.replace(/\D/g, '').slice(0, 4);
+    this.cardExpiry = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  }
+
+  /**
+   * No es un `computed()`: cardNumber/cardName/etc. son propiedades planas
+   * (como `paymentMethod`), no signals, así que no hay nada que trackear.
+   * Se re-evalúa en cada ciclo de detección de cambios, que ya se dispara
+   * con cada tecla gracias a los bindings (input)/(ngModelChange) del form.
+   */
+  cardValid(): boolean {
+    if (this.paymentMethod !== 'CARD') return true;
+    const digits = this.cardNumber.replace(/\D/g, '');
+    const [month, year] = this.cardExpiry.split('/');
+    const monthOk = !!month && Number(month) >= 1 && Number(month) <= 12;
+    return (
+      (digits.length === 15 || digits.length === 16) &&
+      this.cardName.trim().length >= 3 &&
+      monthOk &&
+      !!year &&
+      year.length === 2 &&
+      (this.cardCvv.length === 3 || this.cardCvv.length === 4)
+    );
+  }
   readonly eventId = input.required<string>();
 
   readonly loading = signal(true);
