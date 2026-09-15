@@ -77,6 +77,8 @@ export class EventDetail {
 
   readonly soldOut = computed(() => !this.capacity()?.available);
   readonly ended = computed(() => Date.parse(this.event()?.startsAt ?? '') <= Date.now() || this.event()?.status !== 'PUBLICADO');
+  /** Ni agotado ni finalizado: los botones de compra siguen habilitados. */
+  readonly canBuy = computed(() => !this.soldOut() && !this.ended());
 
   readonly match = computed(() => {
     const e = this.event();
@@ -124,6 +126,11 @@ export class EventDetail {
 
   scrollToId(id: string): void {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** Los botones de compra quedan deshabilitados (no navegan) si el evento ya no se puede comprar. */
+  blockIfUnavailable(event: Event): void {
+    if (!this.canBuy()) event.preventDefault();
   }
 
   openLegal(doc: LegalDoc): void {

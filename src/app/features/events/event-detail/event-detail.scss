@@ -586,6 +586,22 @@
   height: 1.1rem;
 }
 
+.promo-btn.disabled {
+  opacity: 0.45;
+  filter: grayscale(0.4);
+  cursor: not-allowed;
+  pointer-events: none;
+  box-shadow: none;
+}
+.promo-btn.disabled:hover { transform: none; }
+
+.promo-unavailable {
+  margin: -0.5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.75);
+}
+
 .promo-info {
   display: inline-flex;
   align-items: center;

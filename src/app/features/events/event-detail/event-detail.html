@@ -190,20 +190,31 @@
   <section class="promo-cta">
     <div class="tkt-page promo-inner">
       <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
+      @if (!canBuy()) {
+        <p class="promo-unavailable">
+          {{ soldOut() ? 'Entradas agotadas.' : 'Venta no disponible.' }}
+        </p>
+      }
       <div class="promo-actions">
         @if (isAuthenticated()) {
           <a
             class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
             [routerLink]="['/comprar', ev.id]"
             [queryParams]="{ descuento: '10' }"
+            (click)="blockIfUnavailable($event)"
           >
             <mat-icon>local_offer</mat-icon> Descuento −10%
           </a>
         } @else {
           <a
             class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
             routerLink="/auth/login"
             [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=10' }"
+            (click)="blockIfUnavailable($event)"
           >
             <mat-icon>local_offer</mat-icon> Descuento −10%
           </a>
@@ -211,16 +222,22 @@
         @if (isAuthenticated()) {
           <a
             class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
             [routerLink]="['/comprar', ev.id]"
             [queryParams]="{ descuento: 'regular' }"
+            (click)="blockIfUnavailable($event)"
           >
             <mat-icon>confirmation_number</mat-icon> Precio regular
           </a>
         } @else {
           <a
             class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
             routerLink="/auth/login"
             [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=regular' }"
+            (click)="blockIfUnavailable($event)"
           >
             <mat-icon>confirmation_number</mat-icon> Precio regular
           </a>
@@ -228,16 +245,22 @@
         @if (isAuthenticated()) {
           <a
             class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
             [routerLink]="['/comprar', ev.id]"
             [queryParams]="{ descuento: 'discapacidad' }"
+            (click)="blockIfUnavailable($event)"
           >
             <mat-icon>accessible</mat-icon> Pers. con discapacidad
           </a>
         } @else {
           <a
             class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
             routerLink="/auth/login"
             [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
+            (click)="blockIfUnavailable($event)"
           >
             <mat-icon>accessible</mat-icon> Pers. con discapacidad
           </a>
