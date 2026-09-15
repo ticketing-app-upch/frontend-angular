@@ -204,6 +204,31 @@ h1.tkt-section-title::before {
 
 .zone .del { margin-bottom: 1.1rem; color: var(--mat-sys-error); }
 
+/* ---------- Descuentos por banco ---------- */
+.bank-discounts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.bank-discount {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 3%, var(--mat-sys-surface));
+}
+
+.bank-discount .pct { width: 130px; }
+
+@media (max-width: 640px) {
+  .bank-discount { flex-wrap: wrap; }
+}
+
 /* ---------- Acciones ---------- */
 .form-actions {
   display: flex;

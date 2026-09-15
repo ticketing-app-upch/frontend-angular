@@ -246,13 +246,41 @@
             </span>
           </button>
 
+          @if (bankDiscounts().length) {
+            <div class="bank-row">
+              <span class="bank-row-label">
+                <mat-icon inline>percent</mat-icon> Descuento por banco:
+              </span>
+              @for (d of bankDiscounts(); track d.bank) {
+                <button
+                  type="button"
+                  class="bank-chip"
+                  role="switch"
+                  [class.on]="selectedBank() === d.bank"
+                  [attr.aria-checked]="selectedBank() === d.bank"
+                  [disabled]="placing()"
+                  (click)="selectBank(d.bank)"
+                >
+                  {{ bankLabels[d.bank] }} −{{ d.percent }}%
+                </button>
+              }
+            </div>
+          }
+
           <ul class="zones">
             @for (zone of ev.zones; track zone.id; let i = $index) {
               <li class="zrow" [class.disabled]="zoneAvailable(zone.id) === 0">
                 <span class="swatch" [style.background]="zoneColor(i)"></span>
                 <div class="zmeta">
                   <span class="zname"
-                    >{{ zone.name }}{{ accessibleMode() ? ' · CONADIS' : '' }}</span
+                    >{{ zone.name
+                    }}{{
+                      accessibleMode()
+                        ? ' · CONADIS'
+                        : selectedBank()
+                          ? ' · ' + bankLabels[selectedBank()!]
+                          : ''
+                    }}</span
                   >
                   <span class="zavail tkt-muted">
                     @if (zoneAvailable(zone.id) === 0) {
@@ -266,6 +294,8 @@
                   {{ unitPrice(zone) | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
                   @if (accessibleMode()) {
                     <small class="zprice-note">−{{ accessibleDiscountPct }}%</small>
+                  } @else if (selectedBank(); as bank) {
+                    <small class="zprice-note">−{{ bankDiscountPct(bank) }}%</small>
                   }
                 </span>
                 <div class="stepper">

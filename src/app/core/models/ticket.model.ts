@@ -1,3 +1,5 @@
+import { BankName } from './event.model';
+
 export type OrderStatus = 'CONFIRMADA' | 'PENDIENTE' | 'CANCELADA';
 
 export interface OrderItem {
@@ -5,6 +7,8 @@ export interface OrderItem {
   quantity: number;
   /** Descuento para personas con discapacidad (Ley N.º 29973), válido solo para 1 entrada. */
   accessible?: boolean;
+  /** Descuento por banco (tarjeta), si el evento lo tiene habilitado. Se ignora si `accessible` es true. */
+  bank?: BankName;
 }
 
 export interface OrderLine {

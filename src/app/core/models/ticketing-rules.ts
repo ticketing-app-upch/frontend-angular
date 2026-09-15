@@ -1,4 +1,4 @@
-import { EventItem, Zone } from './event.model';
+import { BankName, BANK_LABELS, EventItem, Zone } from './event.model';
 import { OrderItem } from './ticket.model';
 
 export const MAX_TICKETS = 6;
@@ -9,8 +9,20 @@ export const ACCESSIBLE_MAX_QTY = 1;
 export const roundMoney = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 const DAY = 86_400_000;
 
-/** Simulación académica. El servidor debe recalcular y autorizar el precio final. */
-export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zone: Zone, now = Date.now(), accessible = false) {
+/**
+ * Simulación académica. El servidor debe recalcular y autorizar el precio final.
+ *
+ * `accessible` (descuento por discapacidad) y `bank` (descuento por banco, definido
+ * por el organizador) son elecciones del comprador en el checkout, independientes
+ * de las reglas dinámicas de abajo. Si ambas aplicarían, gana la de discapacidad.
+ */
+export function zonePrice(
+  event: Pick<EventItem, 'startsAt' | 'publishedAt' | 'bankDiscounts'>,
+  zone: Zone,
+  now = Date.now(),
+  accessible = false,
+  bank?: BankName,
+) {
   const available = Math.max(0, zone.capacity - zone.sold);
   const days = (Date.parse(event.startsAt) - now) / DAY;
   const age = event.publishedAt ? (now - Date.parse(event.publishedAt)) / DAY : 0;
@@ -24,6 +36,15 @@ export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zo
       unitPrice: roundMoney(base * (1 - ACCESSIBLE_DISCOUNT_RATE)),
       multiplier,
       note: 'Descuento CONADIS · Ley 29973 −20%',
+      available,
+    };
+  }
+  const bankDiscount = bank ? event.bankDiscounts?.find((d) => d.bank === bank && d.enabled) : undefined;
+  if (bankDiscount) {
+    return {
+      unitPrice: roundMoney(base * (1 - bankDiscount.percent / 100)),
+      multiplier,
+      note: `Descuento ${BANK_LABELS[bankDiscount.bank]} −${bankDiscount.percent}%`,
       available,
     };
   }

@@ -23,13 +23,17 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import {
+  BANK_LABELS,
+  BankDiscount,
   EventCategory,
   EventItem,
   EventStatus,
+  normalizeBankDiscounts,
   Zone,
 } from '../../../core/models/event.model';
 import { eventImage } from '../../../shared/event-image';
@@ -49,6 +53,7 @@ import { eventIssues } from '../../../core/models/ticketing-rules';
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
+    MatCheckboxModule,
   ],
   templateUrl: './event-form.html',
   styleUrl: './event-form.scss',
@@ -94,10 +99,23 @@ export class EventForm {
       [Validators.required, Validators.min(1), Validators.max(6)],
     ],
     zones: this.fb.array([this.newZone()]),
+    bankDiscounts: this.fb.array(
+      normalizeBankDiscounts().map((d) => this.newBankDiscount(d)),
+    ),
   });
+
+  readonly bankLabels = BANK_LABELS;
 
   get zones(): FormArray {
     return this.form.controls.zones;
+  }
+
+  bankLabelFor(row: ReturnType<EventForm['newBankDiscount']>): string {
+    return BANK_LABELS[row.controls.bank.value];
+  }
+
+  get bankDiscounts() {
+    return this.form.controls.bankDiscounts;
   }
 
   /** Estadios de Lima habilitados para partidos de fútbol. */
@@ -184,6 +202,14 @@ export class EventForm {
     });
   }
 
+  newBankDiscount(d: BankDiscount) {
+    return this.fb.nonNullable.group({
+      bank: [d.bank],
+      percent: this.fb.nonNullable.control<10 | 20>(d.percent),
+      enabled: [d.enabled],
+    });
+  }
+
   addZone(): void {
     this.zones.push(this.newZone());
   }
@@ -211,6 +237,8 @@ export class EventForm {
     });
     this.zones.clear();
     ev.zones.forEach((z) => this.zones.push(this.newZone(z)));
+    this.bankDiscounts.clear();
+    normalizeBankDiscounts(ev.bankDiscounts).forEach((d) => this.bankDiscounts.push(this.newBankDiscount(d)));
   }
 
   submit(): void {
@@ -247,6 +275,7 @@ export class EventForm {
         capacity: z.capacity,
         sold: existing?.zones.find(old => old.id === z.id)?.sold ?? 0,
       })),
+      bankDiscounts: raw.bankDiscounts as BankDiscount[],
     };
 
     const issues = eventIssues(payload, existing ?? undefined);

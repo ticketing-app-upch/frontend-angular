@@ -14,7 +14,7 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ACCESSIBLE_DISCOUNT_RATE, ACCESSIBLE_MAX_QTY, SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
-import { Zone } from '../../core/models/event.model';
+import { BankName, BANK_LABELS, normalizeBankDiscounts, Zone } from '../../core/models/event.model';
 import { OrderItem } from '../../core/models/ticket.model';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -79,6 +79,12 @@ export class Checkout {
   readonly accessibleMaxQty = ACCESSIBLE_MAX_QTY;
   readonly accessibleDiscountPct = ACCESSIBLE_DISCOUNT_RATE * 100;
 
+  /** Banco de tarjeta elegido para el descuento del organizador (mutuamente excluyente con `accessibleMode`). */
+  readonly selectedBank = signal<BankName | null>(null);
+  readonly bankDiscounts = computed(() =>
+    normalizeBankDiscounts(this.event()?.bankDiscounts).filter((d) => d.enabled),
+  );
+
   readonly reviewing = signal(false);
   readonly quoting = signal(false);
   readonly quote = signal<PriceQuote | null>(null);
@@ -94,6 +100,7 @@ export class Checkout {
   private legendStartHeight = 0;
 
   readonly zoneColor = zoneColor;
+  readonly bankLabels = BANK_LABELS;
 
   readonly match = computed(() => {
     const e = this.event();
@@ -211,12 +218,12 @@ export class Checkout {
 
   unitPrice(zone: Zone): number {
     const ev = this.event();
-    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode()).unitPrice : zone.price;
+    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode(), this.selectedBank() ?? undefined).unitPrice : zone.price;
   }
 
   priceNote(zone: Zone): string | undefined {
     const ev = this.event();
-    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode()).note : undefined;
+    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode(), this.selectedBank() ?? undefined).note : undefined;
   }
 
   /** Alterna el descuento por discapacidad; si excede el nuevo tope, reinicia la selección. */
@@ -224,7 +231,21 @@ export class Checkout {
     if (this.placing()) return;
     const next = !this.accessibleMode();
     this.accessibleMode.set(next);
+    if (next) this.selectedBank.set(null);
     if (next && this.totalQty() > this.accessibleMaxQty) this.quantities.set({});
+    this.quote.set(null);
+    this.reviewing.set(false);
+  }
+
+  bankDiscountPct(bank: BankName): number {
+    return this.bankDiscounts().find((d) => d.bank === bank)?.percent ?? 0;
+  }
+
+  /** Elige (o quita) el banco para su descuento; desactiva el de discapacidad si estaba activo. */
+  selectBank(bank: BankName): void {
+    if (this.placing()) return;
+    this.selectedBank.update((current) => (current === bank ? null : bank));
+    if (this.selectedBank()) this.accessibleMode.set(false);
     this.quote.set(null);
     this.reviewing.set(false);
   }
@@ -283,10 +304,13 @@ export class Checkout {
   }
 
   private buildItems(): OrderItem[] {
+    const accessible = this.accessibleMode();
+    const bank = accessible ? undefined : this.selectedBank() ?? undefined;
     return this.selectedLines().map((l) => ({
       zoneId: l.zone.id,
       quantity: l.qty,
-      accessible: this.accessibleMode(),
+      accessible,
+      bank,
     }));
   }
 
