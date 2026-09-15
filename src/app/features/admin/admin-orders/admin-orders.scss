@@ -1,0 +1,14 @@
+:host { display: block; }
+.center { display: grid; place-items: center; min-height: 30vh; }
+.strong { font-weight: 600; }
+.muted { color: var(--mat-sys-on-surface-variant); }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.82rem; }
+.ta-right { text-align: right; white-space: nowrap; }
+.del { color: var(--mat-sys-error); }
+.confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+}

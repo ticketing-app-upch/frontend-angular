@@ -1,0 +1,394 @@
+<div class="auth-wrap">
+  <div class="reg-shell">
+    <aside class="reg-aside">
+      <span class="aside-orb" aria-hidden="true"></span>
+
+      <!-- Formas decorativas flotantes: rellenan el panel sin distraer del formulario -->
+      <div class="aside-decor" aria-hidden="true">
+        <svg class="decor d-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8Z" />
+          <path d="M12 6v2M12 11v2M12 16v2" />
+        </svg>
+        <svg class="decor d-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M12 3l1.6 4.9L18.5 9l-4.4 3.1L15.5 17 12 14.1 8.5 17l1.4-4.9L5.5 9l4.9-.1L12 3Z" stroke-linejoin="round" />
+        </svg>
+        <svg class="decor d-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M9 18V5l11-2v13" stroke-linecap="round" stroke-linejoin="round" />
+          <circle cx="6" cy="18" r="3" />
+          <circle cx="17" cy="16" r="3" />
+        </svg>
+        <svg class="decor d-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="3" y="4" width="18" height="17" rx="2" />
+          <path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round" />
+        </svg>
+        <svg class="decor d-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="12" cy="12" r="9" />
+          <circle cx="12" cy="12" r="3.2" />
+        </svg>
+        <svg class="decor d-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M12 3l1.2 3.6L17 8l-3.8 1.4L12 13l-1.2-3.6L7 8l3.8-1.4L12 3Z" stroke-linejoin="round" />
+        </svg>
+        <svg class="decor d-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M12 3l1.6 4.9L18.5 9l-4.4 3.1L15.5 17 12 14.1 8.5 17l1.4-4.9L5.5 9l4.9-.1L12 3Z" stroke-linejoin="round" />
+        </svg>
+      </div>
+
+      <div class="aside-inner">
+        <a routerLink="/eventos" class="aside-brand">
+          <mat-icon>confirmation_number</mat-icon> AlpaTeck
+        </a>
+        <h2>Crea tu cuenta<br /><span class="accent">en un minuto.</span></h2>
+        <ul class="aside-points">
+          <li><mat-icon>bolt</mat-icon> Compra en segundos, sin filas</li>
+          <li><mat-icon>event_seat</mat-icon> Elige zona con aforo en vivo</li>
+          <li><mat-icon>qr_code_2</mat-icon> Tu entrada, siempre en el celular</li>
+        </ul>
+        <p class="aside-foot">
+          ¿Eres organizador? También publicas y gestionas tus eventos desde aquí.
+        </p>
+      </div>
+    </aside>
+
+    <mat-card class="auth-card">
+      @if (loading()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+      <div class="head">
+        <h1>Regístrate</h1>
+        <p class="tkt-muted">
+          Los campos marcados con <b>*</b> son obligatorios.
+        </p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <div class="role-field">
+          <span class="sec-label">Quiero registrarme como</span>
+          <mat-button-toggle-group formControlName="role" hideSingleSelectionIndicator>
+            <mat-button-toggle value="CLIENT">
+              <mat-icon>person</mat-icon> Cliente
+            </mat-button-toggle>
+            <mat-button-toggle value="ORGANIZER">
+              <mat-icon>campaign</mat-icon> Organizador
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+        </div>
+
+        <!-- Datos de acceso -->
+        <section class="fs">
+          <span class="sec-label">Datos de acceso</span>
+          <div class="two">
+            <mat-form-field appearance="outline">
+              <mat-label>{{ firstNameLabel() }}</mat-label>
+              <input matInput formControlName="firstName" autocomplete="given-name" />
+              @if (form.controls.firstName.invalid && form.controls.firstName.touched) {
+                <mat-error>Ingresa el nombre.</mat-error>
+              }
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>{{ lastNameLabel() }}</mat-label>
+              <input matInput formControlName="lastName" autocomplete="family-name" />
+              @if (form.controls.lastName.invalid && form.controls.lastName.touched) {
+                <mat-error>Ingresa los apellidos.</mat-error>
+              }
+            </mat-form-field>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Correo electrónico</mat-label>
+            <input matInput type="email" formControlName="email" autocomplete="email" />
+            @if (form.controls.email.hasError('required') && form.controls.email.touched) {
+              <mat-error>Ingresa tu correo.</mat-error>
+            }
+            @if (form.controls.email.hasError('email')) {
+              <mat-error>Correo no válido.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Contraseña</mat-label>
+            <input
+              matInput
+              [type]="hide() ? 'password' : 'text'"
+              formControlName="password"
+              autocomplete="new-password"
+            />
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="hide.set(!hide())"
+              [attr.aria-label]="hide() ? 'Mostrar contraseña' : 'Ocultar contraseña'"
+            >
+              <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
+            </button>
+            <mat-hint>Mínimo 8 caracteres, con mayúscula, número y carácter especial.</mat-hint>
+            @if (form.controls.password.hasError('required') && form.controls.password.touched) {
+              <mat-error>Ingresa una contraseña.</mat-error>
+            } @else if (form.controls.password.invalid && form.controls.password.touched) {
+              <mat-error>Mínimo 8 caracteres, con mayúscula, número y carácter especial.</mat-error>
+            }
+          </mat-form-field>
+        </section>
+
+        <!-- Datos personales (cliente) -->
+        @if (!isOrganizer()) {
+          <section class="fs" formGroupName="personal">
+            <span class="sec-label">Datos personales</span>
+
+            <div class="two">
+              <tkt-country-field
+                label="País"
+                initial="PE"
+                (picked)="onClientCountry($event)"
+              />
+              <mat-form-field appearance="outline">
+                <mat-label>Ciudad</mat-label>
+                <mat-select formControlName="city">
+                  @for (region of peruRegions; track region) {
+                    <mat-option [value]="region">{{ region }}</mat-option>
+                  }
+                </mat-select>
+                @if (!canEditLocation()) {
+                  <mat-hint>No requerida para el extranjero.</mat-hint>
+                }
+                @if (personal.controls.city.invalid && personal.controls.city.touched) {
+                  <mat-error>Indica tu ciudad.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>Distrito</mat-label>
+                <mat-select formControlName="district">
+                  @for (district of limaDistricts; track district) {
+                    <mat-option [value]="district">{{ district }}</mat-option>
+                  }
+                </mat-select>
+                @if (canEditLocation()) {
+                  <mat-hint>Si vives en Lima.</mat-hint>
+                } @else {
+                  <mat-hint>No requerida para el extranjero.</mat-hint>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Género</mat-label>
+                <mat-select formControlName="gender">
+                  @for (g of genders; track g.value) {
+                    <mat-option [value]="g.value">{{ g.label }}</mat-option>
+                  }
+                </mat-select>
+                @if (personal.controls.gender.invalid && personal.controls.gender.touched) {
+                  <mat-error>Elige una opción.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            @if (!isPeru()) {
+              <mat-checkbox formControlName="hasPeruvianNationality" class="nat-check">
+                Tengo nacionalidad peruana (doble nacionalidad).
+              </mat-checkbox>
+            }
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>Tipo de documento</mat-label>
+                <mat-select formControlName="docType">
+                  @for (d of allowedDocTypes(); track d) {
+                    <mat-option [value]="d">{{ d }}</mat-option>
+                  }
+                </mat-select>
+                @if (!isPeru() && personal.controls.hasPeruvianNationality.value) {
+                  <mat-hint>DNI habilitado por tu nacionalidad peruana.</mat-hint>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>N° de documento</mat-label>
+                <input
+                  matInput
+                  tktDigitsOnly
+                  [tktDigitsOnly]="isNumericDoc()"
+                  formControlName="docNumber"
+                  [placeholder]="docPlaceholder()"
+                  [attr.maxlength]="docMaxLength()"
+                  [attr.inputmode]="isNumericDoc() ? 'numeric' : 'text'"
+                />
+                <mat-hint>{{ docHint() }}</mat-hint>
+                @if (personal.controls.docNumber.invalid && personal.controls.docNumber.touched) {
+                  <mat-error>
+                    {{ docTypeValue() === 'PASAPORTE' ? 'Pasaporte no válido.' : 'Número no válido.' }}
+                  </mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="phone-row">
+              <mat-form-field appearance="outline" class="phone-code">
+                <mat-label>Código</mat-label>
+                <span matTextPrefix class="flag">{{ countryFlag() }}&nbsp;+&nbsp;</span>
+                <input
+                  matInput
+                  tktDigitsOnly
+                  formControlName="phoneCode"
+                  inputmode="numeric"
+                  maxlength="4"
+                  placeholder="51"
+                  [readonly]="codeAuto()"
+                />
+                @if (personal.controls.phoneCode.invalid && personal.controls.phoneCode.touched) {
+                  <mat-error>1 a 4 dígitos.</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="phone-num">
+                <mat-label>Teléfono (opcional)</mat-label>
+                <input
+                  matInput
+                  tktDigitsOnly
+                  formControlName="phone"
+                  inputmode="numeric"
+                  maxlength="17"
+                />
+                @if (personal.controls.phone.invalid && personal.controls.phone.touched) {
+                  <mat-error>6 a 17 dígitos.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+          </section>
+        }
+
+        <!-- Datos de la organización -->
+        @if (isOrganizer()) {
+          <section class="fs org-section" formGroupName="organizer">
+            <div class="org-head">
+              <mat-icon>store</mat-icon>
+              <div>
+                <strong>Datos de la organización</strong>
+                <span class="tkt-muted">
+                  Se revisan antes de habilitar la publicación de eventos.
+                </span>
+              </div>
+            </div>
+
+            <div class="org-type">
+              <span class="sec-label">Tipo de organizador</span>
+              <mat-button-toggle-group formControlName="orgType" hideSingleSelectionIndicator>
+                <mat-button-toggle value="EMPRESA">Empresa</mat-button-toggle>
+                <mat-button-toggle value="PERSONA">Persona natural</mat-button-toggle>
+              </mat-button-toggle-group>
+            </div>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nombre comercial</mat-label>
+              <input matInput formControlName="displayName" />
+              <mat-hint>El que verá el público en tus eventos.</mat-hint>
+              @if (org.controls.displayName.invalid && org.controls.displayName.touched) {
+                <mat-error>Ingresa el nombre comercial.</mat-error>
+              }
+            </mat-form-field>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>{{ taxIdLabel() }}</mat-label>
+                <input
+                  matInput
+                  formControlName="taxId"
+                  inputmode="numeric"
+                  [attr.maxlength]="taxIdLabel() === 'RUC' ? 11 : 8"
+                />
+                @if (org.controls.taxId.invalid && org.controls.taxId.touched) {
+                  <mat-error>
+                    {{ taxIdLabel() === 'RUC' ? 'RUC: 11 dígitos.' : 'DNI: 8 dígitos.' }}
+                  </mat-error>
+                }
+              </mat-form-field>
+
+              @if (org.controls.orgType.value === 'EMPRESA') {
+                <mat-form-field appearance="outline">
+                  <mat-label>Razón social</mat-label>
+                  <input matInput formControlName="legalName" />
+                  @if (org.controls.legalName.invalid && org.controls.legalName.touched) {
+                    <mat-error>Ingresa la razón social.</mat-error>
+                  }
+                </mat-form-field>
+              }
+            </div>
+
+            <div class="two">
+              <tkt-country-field
+                label="País"
+                initial="PE"
+                (picked)="onOrgCountry($event)"
+              />
+              <mat-form-field appearance="outline">
+                <mat-label>Ciudad</mat-label>
+                <mat-select formControlName="city">
+                  @for (region of peruRegions; track region) {
+                    <mat-option [value]="region">{{ region }}</mat-option>
+                  }
+                </mat-select>
+                @if (!orgIsPeru()) {
+                  <mat-hint>No requerida para organizaciones del extranjero.</mat-hint>
+                }
+                @if (org.controls.city.invalid && org.controls.city.touched) {
+                  <mat-error>Indica tu ciudad.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <div class="two">
+              <mat-form-field appearance="outline">
+                <mat-label>Teléfono (opcional)</mat-label>
+                <input
+                  matInput
+                  tktDigitsOnly
+                  formControlName="phone"
+                  inputmode="numeric"
+                  maxlength="17"
+                />
+                <mat-hint>Solo dígitos, hasta 17.</mat-hint>
+                @if (org.controls.phone.invalid && org.controls.phone.touched) {
+                  <mat-error>6 a 17 dígitos.</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Sitio web o red social (opcional)</mat-label>
+                <input matInput formControlName="website" placeholder="https://…" />
+                @if (org.controls.website.invalid && org.controls.website.touched) {
+                  <mat-error>URL no válida.</mat-error>
+                }
+              </mat-form-field>
+            </div>
+
+            <p class="org-note">
+              <mat-icon>place</mat-icon>
+              Tus eventos se publican en <b>Lima, Perú</b>. El país de arriba es
+              el de tu organización (puede ser del extranjero).
+            </p>
+          </section>
+        }
+
+        <!-- Consentimientos -->
+        <section class="fs consents">
+          <mat-checkbox formControlName="acceptedTerms">
+            He leído y acepto los
+            <a href="#" (click)="openLegal('terms', $event)">Términos y Condiciones</a>
+            y la
+            <a href="#" (click)="openLegal('privacy', $event)">Política de privacidad</a>. *
+          </mat-checkbox>
+          @if (form.controls.acceptedTerms.invalid && form.controls.acceptedTerms.touched) {
+            <p class="c-error">Debes aceptar los términos para continuar.</p>
+          }
+          <mat-checkbox formControlName="marketingOptIn">
+            Quiero recibir promociones y descuentos de AlpaTeck.
+          </mat-checkbox>
+        </section>
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+          @if (loading()) { Creando cuenta… } @else { Crear cuenta }
+        </button>
+      </form>
+
+      <p class="alt">¿Ya tienes cuenta? <a routerLink="/auth/login">Ingresar</a></p>
+    </mat-card>
+  </div>
+</div>

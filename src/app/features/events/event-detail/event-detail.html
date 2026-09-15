@@ -1,0 +1,361 @@
+@if (loading()) {
+  <div class="tkt-page center">
+    <mat-progress-spinner mode="indeterminate" diameter="46" />
+  </div>
+} @else if (notFound()) {
+  <div class="tkt-page">
+    <tkt-empty-state
+      icon="search_off"
+      title="Evento no encontrado"
+      message="El evento que buscas no existe o dejó de estar disponible."
+    >
+      <a mat-flat-button routerLink="/eventos">Ver todos los eventos</a>
+    </tkt-empty-state>
+  </div>
+} @else if (event(); as ev) {
+  <div class="banner" [class.is-match]="match() !== null">
+    @if (match(); as m) {
+      <span
+        class="match-bg"
+        [style.background-image]="'url(' + ev.imageUrl + ')'"
+      ></span>
+      <div class="match-crests">
+        <img
+          [src]="m.crestA"
+          [alt]="m.teamA"
+          (error)="onCrestError($event, m.crestAAlt)"
+        />
+        <span class="vs">VS</span>
+        <img
+          [src]="m.crestB"
+          [alt]="m.teamB"
+          (error)="onCrestError($event, m.crestBAlt)"
+        />
+      </div>
+    } @else {
+      <img [src]="ev.imageUrl" [alt]="ev.name" />
+    }
+    <div class="banner-shade"></div>
+    <div class="banner-text">
+      <a routerLink="/eventos" class="back">
+        <mat-icon>arrow_back</mat-icon> Eventos
+      </a>
+      <span class="cat">{{ ev.category | titlecase }}</span>
+      <h1>{{ ev.name }}</h1>
+      <p class="when">
+        <mat-icon inline>event</mat-icon>
+        {{ ev.startsAt | date: "EEEE d 'de' MMMM, y · HH:mm" }}
+      </p>
+      <p class="where">
+        <mat-icon inline>place</mat-icon>
+        {{ ev.venue }}, {{ ev.city }}
+      </p>
+    </div>
+  </div>
+
+  <div class="tkt-page detail-grid">
+    <div class="about">
+      <div class="tkt-cluster" style="margin-bottom:24px">
+        <button mat-stroked-button (click)="discovery.toggle(ev.id)" [attr.aria-pressed]="discovery.has(ev.id)"><mat-icon>{{ discovery.has(ev.id) ? 'favorite' : 'favorite_border' }}</mat-icon>{{ discovery.has(ev.id) ? 'Guardado' : 'Guardar evento' }}</button>
+        <button mat-stroked-button (click)="calendar(ev)"><mat-icon>event_available</mat-icon>Mi calendario</button>
+        <button mat-stroked-button (click)="share()"><mat-icon>share</mat-icon>Compartir</button>
+      </div>
+      <section class="block">
+        <h2 class="tkt-section-title">Sobre el evento</h2>
+        <p class="desc">{{ ev.description }}</p>
+      </section>
+
+      <section class="block" id="precios">
+        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Precio dinámico por disponibilidad y demanda + 6% de servicio. El total se confirma antes del pago.</p>
+        <div class="price-table">
+          <div class="price-row price-head-row">
+            <span>Sector</span>
+            <span>Precio</span>
+            <span>Disponibilidad</span>
+          </div>
+          @for (zone of ev.zones; track zone.id) {
+            @let avail = zoneAvailable(zone.sold, zone.capacity);
+            @let pct = zone.capacity ? (zone.sold / zone.capacity) * 100 : 0;
+            <div
+              class="price-row"
+              [class.gone]="avail === 0"
+              [class.low]="avail > 0 && pct >= 90"
+            >
+              <span class="sector">
+                <span class="swatch"></span>
+                <span class="sector-name">
+                  {{ zone.name }}
+                  @if (avail === 0) {
+                    <span class="zone-tag sold">Agotada</span>
+                  } @else if (pct >= 90) {
+                    <span class="zone-tag low">Quedan {{ avail | number }}</span>
+                  }
+                </span>
+              </span>
+              <span class="price">
+                {{ price(ev, zone).unitPrice | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                <small>{{ price(ev, zone).note }}</small>
+              </span>
+              <span class="avail">
+                <tkt-capacity-bar
+                  [sold]="zone.sold"
+                  [total]="zone.capacity"
+                  [showLabel]="false"
+                />
+                <small>
+                  @if (avail === 0) {
+                    Sin disponibilidad
+                  } @else {
+                    {{ avail | number }} disponibles · {{ pct | number: '1.0-0' }}% ocupado
+                  }
+                </small>
+              </span>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <aside class="buy-box">
+      <div class="buy-card">
+        @if (!soldOut()) { <div class="price-head">
+          <span class="ph-label">Entradas desde</span>
+          <span class="ph-price">
+            {{ minPrice() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+
+        }
+        @if (capacity(); as cap) {
+          <div class="aforo">
+            <div class="aforo-row">
+              <span>Aforo</span>
+              <strong>{{ cap.ratio * 100 | number: '1.0-0' }}%</strong>
+            </div>
+            <tkt-capacity-bar
+              [sold]="cap.sold"
+              [total]="cap.total"
+              [showLabel]="false"
+            />
+            <span class="aforo-left">
+              {{ cap.available | number }} entradas disponibles
+            </span>
+          </div>
+        }
+
+        <ul class="facts">
+          <li>
+            <mat-icon>event</mat-icon>
+            <span>{{ ev.startsAt | date: "EEE d 'de' MMM · HH:mm" }}</span>
+          </li>
+          <li>
+            <mat-icon>place</mat-icon>
+            <span>{{ ev.venue }}, {{ ev.city }}</span>
+          </li>
+          <li>
+            <mat-icon>confirmation_number</mat-icon>
+            <span>Máximo {{ ev.maxPerOrder }} entradas por compra</span>
+          </li>
+        </ul>
+
+        @if (soldOut()) {
+          <button mat-flat-button disabled class="cta">Evento agotado</button>
+        } @else if (ended()) { <button mat-flat-button disabled class="cta">Venta no disponible</button>
+        } @else if (isOrganizer()) {
+          <button mat-stroked-button disabled class="cta">
+            <mat-icon>store</mat-icon> Vista de gestión
+          </button>
+        } @else if (isAuthenticated()) {
+          <a mat-flat-button class="cta tkt-cta" [routerLink]="['/comprar', ev.id]">
+            <mat-icon>local_activity</mat-icon> Comprar entradas
+          </a>
+        } @else {
+          <a
+            mat-flat-button
+            class="cta tkt-cta"
+            [routerLink]="['/auth/login']"
+            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+          >
+            <mat-icon>login</mat-icon> Ingresa para comprar
+          </a>
+        }
+
+        <p class="fine">
+          <mat-icon>lock</mat-icon> Compra protegida
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <section class="promo-cta">
+    <div class="tkt-page promo-inner">
+      <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
+      @if (!canBuy()) {
+        <p class="promo-unavailable">
+          {{ soldOut() ? 'Entradas agotadas.' : 'Venta no disponible.' }}
+        </p>
+      }
+      <div class="promo-actions">
+        @if (hasTenPercentBank()) {
+          @if (isAuthenticated()) {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              [routerLink]="['/comprar', ev.id]"
+              [queryParams]="{ descuento: '10' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>local_offer</mat-icon> Descuento −10%
+            </a>
+          } @else {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              routerLink="/auth/login"
+              [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=10' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>local_offer</mat-icon> Descuento −10%
+            </a>
+          }
+        }
+        @if (isAuthenticated()) {
+          <a
+            class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
+            [routerLink]="['/comprar', ev.id]"
+            [queryParams]="{ descuento: 'regular' }"
+            (click)="blockIfUnavailable($event)"
+          >
+            <mat-icon>confirmation_number</mat-icon> Precio regular
+          </a>
+        } @else {
+          <a
+            class="promo-btn"
+            [class.disabled]="!canBuy()"
+            [attr.aria-disabled]="!canBuy()"
+            routerLink="/auth/login"
+            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=regular' }"
+            (click)="blockIfUnavailable($event)"
+          >
+            <mat-icon>confirmation_number</mat-icon> Precio regular
+          </a>
+        }
+        @if (hasAccessibleDiscount()) {
+          @if (isAuthenticated()) {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              [routerLink]="['/comprar', ev.id]"
+              [queryParams]="{ descuento: 'discapacidad' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>accessible</mat-icon> Pers. con discapacidad
+            </a>
+          } @else {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              routerLink="/auth/login"
+              [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>accessible</mat-icon> Pers. con discapacidad
+            </a>
+          }
+        }
+      </div>
+      <button type="button" class="promo-info" (click)="scrollToId('precios')">
+        <mat-icon inline>info</mat-icon> ¿Cómo comprar en la web?
+      </button>
+    </div>
+  </section>
+
+  <section class="event-legal">
+    <div class="tkt-page legal-inner">
+      <div class="legal-cards">
+        <div class="legal-card">
+          <h3><mat-icon>policy</mat-icon> Cambios y devoluciones</h3>
+          <p>
+            Si el evento se reprograma o cancela, se devuelve el valor de la
+            entrada; la comisión de servicio no es reembolsable salvo que la
+            ley disponga lo contrario. La organización es responsable de
+            comunicar cualquier cambio con anticipación.
+          </p>
+        </div>
+        @if (hasAccessibleDiscount()) {
+          <div class="legal-card" id="discapacidad">
+            <h3><mat-icon>accessible</mat-icon> Personas con discapacidad</h3>
+            <p>
+              De acuerdo con la Ley N.º 29973, las personas con discapacidad
+              debidamente acreditadas acceden a un descuento presentando su
+              carné de CONADIS o certificado médico vigente, además de su
+              documento de identidad, válido para una (1) entrada.
+            </p>
+          </div>
+        }
+      </div>
+
+      <div class="legal-columns">
+        <div class="legal-col">
+          <h4>Conócenos</h4>
+          <a routerLink="/ayuda">Sobre AlpaTeck</a>
+          <a routerLink="/ayuda">Preguntas frecuentes</a>
+        </div>
+
+        <div class="legal-col">
+          <h4>Legales</h4>
+          <button type="button" (click)="openLegal('terms')">
+            Términos y condiciones
+          </button>
+          <button type="button" (click)="openLegal('privacy')">
+            Política de privacidad
+          </button>
+        </div>
+
+        <div class="legal-col">
+          <h4>Síguenos en redes sociales</h4>
+          <div class="social-row">
+            <span class="social-icon" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.6h2.55l.38-2.96h-2.93v-1.9c0-.86.24-1.44 1.47-1.44h1.57V4.46A21 21 0 0 0 14.1 4.3c-2.24 0-3.78 1.37-3.78 3.88v2.16H7.75v2.96h2.57V21h3.18Z"/></svg>
+            </span>
+            <span class="social-icon" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <span class="social-icon" aria-label="X">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="m4 4 7.2 8.6L4.4 20h2.3l6-6.9 4.4 6.9H21l-7.5-9.1L20 4h-2.3l-5.5 6.4L8.1 4H4Z"/></svg>
+            </span>
+            <span class="social-icon" aria-label="TikTok">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 3.5c.5 1.9 1.9 3.2 3.9 3.4v2.6c-1.4 0-2.7-.4-3.9-1.2v6.1a5.4 5.4 0 1 1-5.4-5.4c.3 0 .6 0 .9.1v2.7a2.7 2.7 0 1 0 1.9 2.6V3.5h2.6Z"/></svg>
+            </span>
+            <span class="social-icon" aria-label="YouTube">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.7a2.7 2.7 0 0 0-1.9-1.9C18 5.3 12 5.3 12 5.3s-6 0-7.7.5A2.7 2.7 0 0 0 2.4 7.7 28 28 0 0 0 2 12a28 28 0 0 0 .4 4.3 2.7 2.7 0 0 0 1.9 1.9c1.7.5 7.7.5 7.7.5s6 0 7.7-.5a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 22 12a28 28 0 0 0-.4-4.3ZM10 15V9l5.2 3-5.2 3Z"/></svg>
+            </span>
+          </div>
+          <h4>¿Necesitas ayuda?</h4>
+          <a routerLink="/ayuda" class="contact-btn">Contáctanos</a>
+        </div>
+      </div>
+
+      <div class="sponsors">
+        <span class="sponsors-label">Con el respaldo de</span>
+        <div class="sponsor-row">
+          <span class="sponsor-logo">Banco Andino</span>
+          <span class="sponsor-logo">Radio Vibra</span>
+          <span class="sponsor-logo">Cervecería del Sur</span>
+          <span class="sponsor-logo">Moda Norte</span>
+          <span class="sponsor-logo">APDAYC</span>
+        </div>
+      </div>
+
+      <div class="legal-brand">
+        <mat-icon>confirmation_number</mat-icon> AlpaTeck
+      </div>
+    </div>
+  </section>
+}

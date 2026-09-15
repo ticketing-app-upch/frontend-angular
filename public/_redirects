@@ -1,0 +1,4 @@
+# SPA fallback: toda ruta desconocida sirve index.html para que el router
+# de Angular resuelva (incluye los enlaces profundos como /validar).
+# Lo usan Cloudflare Pages y Netlify.
+/*  /index.html  200
