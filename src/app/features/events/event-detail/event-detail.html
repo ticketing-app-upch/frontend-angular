@@ -191,12 +191,32 @@
     <div class="tkt-page promo-inner">
       <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
       <div class="promo-actions">
-        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
-          <mat-icon>local_offer</mat-icon> Descubrimiento −10%
-        </button>
-        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
-          <mat-icon>confirmation_number</mat-icon> Precio regular
-        </button>
+        @if (isAuthenticated()) {
+          <a class="promo-btn" [routerLink]="['/comprar', ev.id]">
+            <mat-icon>local_offer</mat-icon> Descubrimiento −10%
+          </a>
+        } @else {
+          <a
+            class="promo-btn"
+            routerLink="/auth/login"
+            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+          >
+            <mat-icon>local_offer</mat-icon> Descubrimiento −10%
+          </a>
+        }
+        @if (isAuthenticated()) {
+          <a class="promo-btn" [routerLink]="['/comprar', ev.id]">
+            <mat-icon>confirmation_number</mat-icon> Precio regular
+          </a>
+        } @else {
+          <a
+            class="promo-btn"
+            routerLink="/auth/login"
+            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+          >
+            <mat-icon>confirmation_number</mat-icon> Precio regular
+          </a>
+        }
         @if (isAuthenticated()) {
           <a
             class="promo-btn"
