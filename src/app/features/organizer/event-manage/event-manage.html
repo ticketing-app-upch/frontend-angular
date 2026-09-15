@@ -10,6 +10,41 @@
     </a>
   </div>
 
+  @if (!loading() && items().length > 0) {
+    <div class="filters">
+      <label class="searchbox">
+        <mat-icon>search</mat-icon>
+        <input
+          type="search"
+          placeholder="Buscar por nombre, recinto o ciudad…"
+          [ngModel]="search()"
+          (ngModelChange)="search.set($event)"
+        />
+      </label>
+      <label class="select-field">
+        <mat-icon>location_on</mat-icon>
+        <select [ngModel]="venue()" (ngModelChange)="venue.set($event)">
+          <option value="">Todos los recintos</option>
+          @for (v of venues(); track v) {
+            <option [value]="v">{{ v }}</option>
+          }
+        </select>
+      </label>
+    </div>
+    <nav class="categories" aria-label="Filtrar por tipo de evento">
+      @for (c of categories; track c.value) {
+        <button
+          type="button"
+          [class.active]="category() === c.value"
+          [attr.aria-pressed]="category() === c.value"
+          (click)="category.set(c.value)"
+        >
+          <mat-icon>{{ c.icon }}</mat-icon>{{ c.label }}
+        </button>
+      }
+    </nav>
+  }
+
   @if (loading()) {
     <div class="loading"><mat-progress-spinner mode="indeterminate" diameter="42" /></div>
   } @else if (items().length === 0) {
@@ -20,9 +55,17 @@
     >
       <a mat-flat-button routerLink="/organizador/eventos/nuevo">Crear evento</a>
     </tkt-empty-state>
+  } @else if (filtered().length === 0) {
+    <tkt-empty-state
+      icon="search_off"
+      title="Sin resultados"
+      message="Ningún evento tuyo coincide con esa búsqueda o filtro."
+    >
+      <button mat-stroked-button type="button" (click)="clearFilters()">Quitar filtros</button>
+    </tkt-empty-state>
   } @else {
     <div class="list">
-      @for (ev of items(); track ev.id) {
+      @for (ev of filtered(); track ev.id) {
         <article class="row">
           <img [src]="ev.imageUrl" [alt]="ev.name" />
           <div class="main">
