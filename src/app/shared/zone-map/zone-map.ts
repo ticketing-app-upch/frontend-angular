@@ -171,10 +171,15 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
           <!-- Tribunas del estadio oval: Norte, Sur, Oriente, Occidente -->
           @for (s of ovalStands(); track s.id) {
             <g [class.gone]="s.gone" [style.cursor]="s.gone ? 'not-allowed' : 'pointer'" (click)="!s.gone && pick.emit(s.id)">
-              <polygon [attr.points]="s.points" [attr.fill]="s.color" [attr.fill-opacity]="s.qty > 0 ? 0.92 : 0.26" [attr.stroke]="s.qty > 0 ? '#fff' : s.color" [attr.stroke-opacity]="s.qty > 0 ? 0.9 : 0.5" stroke-width="2" stroke-linejoin="round"/>
-              <text [attr.x]="s.labelX" [attr.y]="s.labelY" [attr.transform]="s.rotate ? 'rotate(' + s.rotate + ' ' + s.labelX + ' ' + s.labelY + ')' : null" text-anchor="middle" font-family="Inter, sans-serif" [attr.font-size]="s.fontSize" font-weight="800" letter-spacing="0.5" [attr.fill]="s.qty > 0 ? '#fff' : 'currentColor'">{{ shortName(s.name) }}</text>
+              <polygon [attr.points]="s.points" [attr.fill]="s.color" [attr.fill-opacity]="s.qty > 0 ? 0.92 : 0.26" [attr.stroke]="s.qty > 0 ? '#fff' : '#fff'" [attr.stroke-opacity]="s.qty > 0 ? 0.9 : 0.4" stroke-width="2" stroke-linejoin="round"/>
+              @let lines = splitLabel(s.name);
+              <text [attr.x]="s.labelX" [attr.y]="s.labelY" [attr.transform]="s.rotate ? 'rotate(' + s.rotate + ' ' + s.labelX + ' ' + s.labelY + ')' : null" text-anchor="middle" font-family="Inter, sans-serif" [attr.font-size]="s.fontSize" font-weight="800" letter-spacing="0.3" [attr.fill]="s.qty > 0 ? '#fff' : 'currentColor'">
+                @for (line of lines; track $index) {
+                  <tspan [attr.x]="s.labelX" [attr.dy]="$index === 0 ? (lines.length > 1 ? -(s.fontSize / 2 + 1) : 0) : s.fontSize + 2">{{ line }}</tspan>
+                }
+              </text>
               @if (s.qty > 0) {
-                <g [attr.transform]="'translate(' + s.labelX + ' ' + (s.labelY + (s.rotate ? 0 : 14)) + ')'">
+                <g [attr.transform]="'translate(' + s.labelX + ' ' + (s.labelY + (s.rotate ? 0 : 16)) + ')'">
                   <circle r="10" fill="#fff"/>
                   <text text-anchor="middle" y="4" font-family="Inter,sans-serif" font-size="11" font-weight="800" [attr.fill]="s.color">{{ s.qty }}</text>
                 </g>
@@ -725,6 +730,14 @@ export class ZoneMap {
     return name.length > 14 ? `${name.slice(0, 12)}…` : name;
   }
 
+  /** Parte un nombre de zona en hasta dos líneas (por palabra) para que quepa dentro del sector. */
+  splitLabel(name: string): string[] {
+    const words = name.trim().split(/\s+/);
+    if (words.length <= 1) return [name];
+    const mid = Math.ceil(words.length / 2);
+    return [words.slice(0, mid).join(' '), words.slice(mid).join(' ')];
+  }
+
   /**
    * Tribunas alrededor de la cancha. Arriba/izquierda/derecha se asignan por
    * nombre; el resto se reparte a lo ancho de la tribuna inferior.
@@ -915,20 +928,20 @@ export class ZoneMap {
         : [];
 
     const out: Stand[] = [
-      ...mk(norte, '86,66 86,184 8,194 8,56', 40, 125, -90, 11),
-      ...mk(sur, '234,66 234,184 312,194 312,56', 280, 125, 90, 11),
-      ...mk(orienteCentral, '56,8 160,8 160,66 86,66', 113, 40, 0, 8),
-      ...mk(orienteLateral, '160,8 264,8 234,66 160,66', 204, 40, 0, 8),
+      ...mk(norte, '78,66 78,184 8,194 8,56', 40, 125, -90, 11),
+      ...mk(sur, '242,66 242,184 312,194 312,56', 280, 125, 90, 11),
+      ...mk(orienteCentral, '56,8 160,8 160,66 78,66', 108, 38, 0, 9),
+      ...mk(orienteLateral, '160,8 264,8 242,66 160,66', 212, 38, 0, 9),
     ];
 
     const bottom = [occidenteCentral, palco, occidenteLateral].filter((z): z is Zone => !!z);
     const k = bottom.length;
     bottom.forEach((z, i) => {
-      const tL = 86 + ((234 - 86) * i) / k;
-      const tR = 86 + ((234 - 86) * (i + 1)) / k;
+      const tL = 78 + ((242 - 78) * i) / k;
+      const tR = 78 + ((242 - 78) * (i + 1)) / k;
       const bL = 56 + ((264 - 56) * i) / k;
       const bR = 56 + ((264 - 56) * (i + 1)) / k;
-      out.push(...mk(z, `${tL},184 ${tR},184 ${bR},242 ${bL},242`, (tL + tR) / 2, 213, 0, 8));
+      out.push(...mk(z, `${tL},184 ${tR},184 ${bR},242 ${bL},242`, (tL + tR) / 2, 212, 0, 9));
     });
 
     return out;
