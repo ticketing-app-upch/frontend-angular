@@ -1,12 +1,16 @@
 import { EventItem, Zone } from './event.model';
+import { OrderItem } from './ticket.model';
 
 export const MAX_TICKETS = 6;
 export const SERVICE_FEE_RATE = 0.06;
+/** Descuento por discapacidad (Ley N.º 29973): −20%, válido para 1 entrada por orden. */
+export const ACCESSIBLE_DISCOUNT_RATE = 0.2;
+export const ACCESSIBLE_MAX_QTY = 1;
 export const roundMoney = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 const DAY = 86_400_000;
 
 /** Simulación académica. El servidor debe recalcular y autorizar el precio final. */
-export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zone: Zone, now = Date.now()) {
+export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zone: Zone, now = Date.now(), accessible = false) {
   const available = Math.max(0, zone.capacity - zone.sold);
   const days = (Date.parse(event.startsAt) - now) / DAY;
   const age = event.publishedAt ? (now - Date.parse(event.publishedAt)) / DAY : 0;
@@ -14,8 +18,17 @@ export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zo
   const soon = days >= 0 && days < 3;
   // El recargo tiene precedencia cuando ambas reglas coinciden.
   const multiplier = scarce || soon ? 1.2 : age > 30 && zone.capacity > 0 && zone.sold / zone.capacity < 0.1 ? 0.9 : 1;
+  const base = zone.price * multiplier;
+  if (accessible) {
+    return {
+      unitPrice: roundMoney(base * (1 - ACCESSIBLE_DISCOUNT_RATE)),
+      multiplier,
+      note: 'Descuento CONADIS · Ley 29973 −20%',
+      available,
+    };
+  }
   const note = scarce ? 'Últimos cupos · +20%' : soon ? 'Evento próximo · +20%' : multiplier < 1 ? 'Descubrimiento · −10%' : 'Precio base';
-  return { unitPrice: roundMoney(zone.price * multiplier), multiplier, note, available };
+  return { unitPrice: roundMoney(base), multiplier, note, available };
 }
 
 export function eventIssues(event: EventItem, previous?: EventItem): string[] {
@@ -43,11 +56,13 @@ export function eventIssues(event: EventItem, previous?: EventItem): string[] {
   return [...new Set(issues)];
 }
 
-export function purchaseIssue(event: EventItem, items: {zoneId: string; quantity: number}[]): string | null {
+export function purchaseIssue(event: EventItem, items: OrderItem[]): string | null {
   if (event.status !== 'PUBLICADO' || Date.parse(event.startsAt) <= Date.now()) return 'Este evento no está disponible para comprar.';
   const total = items.reduce((sum, item) => sum + item.quantity, 0);
   if (!items.length || items.some(item => !Number.isInteger(item.quantity) || item.quantity < 1) || total > Math.min(MAX_TICKETS, event.maxPerOrder)) return 'Selecciona cantidades enteras de 1 a 6 entradas, respetando el límite del evento.';
   if (new Set(items.map(item => item.zoneId)).size !== items.length) return 'La selección contiene zonas duplicadas.';
+  const accessibleQty = items.filter(item => item.accessible).reduce((sum, item) => sum + item.quantity, 0);
+  if (accessibleQty > ACCESSIBLE_MAX_QTY) return `El descuento por discapacidad es válido para ${ACCESSIBLE_MAX_QTY} entrada por compra.`;
   for (const item of items) {
     const zone = event.zones.find(zone => zone.id === item.zoneId);
     if (!zone || item.quantity > zone.capacity - zone.sold) return 'La disponibilidad cambió. Actualiza tu selección.';

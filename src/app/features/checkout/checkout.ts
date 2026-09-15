@@ -13,9 +13,10 @@ import {
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
+import { ACCESSIBLE_DISCOUNT_RATE, ACCESSIBLE_MAX_QTY, SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
 import { Zone } from '../../core/models/event.model';
-import { Router, RouterLink } from '@angular/router';
+import { OrderItem } from '../../core/models/ticket.model';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -54,6 +55,7 @@ export class Checkout {
   private tickets = inject(TicketService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   private quoteRequest?: Subscription;
   private attemptKey = crypto.randomUUID();
@@ -69,6 +71,13 @@ export class Checkout {
 
   /** zoneId -> cantidad elegida */
   readonly quantities = signal<Record<string, number>>({});
+
+  /** Descuento por discapacidad (Ley N.º 29973): -20%, máx. 1 entrada por orden. */
+  readonly accessibleMode = signal(
+    this.route.snapshot.queryParamMap.get('descuento') === 'discapacidad',
+  );
+  readonly accessibleMaxQty = ACCESSIBLE_MAX_QTY;
+  readonly accessibleDiscountPct = ACCESSIBLE_DISCOUNT_RATE * 100;
 
   readonly reviewing = signal(false);
   readonly quoting = signal(false);
@@ -143,7 +152,10 @@ export class Checkout {
     Object.values(this.quantities()).reduce((a, n) => a + n, 0),
   );
 
-  readonly maxPerOrder = computed(() => Math.min(6, this.event()?.maxPerOrder ?? 0));
+  readonly maxPerOrder = computed(() => {
+    const base = Math.min(6, this.event()?.maxPerOrder ?? 0);
+    return this.accessibleMode() ? Math.min(base, this.accessibleMaxQty) : base;
+  });
   readonly remaining = computed(() => this.maxPerOrder() - this.totalQty());
   readonly hasSelection = computed(() => this.totalQty() > 0);
 
@@ -197,7 +209,25 @@ export class Checkout {
     });
   }
 
-  unitPrice(zone: Zone): number { return this.event() ? zonePrice(this.event()!, zone).unitPrice : zone.price; }
+  unitPrice(zone: Zone): number {
+    const ev = this.event();
+    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode()).unitPrice : zone.price;
+  }
+
+  priceNote(zone: Zone): string | undefined {
+    const ev = this.event();
+    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode()).note : undefined;
+  }
+
+  /** Alterna el descuento por discapacidad; si excede el nuevo tope, reinicia la selección. */
+  toggleAccessibleMode(): void {
+    if (this.placing()) return;
+    const next = !this.accessibleMode();
+    this.accessibleMode.set(next);
+    if (next && this.totalQty() > this.accessibleMaxQty) this.quantities.set({});
+    this.quote.set(null);
+    this.reviewing.set(false);
+  }
 
   zoneAvailable(zoneId: string): number {
     const zone = this.event()?.zones.find((z) => z.id === zoneId);
@@ -252,16 +282,21 @@ export class Checkout {
     if (!this.placing()) this.paymentGateway.set(false);
   }
 
+  private buildItems(): OrderItem[] {
+    return this.selectedLines().map((l) => ({
+      zoneId: l.zone.id,
+      quantity: l.qty,
+      accessible: this.accessibleMode(),
+    }));
+  }
+
   requestQuote(): void {
     if (this.placing()) return;
     this.quoteRequest?.unsubscribe();
     this.quote.set(null);
     const ev = this.event();
     if (!ev || !this.hasSelection()) return;
-    const items = this.selectedLines().map((l) => ({
-      zoneId: l.zone.id,
-      quantity: l.qty,
-    }));
+    const items = this.buildItems();
     this.quoting.set(true);
     this.quoteRequest = this.pricing.quote(ev, items).subscribe({
       next: (q) => {
@@ -284,10 +319,7 @@ export class Checkout {
     const quote = this.quote();
     if (!ev || this.placing() || !quote || this.quoting()) return;
     if (Date.now() >= this.expiresAt) { this.notify.error('La cotización venció. Actualízala antes de pagar.'); return; }
-    const items = this.selectedLines().map((l) => ({
-      zoneId: l.zone.id,
-      quantity: l.qty,
-    }));
+    const items = this.buildItems();
     this.placing.set(true);
     this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey }).subscribe({
       next: (ord) => {

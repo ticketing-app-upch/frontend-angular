@@ -223,12 +223,37 @@
             </span>
           </div>
 
+          <button
+            type="button"
+            class="accessible-toggle"
+            role="switch"
+            [class.on]="accessibleMode()"
+            [attr.aria-checked]="accessibleMode()"
+            [disabled]="placing()"
+            (click)="toggleAccessibleMode()"
+          >
+            <mat-icon>{{ accessibleMode() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+            <span class="accessible-copy">
+              <b
+                >Descuento por discapacidad · Ley N.º 29973 −{{
+                  accessibleDiscountPct
+                }}%</b
+              >
+              <small
+                >Válido para {{ accessibleMaxQty }} entrada. Presenta tu carné de
+                CONADIS o documento de identidad al ingreso.</small
+              >
+            </span>
+          </button>
+
           <ul class="zones">
             @for (zone of ev.zones; track zone.id; let i = $index) {
               <li class="zrow" [class.disabled]="zoneAvailable(zone.id) === 0">
                 <span class="swatch" [style.background]="zoneColor(i)"></span>
                 <div class="zmeta">
-                  <span class="zname">{{ zone.name }}</span>
+                  <span class="zname"
+                    >{{ zone.name }}{{ accessibleMode() ? ' · CONADIS' : '' }}</span
+                  >
                   <span class="zavail tkt-muted">
                     @if (zoneAvailable(zone.id) === 0) {
                       Agotado
@@ -239,6 +264,9 @@
                 </div>
                 <span class="zprice">
                   {{ unitPrice(zone) | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                  @if (accessibleMode()) {
+                    <small class="zprice-note">−{{ accessibleDiscountPct }}%</small>
+                  }
                 </span>
                 <div class="stepper">
                   <button

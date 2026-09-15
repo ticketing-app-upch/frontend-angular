@@ -487,6 +487,35 @@
 }
 .limit mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
 
+/* ---------- Descuento por discapacidad ---------- */
+.accessible-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 24%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.accessible-toggle:disabled { cursor: not-allowed; opacity: 0.6; }
+.accessible-toggle mat-icon {
+  flex: none;
+  margin-top: 0.05rem;
+  color: var(--mat-sys-primary);
+}
+.accessible-toggle.on {
+  border-color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface));
+}
+.accessible-copy { display: flex; flex-direction: column; gap: 0.15rem; }
+.accessible-copy b { font-size: 0.88rem; }
+.accessible-copy small { font-size: 0.78rem; color: var(--mat-sys-on-surface-variant); }
+
 .zones { list-style: none; margin: 0.75rem 0 0; padding: 0; }
 
 .zrow {
@@ -507,10 +536,18 @@
 .zavail { font-size: 0.76rem; }
 
 .zprice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+.zprice-note {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--mat-sys-primary);
 }
 
 .stepper { display: flex; align-items: center; gap: 0.15rem; }

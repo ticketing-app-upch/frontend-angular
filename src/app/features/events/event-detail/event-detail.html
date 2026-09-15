@@ -63,9 +63,23 @@
         <button type="button" class="promo-btn" (click)="scrollToId('precios')">
           <mat-icon>confirmation_number</mat-icon> Precio regular
         </button>
-        <button type="button" class="promo-btn" (click)="scrollToId('discapacidad')">
-          <mat-icon>accessible</mat-icon> Pers. con discapacidad
-        </button>
+        @if (isAuthenticated()) {
+          <a
+            class="promo-btn"
+            [routerLink]="['/comprar', ev.id]"
+            [queryParams]="{ descuento: 'discapacidad' }"
+          >
+            <mat-icon>accessible</mat-icon> Pers. con discapacidad
+          </a>
+        } @else {
+          <a
+            class="promo-btn"
+            routerLink="/auth/login"
+            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
+          >
+            <mat-icon>accessible</mat-icon> Pers. con discapacidad
+          </a>
+        }
       </div>
       <button type="button" class="promo-info" (click)="scrollToId('precios')">
         <mat-icon inline>info</mat-icon> ¿Cómo comprar en la web?
