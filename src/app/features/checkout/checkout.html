@@ -260,10 +260,25 @@
                   role="switch"
                   [class.on]="selectedBank() === d.bank"
                   [attr.aria-checked]="selectedBank() === d.bank"
+                  [attr.aria-label]="
+                    (selectedBank() === d.bank ? 'Quitar descuento ' : 'Aplicar descuento ') +
+                    bankLabels[d.bank] +
+                    ' ' +
+                    d.percent +
+                    '%'
+                  "
+                  [title]="
+                    selectedBank() === d.bank
+                      ? 'Clic para quitar este descuento'
+                      : 'Clic para aplicar este descuento'
+                  "
                   [disabled]="placing()"
                   (click)="selectBank(d.bank)"
                 >
                   {{ bankLabels[d.bank] }} −{{ d.percent }}%
+                  @if (selectedBank() === d.bank) {
+                    <mat-icon inline>close</mat-icon>
+                  }
                 </button>
               }
             </div>
