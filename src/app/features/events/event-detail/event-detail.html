@@ -53,40 +53,6 @@
     </div>
   </div>
 
-  <section class="promo-cta">
-    <div class="tkt-page promo-inner">
-      <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
-      <div class="promo-actions">
-        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
-          <mat-icon>local_offer</mat-icon> Descubrimiento −10%
-        </button>
-        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
-          <mat-icon>confirmation_number</mat-icon> Precio regular
-        </button>
-        @if (isAuthenticated()) {
-          <a
-            class="promo-btn"
-            [routerLink]="['/comprar', ev.id]"
-            [queryParams]="{ descuento: 'discapacidad' }"
-          >
-            <mat-icon>accessible</mat-icon> Pers. con discapacidad
-          </a>
-        } @else {
-          <a
-            class="promo-btn"
-            routerLink="/auth/login"
-            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
-          >
-            <mat-icon>accessible</mat-icon> Pers. con discapacidad
-          </a>
-        }
-      </div>
-      <button type="button" class="promo-info" (click)="scrollToId('precios')">
-        <mat-icon inline>info</mat-icon> ¿Cómo comprar en la web?
-      </button>
-    </div>
-  </section>
-
   <div class="tkt-page detail-grid">
     <div class="about">
       <div class="tkt-cluster" style="margin-bottom:24px">
@@ -220,6 +186,40 @@
       </div>
     </aside>
   </div>
+
+  <section class="promo-cta">
+    <div class="tkt-page promo-inner">
+      <h2>Obtén tus entradas para {{ ev.name }} aquí</h2>
+      <div class="promo-actions">
+        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
+          <mat-icon>local_offer</mat-icon> Descubrimiento −10%
+        </button>
+        <button type="button" class="promo-btn" (click)="scrollToId('precios')">
+          <mat-icon>confirmation_number</mat-icon> Precio regular
+        </button>
+        @if (isAuthenticated()) {
+          <a
+            class="promo-btn"
+            [routerLink]="['/comprar', ev.id]"
+            [queryParams]="{ descuento: 'discapacidad' }"
+          >
+            <mat-icon>accessible</mat-icon> Pers. con discapacidad
+          </a>
+        } @else {
+          <a
+            class="promo-btn"
+            routerLink="/auth/login"
+            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
+          >
+            <mat-icon>accessible</mat-icon> Pers. con discapacidad
+          </a>
+        }
+      </div>
+      <button type="button" class="promo-info" (click)="scrollToId('precios')">
+        <mat-icon inline>info</mat-icon> ¿Cómo comprar en la web?
+      </button>
+    </div>
+  </section>
 
   <section class="event-legal">
     <div class="tkt-page legal-inner">
