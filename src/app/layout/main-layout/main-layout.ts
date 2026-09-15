@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -48,6 +48,18 @@ export class MainLayout {
   readonly isClient = this.auth.isClient;
   readonly isAdmin = this.auth.isAdmin;
   readonly year = new Date().getFullYear();
+
+  readonly showBackToTop = signal(false);
+
+  @HostListener('window:scroll')
+  onWindowScroll(): void {
+    this.showBackToTop.set(window.scrollY > 480);
+  }
+
+  backToTop(): void {
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
 
   logout(): void {
     this.auth.logout();

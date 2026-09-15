@@ -113,3 +113,15 @@
     <a routerLink="/ayuda">Centro de ayuda</a>
   </div>
 </footer>
+
+<button
+  type="button"
+  class="back-to-top"
+  [class.show]="showBackToTop()"
+  [tabindex]="showBackToTop() ? 0 : -1"
+  [attr.aria-hidden]="!showBackToTop()"
+  (click)="backToTop()"
+  aria-label="Volver arriba"
+>
+  <mat-icon>arrow_upward</mat-icon>
+</button>
