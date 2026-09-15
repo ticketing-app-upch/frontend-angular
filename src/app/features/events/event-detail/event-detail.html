@@ -244,14 +244,45 @@
         </div>
       </div>
 
-      <div class="legal-links">
-        <button mat-button type="button" (click)="openLegal('terms')">
-          Términos y condiciones
-        </button>
-        <span class="dot" aria-hidden="true">·</span>
-        <button mat-button type="button" (click)="openLegal('privacy')">
-          Política de privacidad
-        </button>
+      <div class="legal-columns">
+        <div class="legal-col">
+          <h4>Conócenos</h4>
+          <a routerLink="/ayuda">Sobre AlpaTeck</a>
+          <a routerLink="/ayuda">Preguntas frecuentes</a>
+        </div>
+
+        <div class="legal-col">
+          <h4>Legales</h4>
+          <button type="button" (click)="openLegal('terms')">
+            Términos y condiciones
+          </button>
+          <button type="button" (click)="openLegal('privacy')">
+            Política de privacidad
+          </button>
+        </div>
+
+        <div class="legal-col">
+          <h4>Síguenos en redes sociales</h4>
+          <div class="social-row">
+            <span class="social-icon" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-7.6h2.55l.38-2.96h-2.93v-1.9c0-.86.24-1.44 1.47-1.44h1.57V4.46A21 21 0 0 0 14.1 4.3c-2.24 0-3.78 1.37-3.78 3.88v2.16H7.75v2.96h2.57V21h3.18Z"/></svg>
+            </span>
+            <span class="social-icon" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <span class="social-icon" aria-label="X">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="m4 4 7.2 8.6L4.4 20h2.3l6-6.9 4.4 6.9H21l-7.5-9.1L20 4h-2.3l-5.5 6.4L8.1 4H4Z"/></svg>
+            </span>
+            <span class="social-icon" aria-label="TikTok">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 3.5c.5 1.9 1.9 3.2 3.9 3.4v2.6c-1.4 0-2.7-.4-3.9-1.2v6.1a5.4 5.4 0 1 1-5.4-5.4c.3 0 .6 0 .9.1v2.7a2.7 2.7 0 1 0 1.9 2.6V3.5h2.6Z"/></svg>
+            </span>
+            <span class="social-icon" aria-label="YouTube">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.6 7.7a2.7 2.7 0 0 0-1.9-1.9C18 5.3 12 5.3 12 5.3s-6 0-7.7.5A2.7 2.7 0 0 0 2.4 7.7 28 28 0 0 0 2 12a28 28 0 0 0 .4 4.3 2.7 2.7 0 0 0 1.9 1.9c1.7.5 7.7.5 7.7.5s6 0 7.7-.5a2.7 2.7 0 0 0 1.9-1.9A28 28 0 0 0 22 12a28 28 0 0 0-.4-4.3ZM10 15V9l5.2 3-5.2 3Z"/></svg>
+            </span>
+          </div>
+          <h4>¿Necesitas ayuda?</h4>
+          <a routerLink="/ayuda" class="contact-btn">Contáctanos</a>
+        </div>
       </div>
 
       <div class="sponsors">

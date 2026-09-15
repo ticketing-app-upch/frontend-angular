@@ -651,15 +651,73 @@
   color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 78%, transparent);
 }
 
-.legal-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 70%, transparent);
+.legal-columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 14%, transparent);
 }
-.legal-links button { color: inherit; }
-.legal-links .dot { opacity: 0.5; }
+
+.legal-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.legal-col h4 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 62%, transparent);
+}
+.legal-col h4:not(:first-child) { margin-top: 0.5rem; }
+
+.legal-col a,
+.legal-col button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 88%, transparent);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.legal-col a:hover,
+.legal-col button:hover { color: var(--mat-sys-inverse-on-surface); text-decoration: underline; }
+
+.social-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.social-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-inverse-on-surface) 24%, transparent);
+  color: var(--mat-sys-inverse-on-surface);
+}
+.social-icon svg { width: 16px; height: 16px; }
+
+.legal-col .contact-btn {
+  padding: 0.5rem 1.1rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 12%, transparent);
+  font-weight: 700;
+}
+.legal-col .contact-btn:hover {
+  background: color-mix(in srgb, var(--mat-sys-inverse-on-surface) 20%, transparent);
+  text-decoration: none;
+}
 
 .sponsors {
   display: flex;
@@ -707,6 +765,7 @@
 
 @media (max-width: 640px) {
   .legal-cards { grid-template-columns: 1fr; }
+  .legal-columns { grid-template-columns: 1fr; gap: 1.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
