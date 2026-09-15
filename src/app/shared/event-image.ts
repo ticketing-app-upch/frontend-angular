@@ -271,19 +271,24 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
   ],
   'parque de la exposicion': [
     // Bandas concéntricas del anfiteatro, de las filas más cercanas al
-    // escenario (preferencial) a las más alejadas (tribuna), siguiendo la
-    // curva de la platea en la foto aérea.
+    // escenario (preferencial) a las más alejadas (tribuna), calcadas sobre
+    // la curva real de la platea en la foto aérea (7 puntos de muestra a lo
+    // largo del abanico, interpolados en tercios entre el borde frontal y
+    // el remate posterior).
     {
       match: /preferencial/,
-      points: '38,65 50,71 65,74 80,72 95,63 95,47 85,54 70,57 55,55 42,52',
+      points:
+        '40.5,58.5 47.5,63 55,67 62.5,67.5 70,65.5 77,57.5 79,48.5 79,45 77,49.5 70,53 62.5,53.3 55,52.8 47.5,51 40.5,50',
     },
     {
       match: /central/,
-      points: '42,52 55,55 70,57 85,54 95,47 96,32 88,30 72,32 55,33 40,35',
+      points:
+        '40.5,50 47.5,51 55,52.8 62.5,53.3 70,53 77,49.5 79,45 79,41.5 77,41.8 70,41.3 62.5,40.3 55,39.7 47.5,39.3 40.5,41',
     },
     {
       match: /tribuna|general/,
-      points: '40,35 55,33 72,32 88,30 96,32 97,25 90,20 72,19 55,20 40,24',
+      points:
+        '40.5,41 47.5,39.3 55,39.7 62.5,40.3 70,41.3 77,41.8 79,41.5 78.5,38 76.5,33.5 69.5,28.5 62.5,25.5 55,24.8 47.5,26.5 40.5,31',
     },
   ],
 };
