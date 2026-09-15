@@ -70,9 +70,9 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 6,
     zones: [
-      { id: 'z-1a', name: 'Platea Preferencial', price: 220, capacity: 700, sold: 480 },
-      { id: 'z-1b', name: 'Platea Central', price: 140, capacity: 2400, sold: 1450 },
-      { id: 'z-1c', name: 'Tribuna General', price: 75, capacity: 1200, sold: 640 },
+      { id: 'z-1a', name: 'VIP', price: 220, capacity: 700, sold: 480 },
+      { id: 'z-1b', name: 'Preferencial', price: 140, capacity: 2400, sold: 1450 },
+      { id: 'z-1c', name: 'General', price: 75, capacity: 1200, sold: 640 },
     ],
   },
   {
