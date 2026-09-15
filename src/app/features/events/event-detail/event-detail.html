@@ -205,14 +205,18 @@
           </a>
         }
         @if (isAuthenticated()) {
-          <a class="promo-btn" [routerLink]="['/comprar', ev.id]">
+          <a
+            class="promo-btn"
+            [routerLink]="['/comprar', ev.id]"
+            [queryParams]="{ descuento: 'regular' }"
+          >
             <mat-icon>confirmation_number</mat-icon> Precio regular
           </a>
         } @else {
           <a
             class="promo-btn"
             routerLink="/auth/login"
-            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=regular' }"
           >
             <mat-icon>confirmation_number</mat-icon> Precio regular
           </a>

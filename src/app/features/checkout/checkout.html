@@ -223,28 +223,30 @@
             </span>
           </div>
 
-          <button
-            type="button"
-            class="accessible-toggle"
-            role="switch"
-            [class.on]="accessibleMode()"
-            [attr.aria-checked]="accessibleMode()"
-            [disabled]="placing()"
-            (click)="toggleAccessibleMode()"
-          >
-            <mat-icon>{{ accessibleMode() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
-            <span class="accessible-copy">
-              <b
-                >Descuento por discapacidad · Ley N.º 29973 −{{
-                  accessibleDiscountPct
-                }}%</b
-              >
-              <small
-                >Válido para {{ accessibleMaxQty }} entrada. Presenta tu carné de
-                CONADIS o documento de identidad al ingreso.</small
-              >
-            </span>
-          </button>
+          @if (!hideDiscounts) {
+            <button
+              type="button"
+              class="accessible-toggle"
+              role="switch"
+              [class.on]="accessibleMode()"
+              [attr.aria-checked]="accessibleMode()"
+              [disabled]="placing()"
+              (click)="toggleAccessibleMode()"
+            >
+              <mat-icon>{{ accessibleMode() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+              <span class="accessible-copy">
+                <b
+                  >Descuento por discapacidad · Ley N.º 29973 −{{
+                    accessibleDiscountPct
+                  }}%</b
+                >
+                <small
+                  >Válido para {{ accessibleMaxQty }} entrada. Presenta tu carné de
+                  CONADIS o documento de identidad al ingreso.</small
+                >
+              </span>
+            </button>
+          }
 
           @if (bankDiscounts().length) {
             <div class="bank-row">

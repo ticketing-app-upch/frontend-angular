@@ -76,13 +76,17 @@ export class Checkout {
   readonly accessibleMode = signal(
     this.route.snapshot.queryParamMap.get('descuento') === 'discapacidad',
   );
+  /** Llegó desde "Precio regular": no se ofrece ningún descuento (ni discapacidad ni banco). */
+  readonly hideDiscounts = this.route.snapshot.queryParamMap.get('descuento') === 'regular';
   readonly accessibleMaxQty = ACCESSIBLE_MAX_QTY;
   readonly accessibleDiscountPct = ACCESSIBLE_DISCOUNT_RATE * 100;
 
   /** Banco de tarjeta elegido para el descuento del organizador (mutuamente excluyente con `accessibleMode`). */
   readonly selectedBank = signal<BankName | null>(null);
   readonly bankDiscounts = computed(() =>
-    normalizeBankDiscounts(this.event()?.bankDiscounts).filter((d) => d.enabled),
+    this.hideDiscounts
+      ? []
+      : normalizeBankDiscounts(this.event()?.bankDiscounts).filter((d) => d.enabled),
   );
 
   readonly reviewing = signal(false);
