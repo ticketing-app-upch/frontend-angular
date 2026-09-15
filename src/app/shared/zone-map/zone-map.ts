@@ -123,7 +123,41 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
     } @else if (asVenuePlan()) {
 
       <!-- ===== OVAL: Estadio Nacional y estadios clásicos ===== -->
-      @if (shape() === 'oval') {
+      @if (shape() === 'oval' && isConcertOval()) {
+
+        <!-- Modo concierto: escenario arriba, campo partido en dos, laterales OR/OCC y Norte al fondo -->
+        <svg viewBox="0 0 320 270" role="img" [attr.aria-label]="'Plano interactivo de ' + venue()">
+          <ellipse cx="160" cy="132" rx="148" ry="120" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.16" stroke-width="2"/>
+          <path d="M100 20 H220 L233 56 H87 Z" fill="#111827" stroke="#f8fafc" stroke-opacity=".5"/>
+          <text x="160" y="44" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="900" letter-spacing="1.4" fill="#fff">ESCENARIO</text>
+          @for (s of concertStands(); track s.id) {
+            <g [class.gone]="s.gone" [style.cursor]="s.gone ? 'not-allowed' : 'pointer'" (click)="!s.gone && pick.emit(s.id)">
+              <polygon [attr.points]="s.points" [attr.fill]="s.color" [attr.fill-opacity]="s.qty > 0 ? 0.92 : 0.26" [attr.stroke]="s.qty > 0 ? '#fff' : s.color" [attr.stroke-opacity]="s.qty > 0 ? 0.9 : 0.5" stroke-width="2" stroke-linejoin="round"/>
+              <text [attr.x]="s.labelX" [attr.y]="s.labelY" text-anchor="middle" font-family="Inter, sans-serif" [attr.font-size]="s.fontSize" font-weight="800" letter-spacing="0.5" [attr.fill]="s.qty > 0 ? '#fff' : 'currentColor'">{{ shortName(s.name) }}</text>
+              @if (s.qty > 0) {
+                <g [attr.transform]="'translate(' + s.labelX + ' ' + (s.labelY + 14) + ')'">
+                  <circle r="10" fill="#fff"/>
+                  <text text-anchor="middle" y="4" font-family="Inter,sans-serif" font-size="11" font-weight="800" [attr.fill]="s.color">{{ s.qty }}</text>
+                </g>
+              }
+            </g>
+          }
+          @if (concertNorte(); as n) {
+            <g [class.gone]="n.gone" [style.cursor]="n.gone ? 'not-allowed' : 'pointer'" (click)="!n.gone && pick.emit(n.id)">
+              <path [attr.d]="n.path" [attr.fill]="n.color" [attr.fill-opacity]="n.qty > 0 ? 0.92 : 0.26" [attr.stroke]="n.qty > 0 ? '#fff' : n.color" [attr.stroke-opacity]="n.qty > 0 ? 0.9 : 0.5" stroke-width="2" stroke-linejoin="round"/>
+              <text [attr.x]="n.labelX" [attr.y]="n.labelY" text-anchor="middle" font-family="Inter, sans-serif" font-size="13" font-weight="800" letter-spacing="0.8" [attr.fill]="n.qty > 0 ? '#fff' : 'currentColor'">{{ n.name }}</text>
+              @if (n.qty > 0) {
+                <g [attr.transform]="'translate(' + n.labelX + ' ' + (n.labelY + 14) + ')'">
+                  <circle r="10" fill="#fff"/>
+                  <text text-anchor="middle" y="4" font-family="Inter,sans-serif" font-size="11" font-weight="800" [attr.fill]="n.color">{{ n.qty }}</text>
+                </g>
+              }
+            </g>
+          }
+          <text x="160" y="263" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="900" letter-spacing="1.1" fill="currentColor" fill-opacity=".7">{{ venueTitle() }}</text>
+        </svg>
+
+      } @else if (shape() === 'oval') {
         <svg viewBox="0 0 320 250" role="img" [attr.aria-label]="'Plano interactivo de ' + venue()">
           <!-- Anillo exterior ovalado -->
           <ellipse cx="160" cy="125" rx="152" ry="117" fill="currentColor" fill-opacity="0.05" stroke="currentColor" stroke-opacity="0.16" stroke-width="2"/>
@@ -135,10 +169,10 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
           <circle cx="160" cy="125" r="13" fill="none" stroke="#fff" stroke-opacity="0.85" stroke-width="1.5"/>
           <text x="160" y="159" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="900" letter-spacing="0.9" fill="#fff" fill-opacity="0.9">{{ venueTitle() }}</text>
           <!-- Tribunas del estadio oval: Norte, Sur, Oriente, Occidente -->
-          @for (s of stands(); track s.id) {
+          @for (s of ovalStands(); track s.id) {
             <g [class.gone]="s.gone" [style.cursor]="s.gone ? 'not-allowed' : 'pointer'" (click)="!s.gone && pick.emit(s.id)">
               <polygon [attr.points]="s.points" [attr.fill]="s.color" [attr.fill-opacity]="s.qty > 0 ? 0.92 : 0.26" [attr.stroke]="s.qty > 0 ? '#fff' : s.color" [attr.stroke-opacity]="s.qty > 0 ? 0.9 : 0.5" stroke-width="2" stroke-linejoin="round"/>
-              <text [attr.x]="s.labelX" [attr.y]="s.labelY" [attr.transform]="s.rotate ? 'rotate(' + s.rotate + ' ' + s.labelX + ' ' + s.labelY + ')' : null" text-anchor="middle" font-family="Inter, sans-serif" [attr.font-size]="s.fontSize" font-weight="800" letter-spacing="0.5" [attr.fill]="s.qty > 0 ? '#fff' : 'currentColor'">{{ s.name }}</text>
+              <text [attr.x]="s.labelX" [attr.y]="s.labelY" [attr.transform]="s.rotate ? 'rotate(' + s.rotate + ' ' + s.labelX + ' ' + s.labelY + ')' : null" text-anchor="middle" font-family="Inter, sans-serif" [attr.font-size]="s.fontSize" font-weight="800" letter-spacing="0.5" [attr.fill]="s.qty > 0 ? '#fff' : 'currentColor'">{{ shortName(s.name) }}</text>
               @if (s.qty > 0) {
                 <g [attr.transform]="'translate(' + s.labelX + ' ' + (s.labelY + (s.rotate ? 0 : 14)) + ')'">
                   <circle r="10" fill="#fff"/>
@@ -762,6 +796,146 @@ export class ZoneMap {
 
     return out;
   });
+
+  /** El óvalo del Estadio Nacional en modo concierto: hay una zona "Campo A". */
+  readonly isConcertOval = computed(
+    () => this.shape() === 'oval' && this.zones().some((z) => /^campo\s*a$/i.test(z.name.trim())),
+  );
+
+  /**
+   * Modo concierto del óvalo: escenario arriba, campo partido en A/B al centro
+   * y las tribunas OR/OCC partidas en dos a cada lado.
+   */
+  readonly concertStands = computed<Stand[]>(() => {
+    const zs = this.zones();
+    const q = this.quantities();
+    const used = new Set<string>();
+
+    const take = (re: RegExp): Zone | undefined => {
+      const z = zs.find((z) => !used.has(z.id) && re.test(z.name.trim().toLowerCase()));
+      if (z) used.add(z.id);
+      return z;
+    };
+
+    const or1 = take(/^or\s*1$/);
+    const campoA = take(/^campo\s*a$/);
+    const occ1 = take(/^occ\s*1$/);
+    const or2 = take(/^or\s*2$/);
+    const campoB = take(/^campo\s*b$/);
+    const occ2 = take(/^occ\s*2$/);
+
+    const color = (z: Zone) => zoneColor(zs.indexOf(z));
+    const rect = (x: number, y: number, w: number, h: number) =>
+      `${x},${y} ${x + w},${y} ${x + w},${y + h} ${x},${y + h}`;
+    const mk = (z: Zone | undefined, x: number, y: number, w: number, h: number, fontSize: number): Stand[] =>
+      z
+        ? [
+            {
+              id: z.id,
+              name: z.name,
+              color: color(z),
+              qty: q[z.id] ?? 0,
+              gone: z.capacity - z.sold <= 0,
+              points: rect(x, y, w, h),
+              labelX: x + w / 2,
+              labelY: y + h / 2 + 4,
+              rotate: 0,
+              fontSize,
+            },
+          ]
+        : [];
+
+    return [
+      ...mk(or1, 22, 66, 44, 50, 9),
+      ...mk(campoA, 72, 66, 176, 50, 13),
+      ...mk(occ1, 254, 66, 44, 50, 9),
+      ...mk(or2, 22, 122, 44, 50, 9),
+      ...mk(campoB, 72, 122, 176, 50, 13),
+      ...mk(occ2, 254, 122, 44, 50, 9),
+    ];
+  });
+
+  /** Franja curva del sector "Norte" al fondo del óvalo, en modo concierto. */
+  readonly concertNorte = computed(() => {
+    const zs = this.zones();
+    const q = this.quantities();
+    const z = zs.find((z) => /^norte$/i.test(z.name.trim()));
+    if (!z) return null;
+    return {
+      id: z.id,
+      name: z.name,
+      color: zoneColor(zs.indexOf(z)),
+      qty: q[z.id] ?? 0,
+      gone: z.capacity - z.sold <= 0,
+      path: 'M20,178 Q160,224 300,178 L300,204 Q160,250 20,204 Z',
+      labelX: 160,
+      labelY: 214,
+    };
+  });
+
+  /** El óvalo del Estadio Nacional en modo fútbol con el detalle de sectores real (Palco Platino, etc.). */
+  readonly isDetailedFootballOval = computed(
+    () => this.shape() === 'oval' && this.zones().some((z) => /palco platino/i.test(z.name)),
+  );
+
+  /**
+   * Modo fútbol detallado del óvalo: Norte/Sur en los extremos, Oriente y
+   * Occidente partidos en Central/Lateral, y el Palco Platino al centro.
+   */
+  readonly detailedFootballStands = computed<Stand[]>(() => {
+    const zs = this.zones();
+    const q = this.quantities();
+    const used = new Set<string>();
+
+    const take = (re: RegExp): Zone | undefined => {
+      const z = zs.find((z) => !used.has(z.id) && re.test(z.name.trim().toLowerCase()));
+      if (z) used.add(z.id);
+      return z;
+    };
+
+    const norte = take(/^norte$/);
+    const sur = take(/^sur$/);
+    const orienteCentral = take(/^oriente central$/);
+    const orienteLateral = take(/^oriente lateral$/);
+    const occidenteCentral = take(/^occidente central$/);
+    const occidenteLateral = take(/^occidente lateral$/);
+    const palco = take(/palco/);
+
+    const color = (z: Zone) => zoneColor(zs.indexOf(z));
+    const mk = (
+      z: Zone | undefined,
+      points: string,
+      labelX: number,
+      labelY: number,
+      rotate = 0,
+      fontSize = 8,
+    ): Stand[] =>
+      z
+        ? [{ id: z.id, name: z.name, color: color(z), qty: q[z.id] ?? 0, gone: z.capacity - z.sold <= 0, points, labelX, labelY, rotate, fontSize }]
+        : [];
+
+    const out: Stand[] = [
+      ...mk(norte, '86,66 86,184 8,194 8,56', 40, 125, -90, 11),
+      ...mk(sur, '234,66 234,184 312,194 312,56', 280, 125, 90, 11),
+      ...mk(orienteCentral, '56,8 160,8 160,66 86,66', 113, 40, 0, 8),
+      ...mk(orienteLateral, '160,8 264,8 234,66 160,66', 204, 40, 0, 8),
+    ];
+
+    const bottom = [occidenteCentral, palco, occidenteLateral].filter((z): z is Zone => !!z);
+    const k = bottom.length;
+    bottom.forEach((z, i) => {
+      const tL = 86 + ((234 - 86) * i) / k;
+      const tR = 86 + ((234 - 86) * (i + 1)) / k;
+      const bL = 56 + ((264 - 56) * i) / k;
+      const bR = 56 + ((264 - 56) * (i + 1)) / k;
+      out.push(...mk(z, `${tL},184 ${tR},184 ${bR},242 ${bL},242`, (tL + tR) / 2, 213, 0, 8));
+    });
+
+    return out;
+  });
+
+  /** Tribunas a dibujar en el óvalo: la versión detallada si aplica, si no la genérica. */
+  readonly ovalStands = computed(() => (this.isDetailedFootballOval() ? this.detailedFootballStands() : this.stands()));
 }
 
 function annularSector(cx: number, cy: number, inner: number, outer: number, start: number, end: number): string {
