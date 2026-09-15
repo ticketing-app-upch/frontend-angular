@@ -244,6 +244,7 @@ const BY_VENUE: { test: RegExp; url: string }[] = [
  */
 const VENUE_MAPS: Record<string, string> = {
   monumental: '/events/map-monumental.webp',
+  'parque de la exposicion': '/events/anfiteatro-del-parque-de-la-exposicion-en-peru.jpg',
 };
 
 /**
@@ -267,6 +268,23 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
     { match: /central\s*e\b|\bocc.*\be\b/, points: '61,66 71,66 76,90 58,90' },
     { match: /lateral\s*f\b|\bocc.*\bf\b/, points: '71,66 79,66 92,90 76,90' },
     { match: /^occidente$/, points: '20,66 80,66 91,90 9,90' },
+  ],
+  'parque de la exposicion': [
+    // Bandas concéntricas del anfiteatro, de las filas más cercanas al
+    // escenario (preferencial) a las más alejadas (tribuna), siguiendo la
+    // curva de la platea en la foto aérea.
+    {
+      match: /preferencial/,
+      points: '38,65 50,71 65,74 80,72 95,63 95,47 85,54 70,57 55,55 42,52',
+    },
+    {
+      match: /central/,
+      points: '42,52 55,55 70,57 85,54 95,47 96,32 88,30 72,32 55,33 40,35',
+    },
+    {
+      match: /tribuna|general/,
+      points: '40,35 55,33 72,32 88,30 96,32 97,25 90,20 72,19 55,20 40,24',
+    },
   ],
 };
 
