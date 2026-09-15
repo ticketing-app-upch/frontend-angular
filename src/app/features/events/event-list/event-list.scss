@@ -62,6 +62,7 @@ h1{font-size:clamp(40px,5.3vw,70px);line-height:1.02;letter-spacing:-.055em;marg
 .search-panel{display:flex;gap:0;background:var(--mat-sys-surface);border:1px solid var(--edge);border-radius:14px;padding:10px;}
 .searchbox{flex:1;display:flex;align-items:center;gap:12px;padding:6px 15px;min-width:0}.searchbox input{background:none;border:0;color:inherit;outline:none;width:100%;padding:10px 0}.searchbox:focus-within{outline:2px solid var(--mat-sys-primary);border-radius:8px}
 .select-field{display:flex;align-items:center;gap:6px;border-left:1px solid var(--edge);padding:0 12px;max-width:230px}
+.select-field>mat-icon{font-size:18px;width:18px;height:18px;flex:none;color:var(--muted)}
 .select-field mat-select{color:inherit;padding:10px 5px;max-width:100%;font-size:14px}
 .select-field .mat-mdc-select-value,.select-field .mat-mdc-select-arrow{color:inherit}
 .planner{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:30px;padding:28px;margin:20px 0;border:1px solid var(--mat-sys-primary);border-radius:14px;background:color-mix(in srgb,var(--mat-sys-primary) 7%,var(--mat-sys-surface))}.planner h2{font-size:24px;margin:12px 0}.planner p{color:var(--muted);line-height:1.6;font-size:14px}.planner>.icon-button{position:absolute;right:8px;top:8px}.planner-controls{display:flex;flex-direction:column;justify-content:center;gap:18px}.planner label{display:flex;align-items:center;flex-wrap:wrap;gap:12px;font-size:14px}.planner label strong{margin-left:auto}.planner input{width:100%;accent-color:var(--mat-sys-primary)}
