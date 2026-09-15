@@ -254,7 +254,7 @@ const VENUE_MAPS: Record<string, string> = {
  */
 const ESTADIO_NACIONAL_MAPS = {
   concierto: '/events/estadio-nacional-conciertos.png',
-  futbol: '/events/estadio-nacional-partidos.jpg',
+  futbol: '/events/estadio-nacional-partidos.png',
 };
 
 function isConcertLayout(zones: { name: string }[]): boolean {
