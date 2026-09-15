@@ -102,6 +102,7 @@ export class EventForm {
     bankDiscounts: this.fb.array(
       normalizeBankDiscounts().map((d) => this.newBankDiscount(d)),
     ),
+    accessibleDiscount: [false],
   });
 
   readonly bankLabels = BANK_LABELS;
@@ -234,6 +235,7 @@ export class EventForm {
       startsAt: toLocalInput(ev.startsAt),
       imageUrl: ev.imageUrl,
       maxPerOrder: ev.maxPerOrder,
+      accessibleDiscount: ev.accessibleDiscount ?? false,
     });
     this.zones.clear();
     ev.zones.forEach((z) => this.zones.push(this.newZone(z)));
@@ -276,6 +278,7 @@ export class EventForm {
         sold: existing?.zones.find(old => old.id === z.id)?.sold ?? 0,
       })),
       bankDiscounts: raw.bankDiscounts as BankDiscount[],
+      accessibleDiscount: raw.accessibleDiscount,
     };
 
     const issues = eventIssues(payload, existing ?? undefined);

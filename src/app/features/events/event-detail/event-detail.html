@@ -196,28 +196,30 @@
         </p>
       }
       <div class="promo-actions">
-        @if (isAuthenticated()) {
-          <a
-            class="promo-btn"
-            [class.disabled]="!canBuy()"
-            [attr.aria-disabled]="!canBuy()"
-            [routerLink]="['/comprar', ev.id]"
-            [queryParams]="{ descuento: '10' }"
-            (click)="blockIfUnavailable($event)"
-          >
-            <mat-icon>local_offer</mat-icon> Descuento −10%
-          </a>
-        } @else {
-          <a
-            class="promo-btn"
-            [class.disabled]="!canBuy()"
-            [attr.aria-disabled]="!canBuy()"
-            routerLink="/auth/login"
-            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=10' }"
-            (click)="blockIfUnavailable($event)"
-          >
-            <mat-icon>local_offer</mat-icon> Descuento −10%
-          </a>
+        @if (hasTenPercentBank()) {
+          @if (isAuthenticated()) {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              [routerLink]="['/comprar', ev.id]"
+              [queryParams]="{ descuento: '10' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>local_offer</mat-icon> Descuento −10%
+            </a>
+          } @else {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              routerLink="/auth/login"
+              [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=10' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>local_offer</mat-icon> Descuento −10%
+            </a>
+          }
         }
         @if (isAuthenticated()) {
           <a
@@ -242,28 +244,30 @@
             <mat-icon>confirmation_number</mat-icon> Precio regular
           </a>
         }
-        @if (isAuthenticated()) {
-          <a
-            class="promo-btn"
-            [class.disabled]="!canBuy()"
-            [attr.aria-disabled]="!canBuy()"
-            [routerLink]="['/comprar', ev.id]"
-            [queryParams]="{ descuento: 'discapacidad' }"
-            (click)="blockIfUnavailable($event)"
-          >
-            <mat-icon>accessible</mat-icon> Pers. con discapacidad
-          </a>
-        } @else {
-          <a
-            class="promo-btn"
-            [class.disabled]="!canBuy()"
-            [attr.aria-disabled]="!canBuy()"
-            routerLink="/auth/login"
-            [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
-            (click)="blockIfUnavailable($event)"
-          >
-            <mat-icon>accessible</mat-icon> Pers. con discapacidad
-          </a>
+        @if (hasAccessibleDiscount()) {
+          @if (isAuthenticated()) {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              [routerLink]="['/comprar', ev.id]"
+              [queryParams]="{ descuento: 'discapacidad' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>accessible</mat-icon> Pers. con discapacidad
+            </a>
+          } @else {
+            <a
+              class="promo-btn"
+              [class.disabled]="!canBuy()"
+              [attr.aria-disabled]="!canBuy()"
+              routerLink="/auth/login"
+              [queryParams]="{ redirect: '/comprar/' + ev.id + '?descuento=discapacidad' }"
+              (click)="blockIfUnavailable($event)"
+            >
+              <mat-icon>accessible</mat-icon> Pers. con discapacidad
+            </a>
+          }
         }
       </div>
       <button type="button" class="promo-info" (click)="scrollToId('precios')">
@@ -284,15 +288,17 @@
             comunicar cualquier cambio con anticipación.
           </p>
         </div>
-        <div class="legal-card" id="discapacidad">
-          <h3><mat-icon>accessible</mat-icon> Personas con discapacidad</h3>
-          <p>
-            De acuerdo con la Ley N.º 29973, las personas con discapacidad
-            debidamente acreditadas acceden a un descuento presentando su
-            carné de CONADIS o certificado médico vigente, además de su
-            documento de identidad, válido para una (1) entrada.
-          </p>
-        </div>
+        @if (hasAccessibleDiscount()) {
+          <div class="legal-card" id="discapacidad">
+            <h3><mat-icon>accessible</mat-icon> Personas con discapacidad</h3>
+            <p>
+              De acuerdo con la Ley N.º 29973, las personas con discapacidad
+              debidamente acreditadas acceden a un descuento presentando su
+              carné de CONADIS o certificado médico vigente, además de su
+              documento de identidad, válido para una (1) entrada.
+            </p>
+          </div>
+        }
       </div>
 
       <div class="legal-columns">

@@ -74,6 +74,7 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
       { id: 'z-1b', name: 'Preferencial', price: 140, capacity: 2400, sold: 1450 },
       { id: 'z-1c', name: 'General', price: 75, capacity: 1200, sold: 640 },
     ],
+    accessibleDiscount: true,
   },
   {
     id: 'ev-2',
@@ -98,6 +99,12 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
       { id: 'z-2b', name: 'Oriente', price: 150, capacity: 5000, sold: 4510 },
       { id: 'z-2c', name: 'Norte', price: 70, capacity: 8000, sold: 7990 },
       { id: 'z-2d', name: 'Tribuna Familiar Sur', price: 120, capacity: 8000, sold: 6100 },
+    ],
+    accessibleDiscount: true,
+    bankDiscounts: [
+      { bank: 'BCP', percent: 10, enabled: true },
+      { bank: 'BBVA', percent: 10, enabled: false },
+      { bank: 'INTERBANK', percent: 10, enabled: false },
     ],
   },
   {

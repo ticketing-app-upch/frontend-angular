@@ -48,6 +48,8 @@ export interface EventItem {
   zones: Zone[];
   /** Descuentos por banco (tarjeta), configurados por el organizador. Independientes del pricing dinámico. */
   bankDiscounts?: BankDiscount[];
+  /** El organizador habilitó el descuento por discapacidad (Ley N.º 29973) para este evento. */
+  accessibleDiscount?: boolean;
 }
 
 export const BANK_NAMES: BankName[] = ['BCP', 'BBVA', 'INTERBANK'];

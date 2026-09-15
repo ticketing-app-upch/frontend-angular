@@ -18,7 +18,7 @@ const DAY = 86_400_000;
  * de las reglas dinámicas de abajo. Si ambas aplicarían, gana la de discapacidad.
  */
 export function zonePrice(
-  event: Pick<EventItem, 'startsAt' | 'publishedAt' | 'bankDiscounts'>,
+  event: Pick<EventItem, 'startsAt' | 'publishedAt' | 'bankDiscounts' | 'accessibleDiscount'>,
   zone: Zone,
   now = Date.now(),
   accessible = false,
@@ -37,7 +37,7 @@ export function zonePrice(
         ? 0.9
         : 1;
   const base = zone.price * multiplier;
-  if (accessible) {
+  if (accessible && event.accessibleDiscount) {
     return {
       unitPrice: roundMoney(base * (1 - ACCESSIBLE_DISCOUNT_RATE)),
       multiplier,
@@ -127,6 +127,8 @@ export function purchaseIssue(event: EventItem, items: OrderItem[]): string | nu
   const accessibleQty = items
     .filter((item) => item.accessible)
     .reduce((sum, item) => sum + item.quantity, 0);
+  if (accessibleQty > 0 && !event.accessibleDiscount)
+    return 'Este evento no ofrece descuento por discapacidad.';
   if (accessibleQty > ACCESSIBLE_MAX_QTY)
     return `El descuento por discapacidad es válido para ${ACCESSIBLE_MAX_QTY} entrada por compra.`;
   for (const item of items) {

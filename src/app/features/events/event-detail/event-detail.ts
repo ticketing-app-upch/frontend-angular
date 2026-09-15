@@ -23,6 +23,7 @@ import { EventService } from '../../../core/services/event.service';
 import {
   computeCapacity,
   EventItem,
+  normalizeBankDiscounts,
 } from '../../../core/models/event.model';
 import { AuthService } from '../../../core/auth/auth.service';
 import { CapacityBar } from '../../../shared/capacity-bar/capacity-bar';
@@ -79,6 +80,13 @@ export class EventDetail {
   readonly ended = computed(() => Date.parse(this.event()?.startsAt ?? '') <= Date.now() || this.event()?.status !== 'PUBLICADO');
   /** Ni agotado ni finalizado: los botones de compra siguen habilitados. */
   readonly canBuy = computed(() => !this.soldOut() && !this.ended());
+
+  /** El organizador activó algún banco con -10%: solo entonces se ofrece ese acceso directo. */
+  readonly hasTenPercentBank = computed(() =>
+    normalizeBankDiscounts(this.event()?.bankDiscounts).some((d) => d.enabled && d.percent === 10),
+  );
+  /** El organizador activó el descuento por discapacidad para este evento. */
+  readonly hasAccessibleDiscount = computed(() => !!this.event()?.accessibleDiscount);
 
   readonly match = computed(() => {
     const e = this.event();

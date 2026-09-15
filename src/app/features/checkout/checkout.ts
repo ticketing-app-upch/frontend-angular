@@ -116,9 +116,14 @@ export class Checkout {
   private readonly discountParam = this.route.snapshot.queryParamMap.get('descuento');
 
   /** Descuento por discapacidad (Ley N.º 29973): -20%, máx. 1 entrada por orden. */
-  readonly accessibleMode = signal(this.discountParam === 'discapacidad');
-  /** El cuadro de descuento por discapacidad solo aparece si llegaron desde ese botón específico. */
-  readonly showAccessibleToggle = this.discountParam === 'discapacidad';
+  readonly accessibleMode = signal(false);
+  /**
+   * El cuadro de descuento por discapacidad solo aparece si llegaron desde
+   * ese botón específico Y el organizador lo habilitó para este evento.
+   */
+  readonly showAccessibleToggle = computed(
+    () => this.discountParam === 'discapacidad' && !!this.event()?.accessibleDiscount,
+  );
   /** Llegó desde "Precio regular": no se ofrece ningún descuento (ni discapacidad ni banco). */
   readonly hideDiscounts = this.discountParam === 'regular';
   readonly accessibleMaxQty = ACCESSIBLE_MAX_QTY;
@@ -260,6 +265,11 @@ export class Checkout {
               (d) => d.enabled && d.percent === 10,
             );
             if (auto) this.selectedBank.set(auto.bank);
+          }
+          // "Pers. con discapacidad": solo se activa si el organizador
+          // habilitó este descuento para el evento.
+          if (this.discountParam === 'discapacidad' && ev.accessibleDiscount) {
+            this.accessibleMode.set(true);
           }
           this.loading.set(false);
         },
