@@ -10,9 +10,9 @@ import { MatIconModule } from '@angular/material/icon';
       <div class="icon"><mat-icon>{{ icon() }}</mat-icon></div>
       <div class="content">
         <span class="label">{{ label() }}</span>
-        <span class="value">{{ value() }}</span>
+        <span class="value" [title]="value()">{{ value() }}</span>
         @if (hint()) {
-          <span class="hint">{{ hint() }}</span>
+          <span class="hint" [title]="hint()">{{ hint() }}</span>
         }
       </div>
     </div>
@@ -60,30 +60,46 @@ import { MatIconModule } from '@angular/material/icon';
     .icon {
       display: grid;
       place-items: center;
-      width: 46px;
-      height: 46px;
-      border-radius: 13px;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
       background: linear-gradient(
         135deg,
-        color-mix(in srgb, var(--mat-sys-primary) 20%, transparent),
-        color-mix(in srgb, var(--tkt-accent) 16%, transparent)
+        color-mix(in srgb, var(--mat-sys-primary) 22%, transparent),
+        color-mix(in srgb, var(--tkt-accent) 18%, transparent)
       );
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 14%, transparent);
       color: var(--mat-sys-primary);
       flex: none;
     }
-    .content { display: flex; flex-direction: column; gap: 0.12rem; min-width: 0; }
+    .icon mat-icon { font-size: 22px; width: 22px; height: 22px; }
+    .content { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; flex: 1; }
     .label {
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-weight: 600;
       letter-spacing: 0.01em;
       color: var(--mat-sys-on-surface-variant);
     }
     .value {
-      font-size: 1.6rem;
+      /* Fluido según el ancho de la tarjeta; si igual no alcanza, pasa a una
+       * segunda línea en vez de cortarse o mostrar puntos suspensivos: el
+       * número siempre se lee completo. */
+      font-size: clamp(1.05rem, 0.9vw + 0.65rem, 1.4rem);
       font-weight: 800;
-      letter-spacing: -0.025em;
+      letter-spacing: -0.02em;
+      font-variant-numeric: tabular-nums;
+      line-height: 1.2;
+      overflow-wrap: break-word;
+      max-width: 100%;
     }
-    .hint { font-size: 0.76rem; color: var(--mat-sys-on-surface-variant); }
+    .hint {
+      font-size: 0.76rem;
+      color: var(--mat-sys-on-surface-variant);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 100%;
+    }
   `,
 })
 export class StatCard {
