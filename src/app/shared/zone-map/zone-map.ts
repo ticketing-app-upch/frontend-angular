@@ -99,8 +99,8 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (image() && !imgFailed()) {
-      <div class="img-map">
-        <img [src]="image()" alt="Plano del recinto" (error)="imgFailed.set(true)" />
+      <div class="img-map" [style.aspect-ratio]="imgAspect() ?? 'auto'">
+        <img [src]="image()" alt="Plano del recinto" (error)="imgFailed.set(true)" (load)="onImgLoad($event)" />
         @if (spotViews().length) {
           <svg class="hot" viewBox="0 0 100 100" preserveAspectRatio="none">
             @for (h of spotViews(); track h.id) {
@@ -500,9 +500,24 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
       color: var(--mat-sys-on-surface);
     }
     svg { width: 100%; height: auto; display: block; }
-    :host-context(.map-modal-body) { height: 100%; min-height: 0; }
+    :host-context(.map-modal-body) {
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
     :host-context(.map-modal-body) svg { width: 100%; height: 100%; max-height: 100%; }
-    :host-context(.map-modal-body) .img-map,
+    /*
+     * El .img-map fija su aspect-ratio real (ver imgAspect/onImgLoad) y solo
+     * se limita a no desbordar el modal: así su tamaño SIEMPRE coincide con
+     * el de la imagen (sin la franja vacía que deja object-fit:contain en un
+     * contenedor más ancho/alto), y el SVG de hotspots -que cubre el 100% de
+     * .img-map- queda perfectamente alineado con el plano en vez de
+     * desparramarse sobre el espacio vacío.
+     */
+    :host-context(.map-modal-body) .img-map { max-width: 100%; max-height: 100%; }
     :host-context(.map-modal-body) .img-map img { width: 100%; height: 100%; object-fit: contain; }
     g.gone { opacity: 0.4; }
 
@@ -547,6 +562,19 @@ export class ZoneMap {
   readonly pick = output<string>();
 
   readonly imgFailed = signal(false);
+  /**
+   * Proporción real de la imagen del plano. Se fija en `.img-map` para que el
+   * contenedor tenga siempre el mismo tamaño que la imagen (aunque el modal la
+   * encoja con `object-fit: contain`); si no, los hotspots —que se dibujan
+   * sobre el contenedor completo— quedarían desalineados con el plano.
+   */
+  readonly imgAspect = signal<number | null>(null);
+  onImgLoad(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.naturalWidth && img.naturalHeight) {
+      this.imgAspect.set(img.naturalWidth / img.naturalHeight);
+    }
+  }
   readonly shape = computed<VenueShape>(() => resolveVenueShape(this.venue()));
   readonly venueTitle = computed(() => {
     const name = this.venue().trim() || 'Recinto';
