@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   effect,
   inject,
@@ -24,6 +25,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatRadioModule } from '@angular/material/radio';
 import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -36,8 +38,11 @@ import {
   normalizeBankDiscounts,
   Zone,
 } from '../../../core/models/event.model';
-import { eventImage } from '../../../shared/event-image';
+import { eventImage, venuePhoto } from '../../../shared/event-image';
 import { eventIssues } from '../../../core/models/ticketing-rules';
+
+/** Origen de la imagen de portada elegido por el organizador. */
+export type ImageSource = 'venue' | 'teams' | 'artist' | 'url';
 
 @Component({
   selector: 'tkt-event-form',
@@ -54,6 +59,7 @@ import { eventIssues } from '../../../core/models/ticketing-rules';
     MatIconModule,
     MatDividerModule,
     MatCheckboxModule,
+    MatRadioModule,
   ],
   templateUrl: './event-form.html',
   styleUrl: './event-form.scss',
@@ -93,6 +99,7 @@ export class EventForm {
     city: ['Lima', Validators.required],
     startsAt: ['', Validators.required],
     venueCapacity: [1000, [Validators.required, Validators.min(1)]],
+    imageSource: ['venue' as ImageSource, Validators.required],
     imageUrl: [''],
     maxPerOrder: [
       6,
@@ -168,7 +175,123 @@ export class EventForm {
     }
   });
 
+  /**
+   * Fuentes de imagen disponibles según la categoría: escudos de equipos sólo
+   * tiene sentido en DEPORTE; imagen del artista, en el resto.
+   */
+  readonly imageSourceOptions = computed<{ value: ImageSource; label: string }[]>(() => {
+    const options: { value: ImageSource; label: string }[] = [
+      { value: 'venue', label: 'Imagen del recinto' },
+    ];
+    if (this.categoryValue() === 'DEPORTE') {
+      options.push({ value: 'teams', label: 'Escudos de los equipos' });
+    } else {
+      options.push({ value: 'artist', label: 'Imagen del artista' });
+    }
+    options.push({ value: 'url', label: 'Otra URL' });
+    return options;
+  });
+
+  private venueValue = toSignal(this.form.controls.venue.valueChanges, {
+    initialValue: this.form.controls.venue.value,
+  });
+  /** Hay una foto real registrada para el recinto escrito (ver `venuePhoto`). */
+  readonly hasVenuePhoto = computed(() => venuePhoto(this.venueValue()) !== null);
+
+  readonly imageSourceValue = toSignal(this.form.controls.imageSource.valueChanges, {
+    initialValue: this.form.controls.imageSource.value,
+  });
+  /** El campo de URL sólo aplica cuando la fuente es "otra URL" o "artista". */
+  readonly needsImageUrl = computed(() =>
+    this.imageSourceValue() === 'url' || this.imageSourceValue() === 'artist',
+  );
+
+  private imageUrlValue = toSignal(this.form.controls.imageUrl.valueChanges, {
+    initialValue: this.form.controls.imageUrl.value,
+  });
+  /** URL a previsualizar: sólo si parece un enlace (evita pedir la imagen en cada tecla de un texto suelto). */
+  readonly imagePreviewUrl = computed(() => {
+    const url = this.imageUrlValue().trim();
+    return /^https?:\/\//i.test(url) ? url : null;
+  });
+  readonly imagePreviewFailed = signal(false);
+
+  onImagePreviewError(): void {
+    this.imagePreviewFailed.set(true);
+  }
+
+  onImagePreviewLoad(): void {
+    this.imagePreviewFailed.set(false);
+  }
+
+  /** Encuadre por defecto: centrado, sesgado hacia el tercio superior (ahí suele estar la cara). */
+  static readonly DEFAULT_FOCUS = { x: 50, y: 20 };
+
+  readonly imageFocusX = signal(EventForm.DEFAULT_FOCUS.x);
+  readonly imageFocusY = signal(EventForm.DEFAULT_FOCUS.y);
+  private draggingFocusFrame: HTMLElement | null = null;
+  private readonly handleFocusPointerMove = (event: PointerEvent) => this.applyFocusFromEvent(event);
+  private readonly handleFocusPointerUp = () => this.endFocusDrag();
+
+  onFocusPointerDown(event: PointerEvent, frame: HTMLElement): void {
+    event.preventDefault();
+    this.draggingFocusFrame = frame;
+    this.applyFocusFromEvent(event);
+    window.addEventListener('pointermove', this.handleFocusPointerMove);
+    window.addEventListener('pointerup', this.handleFocusPointerUp, { once: true });
+  }
+
+  onFocusKeydown(event: KeyboardEvent): void {
+    const step = event.shiftKey ? 10 : 3;
+    let dx = 0;
+    let dy = 0;
+    switch (event.key) {
+      case 'ArrowLeft': dx = -step; break;
+      case 'ArrowRight': dx = step; break;
+      case 'ArrowUp': dy = -step; break;
+      case 'ArrowDown': dy = step; break;
+      default: return;
+    }
+    event.preventDefault();
+    this.imageFocusX.set(clampPercent(this.imageFocusX() + dx));
+    this.imageFocusY.set(clampPercent(this.imageFocusY() + dy));
+  }
+
+  resetImageFocus(): void {
+    this.imageFocusX.set(EventForm.DEFAULT_FOCUS.x);
+    this.imageFocusY.set(EventForm.DEFAULT_FOCUS.y);
+  }
+
+  private applyFocusFromEvent(event: PointerEvent): void {
+    if (!this.draggingFocusFrame) return;
+    const rect = this.draggingFocusFrame.getBoundingClientRect();
+    this.imageFocusX.set(clampPercent(((event.clientX - rect.left) / rect.width) * 100));
+    this.imageFocusY.set(clampPercent(((event.clientY - rect.top) / rect.height) * 100));
+  }
+
+  private endFocusDrag(): void {
+    this.draggingFocusFrame = null;
+    window.removeEventListener('pointermove', this.handleFocusPointerMove);
+  }
+
   constructor() {
+    // Cada vez que cambia la URL, olvida el error anterior hasta que la nueva
+    // imagen termine de cargar (o falle de nuevo).
+    effect(() => {
+      this.imagePreviewUrl();
+      this.imagePreviewFailed.set(false);
+    });
+
+    // Si cambia la categoría y la fuente elegida ya no aplica (p. ej. "escudos"
+    // en un evento que dejó de ser DEPORTE), vuelve a la imagen del recinto.
+    effect(() => {
+      const valid = this.imageSourceOptions().map((o) => o.value);
+      const current = this.form.controls.imageSource.value;
+      if (!valid.includes(current)) {
+        this.form.controls.imageSource.setValue('venue');
+      }
+    });
+
     effect(() => {
       const id = this.id();
       if (!id) {
@@ -187,6 +310,10 @@ export class EventForm {
           this.router.navigate(['/organizador/eventos']);
         },
       });
+    });
+
+    inject(DestroyRef).onDestroy(() => {
+      window.removeEventListener('pointermove', this.handleFocusPointerMove);
     });
   }
 
@@ -233,10 +360,13 @@ export class EventForm {
       city: ev.city,
       venueCapacity: ev.venueCapacity ?? ev.zones.reduce((s, z) => s + z.capacity, 0),
       startsAt: toLocalInput(ev.startsAt),
+      imageSource: 'url',
       imageUrl: ev.imageUrl,
       maxPerOrder: ev.maxPerOrder,
       accessibleDiscount: ev.accessibleDiscount ?? false,
     });
+    this.imageFocusX.set(ev.imageFocus?.x ?? EventForm.DEFAULT_FOCUS.x);
+    this.imageFocusY.set(ev.imageFocus?.y ?? EventForm.DEFAULT_FOCUS.y);
     this.zones.clear();
     ev.zones.forEach((z) => this.zones.push(this.newZone(z)));
     this.bankDiscounts.clear();
@@ -253,20 +383,36 @@ export class EventForm {
     const existing = this.editing();
     if (!Number.isFinite(new Date(raw.startsAt).getTime())) { this.notify.error('Ingresa una fecha válida.'); return; }
 
+    if ((raw.imageSource === 'url' || raw.imageSource === 'artist') && !raw.imageUrl.trim()) {
+      this.notify.error('Ingresa la URL de la imagen.');
+      return;
+    }
+
+    const name = raw.name.trim();
+    const venue = raw.venue.trim();
+    const isCustomImage = raw.imageSource === 'url' || raw.imageSource === 'artist';
+    const imageUrl = isCustomImage
+      ? raw.imageUrl.trim()
+      : raw.imageSource === 'venue'
+        ? venuePhoto(venue) ?? eventImage({ name, category: raw.category, venue })
+        : eventImage({ name, category: raw.category, venue });
+    const imageFocus = isCustomImage
+      ? { x: Math.round(this.imageFocusX()), y: Math.round(this.imageFocusY()) }
+      : undefined;
+
     const payload: EventItem = {
       id: existing?.id ?? '',
-      name: raw.name.trim(),
+      name,
       description: raw.description.trim(),
       category: raw.category,
       status: raw.status,
-      venue: raw.venue.trim(),
+      venue,
       city: raw.city.trim(),
       venueCapacity: raw.venueCapacity,
       publishedAt: existing?.publishedAt ?? (raw.status === 'PUBLICADO' ? new Date().toISOString() : undefined),
       startsAt: new Date(raw.startsAt).toISOString(),
-      imageUrl:
-        raw.imageUrl.trim() ||
-        eventImage({ name: raw.name.trim(), category: raw.category }),
+      imageUrl,
+      imageFocus,
       organizerId: existing?.organizerId ?? this.auth.user()?.id ?? '',
       maxPerOrder: raw.maxPerOrder,
       zones: raw.zones.map((z, i) => ({
@@ -306,4 +452,8 @@ function toLocalInput(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
     d.getHours(),
   )}:${pad(d.getMinutes())}`;
+}
+
+function clampPercent(value: number): number {
+  return Math.min(100, Math.max(0, Math.round(value * 10) / 10));
 }

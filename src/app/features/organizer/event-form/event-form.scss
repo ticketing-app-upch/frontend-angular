@@ -154,12 +154,105 @@ h1.tkt-section-title::before {
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--mat-sys-primary) 13%, transparent);
 }
 
+/* Material posiciona el hint/error con `position: absolute` dentro de una
+ * franja de una sola línea (para no "saltar" al alternar entre ambos), así
+ * que un hint largo de 2-3 líneas queda flotando encima de lo que sigue
+ * (aquí, la vista previa de imagen) en vez de empujarlo hacia abajo. Lo
+ * devolvemos al flujo normal para que sí reserve el espacio que ocupa. */
+.form ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+  height: auto;
+}
+.form ::ng-deep .mat-mdc-form-field-hint-wrapper,
+.form ::ng-deep .mat-mdc-form-field-error-wrapper {
+  position: static;
+}
+
 /* fila de dos columnas, con espacio suficiente para los hints */
 .two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1.15rem 1rem;
   align-items: start;
+}
+
+/* ---------- Fuente de la imagen de portada ---------- */
+.image-source {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.image-source-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 80%, transparent);
+}
+.image-source-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.1rem;
+}
+.image-source .tkt-muted { margin: 0.1rem 0 0.2rem; }
+
+.image-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 0.4rem;
+}
+.image-focus-frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  cursor: crosshair;
+  touch-action: none;
+}
+.image-focus-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+  pointer-events: none;
+}
+.image-focus-handle {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: color-mix(in srgb, var(--mat-sys-primary) 85%, white);
+  border: 3px solid white;
+  box-shadow: 0 2px 10px rgba(16, 12, 40, 0.5), 0 0 0 1px color-mix(in srgb, var(--mat-sys-primary) 50%, transparent);
+  cursor: grab;
+  touch-action: none;
+}
+.image-focus-handle:active { cursor: grabbing; }
+.image-focus-handle:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+.image-focus-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.image-focus-actions .tkt-muted { margin: 0; flex: 1; min-width: 200px; }
+.image-preview.failed .image-focus-frame {
+  aspect-ratio: auto;
+  border-color: color-mix(in srgb, var(--mat-sys-error) 40%, transparent);
+}
+.image-preview.failed .image-focus-frame img { display: none; }
+.image-preview.failed .tkt-muted {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  color: var(--mat-sys-error);
 }
 
 /* ---------- Zonas ---------- */

@@ -42,6 +42,13 @@ export interface EventItem {
   /** Capacidad física declarada del recinto. */
   venueCapacity?: number;
   imageUrl: string;
+  /**
+   * Punto de interés (0-100, % desde la esquina superior izquierda) para el
+   * recorte de `imageUrl` en la tarjeta y el banner. Sólo lo define el
+   * organizador cuando sube una imagen propia (artista/URL); si falta, se usa
+   * el encuadre por defecto (centrado, sesgado hacia arriba).
+   */
+  imageFocus?: { x: number; y: number };
   organizerId: string;
   /** Máximo de entradas por transacción. */
   maxPerOrder: number;

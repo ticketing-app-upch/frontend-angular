@@ -92,11 +92,87 @@
           <input matInput type="number" min="1" step="1" formControlName="venueCapacity" />
           <mat-hint>La suma de zonas no puede superar este aforo.</mat-hint>
         </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>URL de imagen (opcional)</mat-label>
-          <input matInput formControlName="imageUrl" placeholder="https://…" />
-          <mat-hint>Si la dejas vacía, generamos una imagen para tu evento.</mat-hint>
-        </mat-form-field>
+        <div class="image-source">
+          <span class="image-source-label">Imagen de portada (opcional)</span>
+          <mat-radio-group formControlName="imageSource" class="image-source-options">
+            @for (opt of imageSourceOptions(); track opt.value) {
+              <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+            }
+          </mat-radio-group>
+
+          @switch (form.controls.imageSource.value) {
+            @case ('venue') {
+              <p class="tkt-muted">
+                @if (hasVenuePhoto()) {
+                  Usaremos la foto real de "{{ form.controls.venue.value || 'este recinto' }}".
+                } @else {
+                  No tenemos una foto propia de este recinto; usaremos una imagen genérica acorde a la categoría.
+                }
+              </p>
+            }
+            @case ('teams') {
+              <p class="tkt-muted">
+                Mostraremos los escudos de ambos equipos sobre una imagen de fondo de estadio. Escribe el evento como "Equipo A vs Equipo B" para que se detecten.
+              </p>
+            }
+            @default {
+              <mat-form-field appearance="outline">
+                <mat-label>{{ form.controls.imageSource.value === 'artist' ? 'URL de la imagen del artista' : 'URL de la imagen' }}</mat-label>
+                <input matInput formControlName="imageUrl" placeholder="https://…" />
+                @if (needsImageUrl() && !form.controls.imageUrl.value.trim() && form.controls.imageUrl.touched) {
+                  <mat-error>Ingresa la URL de la imagen.</mat-error>
+                } @else {
+                  <mat-hint>
+                    Debe ser el enlace directo al archivo (termina en .jpg, .png…), no el enlace de la página donde la viste. En Google Imágenes, abre la foto en su tamaño completo y copia esa URL.
+                  </mat-hint>
+                }
+              </mat-form-field>
+
+              @if (imagePreviewUrl(); as preview) {
+                <div class="image-preview" [class.failed]="imagePreviewFailed()">
+                  <div
+                    #focusFrame
+                    class="image-focus-frame"
+                    (pointerdown)="onFocusPointerDown($event, focusFrame)"
+                  >
+                    <img
+                      [src]="preview"
+                      alt="Vista previa"
+                      [style.object-position]="imageFocusX() + '% ' + imageFocusY() + '%'"
+                      (error)="onImagePreviewError()"
+                      (load)="onImagePreviewLoad()"
+                    />
+                    @if (!imagePreviewFailed()) {
+                      <button
+                        type="button"
+                        class="image-focus-handle"
+                        [style.left]="imageFocusX() + '%'"
+                        [style.top]="imageFocusY() + '%'"
+                        (pointerdown)="onFocusPointerDown($event, focusFrame)"
+                        (keydown)="onFocusKeydown($event)"
+                        aria-label="Punto de enfoque de la imagen: arrastra o usa las flechas para elegir qué parte se ve"
+                      ></button>
+                    }
+                  </div>
+                  @if (imagePreviewFailed()) {
+                    <p class="tkt-muted">
+                      No pudimos cargar esa imagen. Verifica que sea el enlace directo al archivo, no a una página web.
+                    </p>
+                  } @else {
+                    <div class="image-focus-actions">
+                      <p class="tkt-muted">
+                        Arrastra el punto para elegir qué parte de la imagen se ve en la tarjeta y en el banner del evento.
+                      </p>
+                      <button mat-stroked-button type="button" (click)="resetImageFocus()">
+                        <mat-icon>center_focus_strong</mat-icon> Centrar automáticamente
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            }
+          }
+        </div>
       </mat-card>
 
       <mat-card class="block">
