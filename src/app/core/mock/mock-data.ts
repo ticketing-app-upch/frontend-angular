@@ -56,7 +56,14 @@ function daysFromNow(days: number, hour = 20): string {
   return d.toISOString();
 }
 
-const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
+/**
+ * Datos "de autor" de la semilla. `SEED_EVENTS` (más abajo) le añade encima
+ * el `imageUrl` calculado por `eventImage()` — un dato *derivado*, no de
+ * autor. `MockStore` usa `RAW_EVENTS` (no `SEED_EVENTS`) para decidir si la
+ * semilla cambió: así, tocar la lógica de imágenes no invalida por error los
+ * eventos/compras que el usuario ya guardó en su navegador.
+ */
+export const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
   {
     id: 'ev-1',
     name: 'Sinfonía bajo las estrellas',
