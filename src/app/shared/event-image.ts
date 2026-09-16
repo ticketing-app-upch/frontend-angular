@@ -249,17 +249,23 @@ const VENUE_MAPS: Record<string, string> = {
 };
 
 /**
- * El Estadio Nacional tiene dos planos oficiales distintos según el formato
- * del evento: fútbol (tribunas Norte/Sur/Oriente/Occidente) o concierto
- * (escenario + Campo A/B). Se elige por los nombres de zona del evento.
+ * Recintos con dos planos oficiales distintos según el formato del evento
+ * (deportivo o concierto), elegidos por los nombres de zona de cada evento.
+ * La clave se compara igual que en `VENUE_MAPS` (substring del recinto).
  */
-const ESTADIO_NACIONAL_MAPS = {
-  concierto: '/events/estadio-nacional-conciertos.png',
-  futbol: '/events/estadio-nacional-partidos.png',
+const DUAL_VENUE_MAPS: Record<string, { concierto: string; futbol: string }> = {
+  'estadio nacional': {
+    concierto: '/events/estadio-nacional-conciertos.png',
+    futbol: '/events/estadio-nacional-partidos.png',
+  },
+  dibos: {
+    concierto: '/events/coliseo-dibos-conciertos.png',
+    futbol: '/events/coliseo-dibos-partidos.png',
+  },
 };
 
 function isConcertLayout(zones: { name: string }[]): boolean {
-  return zones.some((z) => /^campo\s*a$/i.test(z.name.trim()));
+  return zones.some((z) => /^campo\s*a$|^zona vip$|^platinum$/i.test(z.name.trim()));
 }
 
 /**
@@ -313,46 +319,74 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
 };
 
 /**
- * Hotspots del Estadio Nacional. Al tener dos planos-imagen distintos según
- * el formato del evento (ver `ESTADIO_NACIONAL_MAPS`), se guardan aparte y se
- * eligen en `venueHotspots` con el mismo criterio (`isConcertLayout`). Cuando
- * un sector aparece dos veces en la foto (p. ej. Occidente Central a ambos
- * lados del Palco), se repite la misma zona con dos polígonos distintos.
+ * Hotspots de los recintos con dos planos-imagen (ver `DUAL_VENUE_MAPS`), uno
+ * por formato, elegidos en `venueHotspots` con el mismo criterio
+ * (`isConcertLayout`). Cuando un sector aparece dos o más veces en la foto
+ * (p. ej. Occidente Central a ambos lados del Palco), se repite la misma
+ * zona con varios polígonos distintos.
  */
-const ESTADIO_NACIONAL_HOTSPOTS: Record<'concierto' | 'futbol', HotspotTemplate[]> = {
-  concierto: [
-    { match: /^or1$/, points: '4.9,32.9 21.1,32.9 21.1,51.7 4.9,51.7' },
-    { match: /^campo\s*a$/, points: '24.4,32 75.3,32 75.3,54.5 24.4,54.5' },
-    { match: /^occ1$/, points: '78.6,32.9 95.1,32.9 95.1,51.7 78.6,51.7' },
-    { match: /^or2$/, points: '4.9,54.8 21.1,54.8 21.1,84.6 4.9,84.6' },
-    { match: /^campo\s*b$/, points: '24.4,56.7 75.3,56.7 75.3,83 24.4,83' },
-    { match: /^occ2$/, points: '78.6,54.8 95.1,54.8 95.1,84.6 78.6,84.6' },
-    {
-      match: /^norte$/,
-      points:
-        '10,77 15,75.7 20,74.6 25,75.3 30,79.7 35,82.3 40,84.1 45,85 50,85.2 55,85 60,83.9 65,82.3 70,79.7 75,75.3 80,74.6 85,75.7 90,77 90,79.9 85,85 80,88.5 75,91.2 70,93.1 65,94.5 60,95.4 55,96 50,96.2 45,96 40,95.4 35,94.5 30,93.1 25,91.2 20,88.7 15,85 10,80.1',
-    },
-  ],
-  futbol: [
-    { match: /^oriente central$/, points: '37,7 63,7 63,25 37,25' },
-    { match: /^oriente lateral$/, points: '31,7 37,7 37,25 31,25' },
-    { match: /^oriente lateral$/, points: '63,7 69,7 69,25 63,25' },
-    { match: /^occidente central$/, points: '37,73 48,73 48,96 37,96' },
-    { match: /^occidente central$/, points: '51.5,73 62.5,73 62.5,96 51.5,96' },
-    { match: /^occidente lateral$/, points: '31,73 37,73 37,96 31,96' },
-    { match: /^occidente lateral$/, points: '62.5,73 69,73 69,96 62.5,96' },
-    { match: /palco/, points: '48,73 51.5,73 51.5,96 48,96' },
-    {
-      match: /^norte$/,
-      points:
-        '16,35.1 18,27.3 20,21.9 22,18.4 24,15.3 26,13 28,11 30,9.9 32,19.6 32,78.3 30,87.6 28,86.6 26,84.5 24,82.2 22,79.1 20,75.6 18,70.2 16,62.6',
-    },
-    {
-      match: /^sur$/,
-      points:
-        '68,18.2 70,10.7 72,12.4 74,14.3 76,16.5 78,19.8 80,24.2 82,31 84,39 84,59.1 82,66.5 80,73.3 78,77.7 76,81 74,83.3 72,85.1 70,86.8 68,79.3',
-    },
-  ],
+const DUAL_VENUE_HOTSPOTS: Record<string, Record<'concierto' | 'futbol', HotspotTemplate[]>> = {
+  'estadio nacional': {
+    concierto: [
+      { match: /^or1$/, points: '4.9,32.9 21.1,32.9 21.1,51.7 4.9,51.7' },
+      { match: /^campo\s*a$/, points: '24.4,32 75.3,32 75.3,54.5 24.4,54.5' },
+      { match: /^occ1$/, points: '78.6,32.9 95.1,32.9 95.1,51.7 78.6,51.7' },
+      { match: /^or2$/, points: '4.9,54.8 21.1,54.8 21.1,84.6 4.9,84.6' },
+      { match: /^campo\s*b$/, points: '24.4,56.7 75.3,56.7 75.3,83 24.4,83' },
+      { match: /^occ2$/, points: '78.6,54.8 95.1,54.8 95.1,84.6 78.6,84.6' },
+      {
+        match: /^norte$/,
+        points:
+          '10,77 15,75.7 20,74.6 25,75.3 30,79.7 35,82.3 40,84.1 45,85 50,85.2 55,85 60,83.9 65,82.3 70,79.7 75,75.3 80,74.6 85,75.7 90,77 90,79.9 85,85 80,88.5 75,91.2 70,93.1 65,94.5 60,95.4 55,96 50,96.2 45,96 40,95.4 35,94.5 30,93.1 25,91.2 20,88.7 15,85 10,80.1',
+      },
+    ],
+    futbol: [
+      { match: /^oriente central$/, points: '37,7 63,7 63,25 37,25' },
+      { match: /^oriente lateral$/, points: '31,7 37,7 37,25 31,25' },
+      { match: /^oriente lateral$/, points: '63,7 69,7 69,25 63,25' },
+      { match: /^occidente central$/, points: '37,73 48,73 48,96 37,96' },
+      { match: /^occidente central$/, points: '51.5,73 62.5,73 62.5,96 51.5,96' },
+      { match: /^occidente lateral$/, points: '31,73 37,73 37,96 31,96' },
+      { match: /^occidente lateral$/, points: '62.5,73 69,73 69,96 62.5,96' },
+      { match: /palco/, points: '48,73 51.5,73 51.5,96 48,96' },
+      {
+        match: /^norte$/,
+        points:
+          '16,35.1 18,27.3 20,21.9 22,18.4 24,15.3 26,13 28,11 30,9.9 32,19.6 32,78.3 30,87.6 28,86.6 26,84.5 24,82.2 22,79.1 20,75.6 18,70.2 16,62.6',
+      },
+      {
+        match: /^sur$/,
+        points:
+          '68,18.2 70,10.7 72,12.4 74,14.3 76,16.5 78,19.8 80,24.2 82,31 84,39 84,59.1 82,66.5 80,73.3 78,77.7 76,81 74,83.3 72,85.1 70,86.8 68,79.3',
+      },
+    ],
+  },
+  dibos: {
+    concierto: [
+      { match: /^general$/, points: '22,0.3 79,0.3 79,12.4 22,12.4' },
+      { match: /^general$/, points: '22,87.6 79,87.6 79,99.7 22,99.7' },
+      { match: /^general$/, points: '0.4,22 12.7,22 12.7,79 0.4,79' },
+      { match: /^general$/, points: '87.9,22 99.8,22 99.8,79 87.9,79' },
+      { match: /^zona vip$/, points: '31,16.5 68,16.5 68,24.9 31,24.9' },
+      { match: /^zona vip$/, points: '31,75.4 68,75.4 68,83.8 31,83.8' },
+      { match: /^zona vip$/, points: '16.6,31 24.9,31 24.9,68 16.6,68' },
+      { match: /^zona vip$/, points: '75.1,31 83.4,31 83.4,68 75.1,68' },
+      { match: /^platinum$/, points: '28.2,30.3 47.6,30.3 47.6,48.1 28.2,48.1' },
+      { match: /^platinum$/, points: '52.3,30.3 71.9,30.3 71.9,48.1 52.3,48.1' },
+      { match: /^platinum$/, points: '28.2,51.8 47.6,51.8 47.6,69.7 28.2,69.7' },
+      { match: /^platinum$/, points: '52.3,51.8 71.9,51.8 71.9,69.7 52.3,69.7' },
+    ],
+    futbol: [
+      { match: /^alta general$/, points: '24,18 75,18 75,28 24,28' },
+      { match: /^alta general$/, points: '24,84.6 75,84.6 75,96.6 24,96.6' },
+      { match: /^alta general$/, points: '0.7,18 13.5,18 13.5,85 0.7,85' },
+      { match: /^alta general$/, points: '85.7,18 98.9,18 98.9,85 85.7,85' },
+      { match: /^oriente preferencial$/, points: '33.9,30.4 65.7,30.4 65.7,36.3 33.9,36.3' },
+      { match: /^occidente preferencial$/, points: '29.1,75.1 70.4,75.1 70.4,81.4 29.1,81.4' },
+      { match: /^norte preferencial$/, points: '12,36.3 25,36.3 25,75.1 12,75.1' },
+      { match: /^sur preferencial$/, points: '74,36.3 85,36.3 85,75.1 74,75.1' },
+    ],
+  },
 };
 
 /**
@@ -392,8 +426,10 @@ function venueKey(venue: string): string {
 export function venueMap(venue: string | undefined, zones: { name: string }[] = []): string | null {
   if (!venue) return null;
   const key = venueKey(venue);
-  if (key.includes('estadio nacional')) {
-    return isConcertLayout(zones) ? ESTADIO_NACIONAL_MAPS.concierto : ESTADIO_NACIONAL_MAPS.futbol;
+  const dualKey = Object.keys(DUAL_VENUE_MAPS).find((k) => key.includes(k));
+  if (dualKey) {
+    const maps = DUAL_VENUE_MAPS[dualKey];
+    return isConcertLayout(zones) ? maps.concierto : maps.futbol;
   }
   for (const k of Object.keys(VENUE_MAPS)) {
     if (key.includes(k)) return VENUE_MAPS[k];
@@ -408,8 +444,9 @@ export function venueHotspots(
 ): { id: string; points: string }[] {
   if (!venue) return [];
   const key = venueKey(venue);
-  const templates = key.includes('estadio nacional')
-    ? ESTADIO_NACIONAL_HOTSPOTS[isConcertLayout(zones) ? 'concierto' : 'futbol']
+  const dualKey = Object.keys(DUAL_VENUE_HOTSPOTS).find((k) => key.includes(k));
+  const templates = dualKey
+    ? DUAL_VENUE_HOTSPOTS[dualKey][isConcertLayout(zones) ? 'concierto' : 'futbol']
     : VENUE_MAP_HOTSPOTS[Object.keys(VENUE_MAP_HOTSPOTS).find((k) => key.includes(k)) ?? ''];
   if (!templates) return [];
   const out: { id: string; points: string }[] = [];

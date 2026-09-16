@@ -208,9 +208,11 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 4,
     zones: [
-      { id: 'z-8a', name: 'Occidente', price: 150, capacity: 1800, sold: 1800 },
-      { id: 'z-8b', name: 'Oriente', price: 120, capacity: 1800, sold: 1800 },
-      { id: 'z-8c', name: 'Populares', price: 55, capacity: 2400, sold: 2400 },
+      { id: 'z-8a', name: 'Alta General', price: 55, capacity: 2400, sold: 2400 },
+      { id: 'z-8b', name: 'Oriente Preferencial', price: 120, capacity: 900, sold: 900 },
+      { id: 'z-8c', name: 'Occidente Preferencial', price: 120, capacity: 900, sold: 900 },
+      { id: 'z-8d', name: 'Norte Preferencial', price: 150, capacity: 700, sold: 700 },
+      { id: 'z-8e', name: 'Sur Preferencial', price: 150, capacity: 700, sold: 700 },
     ],
   },
   {
@@ -377,6 +379,24 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
       { id: 'z-17e', name: 'OCC1', price: 190, capacity: 3000, sold: 1500 },
       { id: 'z-17f', name: 'OCC2', price: 130, capacity: 3000, sold: 1250 },
       { id: 'z-17g', name: 'Norte', price: 85, capacity: 12000, sold: 5300 },
+    ],
+  },
+  {
+    id: 'ev-18',
+    name: 'Noche de Salsa — Leyendas en Vivo',
+    description:
+      'Concierto de salsa con orquesta en vivo y artistas invitados. El Coliseo Dibós se arma en formato concierto: escenario al centro, zona VIP y tribunas Platinum alrededor.',
+    category: 'CONCIERTO',
+    status: 'PUBLICADO',
+    venue: 'Coliseo Eduardo Dibós',
+    city: 'Lima',
+    startsAt: daysFromNow(33, 20),
+    organizerId: 'u-org-1',
+    maxPerOrder: 6,
+    zones: [
+      { id: 'z-18a', name: 'Platinum', price: 320, capacity: 800, sold: 410 },
+      { id: 'z-18b', name: 'Zona VIP', price: 210, capacity: 1200, sold: 640 },
+      { id: 'z-18c', name: 'General', price: 110, capacity: 2600, sold: 1500 },
     ],
   },
 ];
