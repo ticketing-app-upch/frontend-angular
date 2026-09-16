@@ -313,8 +313,9 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 6,
     zones: [
-      { id: 'z-14a', name: 'General', price: 170, capacity: 6000, sold: 5780 },
-      { id: 'z-14b', name: 'VIP', price: 360, capacity: 1200, sold: 1180 },
+      { id: 'z-14a', name: 'Campo A', price: 220, capacity: 3500, sold: 3200 },
+      { id: 'z-14b', name: 'Campo B', price: 160, capacity: 3000, sold: 2700 },
+      { id: 'z-14c', name: 'Tribuna', price: 280, capacity: 1400, sold: 1050 },
     ],
   },
   {

@@ -245,6 +245,7 @@ const BY_VENUE: { test: RegExp; url: string }[] = [
 const VENUE_MAPS: Record<string, string> = {
   monumental: '/events/map-monumental.webp',
   'parque de la exposicion': '/events/anfiteatro-del-parque-de-la-exposicion-en-peru.jpg',
+  'arena 1': '/events/arena-1-costa-verde.png',
 };
 
 /**
@@ -302,6 +303,12 @@ const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
       match: /general/,
       points: '66,66.6 70,65.5 77,57.5 79,48.5 78.5,38 76.5,33.5 69.5,28.5 66,27',
     },
+  ],
+  'arena 1': [
+    { match: /^campo\s*a$/, points: '10.2,21.2 88.4,21.2 88.4,51.5 10.2,51.5' },
+    { match: /^campo\s*b$/, points: '10.2,53.4 88.4,53.4 88.4,76.1 10.2,76.1' },
+    { match: /^tribuna$/, points: '10.2,77.9 38.6,77.9 38.6,95.7 10.2,95.7' },
+    { match: /^tribuna$/, points: '60,77.9 88.4,77.9 88.4,95.7 60,95.7' },
   ],
 };
 
