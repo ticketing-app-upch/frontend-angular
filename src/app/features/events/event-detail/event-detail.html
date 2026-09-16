@@ -33,7 +33,11 @@
         />
       </div>
     } @else {
-      <img [src]="ev.imageUrl" [alt]="ev.name" />
+      <img
+        [src]="ev.imageUrl"
+        [alt]="ev.name"
+        [style.object-position]="ev.imageFocus ? (ev.imageFocus.x + '% ' + ev.imageFocus.y + '%') : null"
+      />
     }
     <div class="banner-shade"></div>
     <div class="banner-text">

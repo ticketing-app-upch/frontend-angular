@@ -165,4 +165,15 @@ export class EventList {
     const available = this.filtered().filter(e => this.capacity(e).available > 0);
     if (available.length) void this.router.navigate(['/eventos', available[Math.floor(Math.random() * available.length)].id]);
   }
+
+  /** Insignia "N experiencias": baja con scroll suave hasta el catálogo. */
+  scrollToCatalog(): void {
+    document.getElementById('catalog-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** Insignia "Tú eliges el presupuesto": abre el planificador (igual que "Encuentra mi plan") y lo trae a la vista. */
+  openPlanner(): void {
+    this.planner.set(true);
+    setTimeout(() => document.getElementById('planner-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+  }
 }
