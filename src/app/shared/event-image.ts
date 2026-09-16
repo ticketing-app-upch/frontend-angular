@@ -3,8 +3,9 @@ import { EventCategory } from '../core/models/event.model';
 /**
  * Imagen de portada para un evento, determinista a partir del nombre/lugar.
  * Prioridad:
- *   1. Fútbol "A vs B"  -> foto de estadio (se usa difuminada de fondo tras
- *      los escudos; ver `matchArt`).
+ *   1. Deporte "A vs B" -> foto de estadio o cancha según el deporte
+ *      mencionado en el nombre (se usa difuminada de fondo tras los
+ *      escudos; ver `matchArt`).
  *   2. Palabra clave del nombre (orquesta, maratón, gastronomía peruana…).
  *   3. Lugar reconocido (Dibós, Teatro Municipal…) -> foto real del recinto.
  *   4. Pool por categoría (Unsplash).
@@ -20,7 +21,8 @@ export function eventImage(input: {
   const venue = (input.venue ?? '').toLowerCase();
 
   if (matchArt(input.name, input.category)) {
-    return unsplash(pick(FOOTBALL_BG, input.name));
+    const bg = /v[oó]ley|voleibol/i.test(name) ? VOLLEYBALL_BG : FOOTBALL_BG;
+    return unsplash(pick(bg, input.name));
   }
 
   for (const rule of BY_KEYWORD) {
@@ -54,12 +56,13 @@ export function matchArt(name: string, category: EventCategory): MatchArt | null
   if (!teams) return null;
   const [teamA, teamB] = teams;
   // Dispara los escudos si el nombre menciona el deporte, o si ambos equipos
-  // tienen escudo real registrado (así "Cienciano vs Melgar" ya funciona solo).
-  const mentionsFootball = /f[uú]tbol|cl[aá]sico|derbi|derby/i.test(name);
+  // tienen escudo real registrado (así "Cienciano vs Melgar" o "Alianza Lima
+  // vs Regatas Lima" ya funcionan solos, sin que el organizador elija nada).
+  const mentionsKnownSport = /f[uú]tbol|cl[aá]sico|derbi|derby|v[oó]ley|voleibol/i.test(name);
   const bothKnown =
     TEAM_CRESTS[normalizeTeam(teamA)] !== undefined &&
     TEAM_CRESTS[normalizeTeam(teamB)] !== undefined;
-  if (!mentionsFootball && !bothKnown) return null;
+  if (!mentionsKnownSport && !bothKnown) return null;
   return {
     teamA,
     teamB,
@@ -121,6 +124,33 @@ const TEAM_CRESTS: Record<string, string> = {
   'juan pablo ii': '/events/juan pablo II.webp',
   'juan pablo ii college': '/events/juan pablo II.webp',
   'juan pablo': '/events/juan pablo II.webp',
+
+  // Liga Nacional Superior de Vóley. 'alianza lima' y 'universitario' ya
+  // están arriba (comparten club y escudo con el fútbol).
+  usmp: '/events/USMP.png',
+  'universidad san martin de porres': '/events/USMP.png',
+  'san martin de porres': '/events/USMP.png',
+  'circolo sportivo italiano': '/events/Circolo Sportivo.jpg',
+  'circolo sportivo': '/events/Circolo Sportivo.jpg',
+  circolo: '/events/Circolo Sportivo.jpg',
+  'club de regatas lima': '/events/regatas.jpg',
+  'de regatas lima': '/events/regatas.jpg',
+  'regatas lima': '/events/regatas.jpg',
+  regatas: '/events/regatas.jpg',
+  'cultural deportivo geminis': '/events/Géminis club.jpg',
+  'cultural geminis': '/events/Géminis club.jpg',
+  geminis: '/events/Géminis club.jpg',
+  'atletico atenea': '/events/Club Atenea.jpg',
+  atenea: '/events/Club Atenea.jpg',
+  'deportivo soan': '/events/dep soan.jpg',
+  'dep soan': '/events/dep soan.jpg',
+  soan: '/events/dep soan.jpg',
+  'olva latino': '/events/olva latino.jpg',
+  olva: '/events/olva latino.jpg',
+  'deportivo wanka': '/events/wanka.jpg',
+  wanka: '/events/wanka.jpg',
+  'rebaza acosta': '/events/rebaza.png',
+  rebaza: '/events/rebaza.png',
 };
 
 /** Colores de camiseta (conocimiento público, no son los logos). */
@@ -230,12 +260,30 @@ const unsplash = (id: string) => `https://images.unsplash.com/photo-${id}${UNSPL
 /** Fondos de estadio para los partidos de fútbol (van difuminados). */
 const FOOTBALL_BG = ['1431324155629-1a6deb1dec8d', '1489944440615-453fc2b6a9a9'];
 
+/** Fondos de cancha/coliseo para los partidos de vóley (van difuminados). */
+const VOLLEYBALL_BG = ['1547347298-4074fc3086f0', '1553005746-9245ba190489'];
+
 /** Fotos reales de recintos (en /public/events). */
 const BY_VENUE: { test: RegExp; url: string }[] = [
+  { test: /estadio nacional/, url: '/events/Estadio nacional.png' },
   { test: /dib[oó]s/, url: '/events/coliseo-dibos.jpg' },
   { test: /teatro municipal/, url: '/events/teatro-municipal-lima.jpg' },
   { test: /parque de la exposici/, url: '/events/parque-exposicion.jpg' },
 ];
+
+/**
+ * Foto real del recinto, ignorando las reglas de fútbol/palabra clave que
+ * aplica `eventImage()`. Se usa cuando el organizador elige explícitamente
+ * "imagen del recinto" como fuente. `null` si no hay foto registrada para
+ * ese lugar (el llamador debe recurrir a `eventImage()` como respaldo).
+ */
+export function venuePhoto(venue: string | undefined): string | null {
+  const v = (venue ?? '').toLowerCase();
+  for (const rule of BY_VENUE) {
+    if (rule.test.test(v)) return rule.url;
+  }
+  return null;
+}
 
 /**
  * Plano oficial del recinto (imagen a la que tengas derecho de uso, en
