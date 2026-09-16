@@ -10,10 +10,60 @@
     </a>
   </div>
 
-  @if (loading()) {
+  <div class="filter-bar" role="search" aria-label="Buscar y filtrar el panel">
+    <div class="filter-field">
+      <mat-icon>location_on</mat-icon>
+      <select
+        aria-label="Distrito"
+        [ngModel]="districtFilter()"
+        (ngModelChange)="districtFilter.set($event || null)"
+      >
+        <option [value]="null">Todos los distritos</option>
+        @for (d of filterOptions()?.districts ?? []; track d) {
+          <option [value]="d">{{ d }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-field">
+      <mat-icon>category</mat-icon>
+      <select
+        aria-label="Categoría"
+        [ngModel]="categoryFilter()"
+        (ngModelChange)="categoryFilter.set($event || null)"
+      >
+        <option [value]="null">Todas las categorías</option>
+        @for (c of categories; track c) {
+          <option [value]="c">{{ c | titlecase }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-field text">
+      <mat-icon>event_seat</mat-icon>
+      <input
+        type="search"
+        list="sector-suggestions"
+        placeholder="Sector o zona (VIP, General…)"
+        aria-label="Sector o zona"
+        [ngModel]="sectorFilter()"
+        (ngModelChange)="sectorFilter.set($event)"
+      />
+      <datalist id="sector-suggestions">
+        @for (s of filterOptions()?.sectors ?? []; track s) {
+          <option [value]="s"></option>
+        }
+      </datalist>
+    </div>
+    @if (hasActiveFilters()) {
+      <button type="button" class="clear-filters" (click)="clearFilters()">
+        <mat-icon>close</mat-icon> Limpiar filtros
+      </button>
+    }
+  </div>
+
+  @if (loading() && !stats()) {
     <div class="loading"><mat-progress-spinner mode="indeterminate" diameter="42" /></div>
   } @else if (stats(); as s) {
-    <div class="stat-grid">
+    <div class="stat-grid" [class.is-refreshing]="loading()">
       <tkt-stat-card
         icon="payments"
         label="Recaudación total"
@@ -38,6 +88,18 @@
       />
     </div>
 
+    <div class="panel">
+      <div class="panel-head">
+        <h2><mat-icon>map</mat-icon> Lima Metropolitana</h2>
+        <span class="link" style="cursor: default;">Dónde ocurren tus eventos, por distrito</span>
+      </div>
+      <tkt-lima-map
+        [events]="s.byEvent"
+        [selected]="districtFilter()"
+        (districtClick)="districtFilter.set($event)"
+      />
+    </div>
+
     <tkt-zone-insights [rows]="s.byZone ?? []" />
     <div class="panel">
       <div class="panel-head">
@@ -55,8 +117,12 @@
       @if (s.byEvent.length === 0) {
         <tkt-empty-state
           icon="insights"
-          title="Sin datos todavía"
-          message="Publica un evento y registra ventas para ver métricas."
+          [title]="hasActiveFilters() ? 'Sin resultados' : 'Sin datos todavía'"
+          [message]="
+            hasActiveFilters()
+              ? 'Ningún evento coincide con estos filtros. Prueba con otro distrito, categoría o sector.'
+              : 'Publica un evento y registra ventas para ver métricas.'
+          "
         />
       } @else {
         <div class="perf-scroll">
@@ -64,6 +130,7 @@
             <thead>
               <tr>
                 <th>Evento</th>
+                <th>Categoría</th>
                 <th>Fecha</th>
                 <th class="occ-col">Ocupación</th>
                 <th class="num">Vendidas</th>
@@ -74,6 +141,7 @@
               @for (row of s.byEvent; track row.eventId) {
                 <tr>
                   <td class="ev-name">{{ row.eventName }}</td>
+                  <td class="muted">{{ row.category | titlecase }}</td>
                   <td class="muted">{{ row.startsAt | date: 'd MMM y' }}</td>
                   <td>
                     <div class="occ-cell">

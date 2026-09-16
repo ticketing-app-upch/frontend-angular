@@ -1,0 +1,75 @@
+@if (loading()) {
+  <div class="map-status"><mat-progress-spinner mode="indeterminate" diameter="32" /></div>
+} @else if (failed()) {
+  <p class="tkt-muted">No se pudo cargar el mapa de distritos.</p>
+} @else {
+  <div class="map-body">
+    <svg
+      [attr.viewBox]="viewBox"
+      class="map-svg"
+      [class.has-hover]="focused() !== null"
+      role="img"
+      aria-label="Mapa de distritos de Lima Metropolitana y Callao"
+    >
+      @for (f of features(); track f.name) {
+        <path
+          [attr.d]="f.path"
+          [class.has-data]="statsByDistrict().has(f.name)"
+          [class.active]="focused() === f.name"
+          [class.pinned]="selected() === f.name"
+          [style.fill]="fillFor(f.name)"
+          (mouseenter)="hovered.set(f.name)"
+          (mouseleave)="hovered.set(null)"
+          (click)="statsByDistrict().has(f.name) && toggleSelected(f.name)"
+        >
+          <title>{{ f.name }}</title>
+        </path>
+      }
+    </svg>
+
+    <div class="side">
+      @if (selected()) {
+        <button type="button" class="clear-selection" (click)="toggleSelected(selected()!)">
+          <mat-icon>close</mat-icon> Quitar filtro de distrito
+        </button>
+      }
+      @if (focusedStat(); as h) {
+        <div class="district-detail pinned">
+          <span class="eyebrow">{{ h.name }}</span>
+          <strong>{{ h.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</strong>
+          <span class="tkt-muted">
+            {{ h.events }} evento{{ h.events === 1 ? '' : 's' }} · {{ h.sold | number }} entradas
+          </span>
+        </div>
+      } @else if (ranked().length) {
+        <span class="eyebrow">Distritos por recaudación</span>
+        <ol class="ranking">
+          @for (d of ranked(); track d.name) {
+            <li
+              [class.pinned]="selected() === d.name"
+              (mouseenter)="hovered.set(d.name)"
+              (mouseleave)="hovered.set(null)"
+              (click)="toggleSelected(d.name)"
+            >
+              <span class="dot" [style.background]="fillFor(d.name)"></span>
+              <span class="name">{{ d.name }}</span>
+              <span class="rev">{{ d.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</span>
+            </li>
+          }
+        </ol>
+      } @else {
+        <p class="tkt-muted">
+          Aún no hay eventos ubicados en el mapa. Elige un recinto conocido (Estadio Nacional,
+          Dibós, Arena 1…) para que aparezca aquí.
+        </p>
+      }
+      @if (unmatchedCount() > 0) {
+        <p class="unmatched">
+          <mat-icon>info</mat-icon>
+          {{ unmatchedCount() }} evento{{ unmatchedCount() === 1 ? '' : 's' }} con un recinto que
+          aún no ubicamos en el mapa.
+        </p>
+      }
+    </div>
+  </div>
+}
