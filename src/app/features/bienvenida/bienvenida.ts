@@ -29,12 +29,10 @@ import { epicEnabled } from '../../core/demo-scope';
             Demo 1 mantiene visibles las rutas principales en la URL, mientras la
             experiencia visual se concentra en el login y esta confirmación.
           </p>
-          <div class="route-actions" aria-label="Rutas de demo">
-            <a mat-stroked-button routerLink="/eventos">/eventos</a>
-            <a mat-stroked-button routerLink="/mis-entradas">/mis-entradas</a>
-            <a mat-stroked-button routerLink="/organizador/panel">/organizador/panel</a>
-            <a mat-stroked-button routerLink="/admin/resumen">/admin/resumen</a>
-            <a mat-stroked-button routerLink="/validar">/validar</a>
+          <div class="route-actions" aria-label="Accesos disponibles">
+            @for (route of routesForRole(); track route.url) {
+              <a mat-stroked-button [routerLink]="route.url">{{ route.label }}</a>
+            }
           </div>
           <button mat-stroked-button (click)="auth.logout()">
             <mat-icon>logout</mat-icon> Cerrar sesión
@@ -86,5 +84,36 @@ export class Bienvenida {
   roleLabel(): string {
     const role = this.auth.user()?.role;
     return role === 'ADMIN' ? 'Administrador' : role === 'ORGANIZER' ? 'Organizador' : 'Cliente';
+  }
+
+  routesForRole(): { url: string; label: string }[] {
+    switch (this.auth.user()?.role) {
+      case 'ORGANIZER':
+        return [
+          { url: '/eventos', label: 'Explorar eventos' },
+          { url: '/organizador/panel', label: 'Panel del organizador' },
+          { url: '/organizador/eventos', label: 'Mis eventos' },
+          { url: '/organizador/eventos/nuevo', label: 'Crear evento' },
+          { url: '/organizador/eventos/demo/editar', label: 'Editar evento' },
+          { url: '/ayuda', label: 'Ayuda' },
+        ];
+      case 'ADMIN':
+        return [
+          { url: '/admin/resumen', label: 'Resumen administrativo' },
+          { url: '/admin/usuarios', label: 'Gestionar usuarios' },
+          { url: '/admin/eventos', label: 'Gestionar eventos' },
+          { url: '/admin/compras', label: 'Gestionar compras' },
+          { url: '/validar', label: 'Validar entrada' },
+          { url: '/ayuda', label: 'Ayuda' },
+        ];
+      default:
+        return [
+          { url: '/eventos', label: 'Explorar eventos' },
+          { url: '/eventos/demo', label: 'Ver evento' },
+          { url: '/comprar/demo', label: 'Comprar entrada' },
+          { url: '/mis-entradas', label: 'Mis entradas' },
+          { url: '/ayuda', label: 'Ayuda' },
+        ];
+    }
   }
 }
