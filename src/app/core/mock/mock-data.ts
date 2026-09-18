@@ -34,7 +34,7 @@ export const SEED_USERS: SeedUser[] = [
   },
   {
     id: 'u-cli-1',
-    fullName: 'Jesús Morales',
+    fullName: 'Juan Aguilar',
     email: DEMO_CREDENTIALS.CLIENT.email,
     password: DEMO_CREDENTIALS.CLIENT.password,
     role: 'CLIENT',
@@ -362,7 +362,7 @@ export const SEED_ORDERS: TicketOrder[] = [
     eventStartsAt: SEED_EVENTS[0].startsAt,
     eventVenue: 'Parque de la Exposición',
     buyerId: 'u-cli-1',
-    buyerName: 'Jesús Morales',
+    buyerName: 'Juan Aguilar',
     createdAt: daysFromNow(-3, 11),
     status: 'CONFIRMADA',
     lines: [{ zoneId: 'z-1a', zoneName: 'Platea', unitPrice: 180, quantity: 2 }],

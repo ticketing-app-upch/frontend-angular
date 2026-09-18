@@ -289,12 +289,18 @@ form mat-form-field {
 }
 
 .quick-access-btns {
-  display: flex;
-  gap: 0.6rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
 }
 
 .quick-access-btns button {
-  flex: 1;
+  width: 100%;
+  min-height: 42px;
+  justify-content: flex-start;
+  padding-inline: 0.9rem;
+  line-height: 1.2;
+  text-align: left;
 }
 
 .alt {

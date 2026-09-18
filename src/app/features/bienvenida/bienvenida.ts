@@ -22,14 +22,20 @@ import { epicEnabled } from '../../core/demo-scope';
         @if (auth.isAuthenticated()) {
           <h1>¡Sesión iniciada!</h1>
           <p>
-            Hola <strong>{{ auth.user()!.fullName }}</strong>, entraste como
-            <strong>{{ roleLabel() }}</strong>. El token quedó guardado y expira solo;
-            probá recargar la página para ver que la sesión persiste.
+            Hola <strong>{{ auth.user()!.fullName }}</strong>, bienvenido a AlpaTeck.
+            Tu sesión está activa como <strong>{{ roleLabel() }}</strong>.
           </p>
           <p class="muted">
-            El resto de la plataforma (catálogo, compra, paneles) se habilita en las
-            próximas demos, a medida que el backend las respalde.
+            Demo 1 mantiene visibles las rutas principales en la URL, mientras la
+            experiencia visual se concentra en el login y esta confirmación.
           </p>
+          <div class="route-actions" aria-label="Rutas de demo">
+            <a mat-stroked-button routerLink="/eventos">/eventos</a>
+            <a mat-stroked-button routerLink="/mis-entradas">/mis-entradas</a>
+            <a mat-stroked-button routerLink="/organizador/panel">/organizador/panel</a>
+            <a mat-stroked-button routerLink="/admin/resumen">/admin/resumen</a>
+            <a mat-stroked-button routerLink="/validar">/validar</a>
+          </div>
           <button mat-stroked-button (click)="auth.logout()">
             <mat-icon>logout</mat-icon> Cerrar sesión
           </button>
@@ -63,6 +69,14 @@ import { epicEnabled } from '../../core/demo-scope';
     p { margin: 0 0 0.75rem; line-height: 1.5; }
     .muted { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
     .actions { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+    .route-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1.25rem 0;
+    }
+    .route-actions a { font-size: 0.78rem; }
   `,
 })
 export class Bienvenida {

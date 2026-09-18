@@ -51,14 +51,12 @@ export class Login {
     remember: [true],
   });
 
-  fill(kind: 'ORGANIZER' | 'CLIENT'): void {
+  fill(kind: 'ORGANIZER' | 'CLIENT' | 'ADMIN'): void {
     this.form.patchValue(DEMO_CREDENTIALS[kind]);
   }
 
   private homeFor(role: UserRole): string {
-    if (role === 'ADMIN') return '/admin';
-    if (role === 'ORGANIZER') return '/organizador/panel';
-    return '/eventos';
+    return '/bienvenida';
   }
 
   forgotPassword(event: Event): void {
@@ -76,7 +74,7 @@ export class Login {
     this.loading.set(true);
     this.auth.login(this.form.getRawValue()).subscribe({
       next: (res) => {
-        this.notify.success(`Hola, ${res.user.fullName.split(' ')[0]}`);
+        this.notify.success('Inicio de sesión correcto.');
         const redirect = this.route.snapshot.queryParamMap.get('redirect');
         this.router.navigateByUrl(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : this.homeFor(res.user.role));
       },
