@@ -485,9 +485,7 @@ export class Register {
           this.notify.success(
             `Cuenta creada. ¡Bienvenido, ${res.user.fullName.split(' ')[0]}!`,
           );
-          this.router.navigateByUrl(
-            res.user.role === 'ORGANIZER' ? '/organizador/panel' : '/eventos',
-          );
+          this.router.navigateByUrl('/bienvenida');
         },
         error: (err) => {
           this.loading.set(false);

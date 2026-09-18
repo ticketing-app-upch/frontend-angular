@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 const bienvenida = () => import('./features/bienvenida/bienvenida').then((m) => m.Bienvenida);
 const login = () => import('./features/auth/login/login').then((m) => m.Login);
+const register = () => import('./features/auth/register/register').then((m) => m.Register);
 
 export const routes: Routes = [
   {
@@ -45,7 +46,7 @@ export const routes: Routes = [
         children: [
           { path: '', redirectTo: 'login', pathMatch: 'full' },
           { path: 'login', loadComponent: login, title: 'Ingresar · AlpaTeck' },
-          { path: 'register', loadComponent: login, title: 'Crear cuenta · AlpaTeck' },
+          { path: 'register', loadComponent: register, title: 'Crear cuenta · AlpaTeck' },
         ],
       },
     ],

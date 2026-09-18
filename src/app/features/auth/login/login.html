@@ -98,13 +98,6 @@
           }
         </mat-form-field>
 
-        <div class="form-row">
-          <mat-checkbox formControlName="remember">Recuérdame</mat-checkbox>
-          <a href="#" class="forgot" (click)="forgotPassword($event)">
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
-
         <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
           @if (loading()) { Ingresando… } @else { Ingresar }
         </button>

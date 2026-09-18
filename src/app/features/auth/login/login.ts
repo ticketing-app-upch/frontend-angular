@@ -10,7 +10,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -29,7 +28,6 @@ import { DEMO_CREDENTIALS } from '../../../core/mock/mock-data';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule,
     MatProgressBarModule,
   ],
   templateUrl: './login.html',
@@ -48,7 +46,6 @@ export class Login {
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
-    remember: [true],
   });
 
   fill(kind: 'ORGANIZER' | 'CLIENT' | 'ADMIN'): void {
@@ -57,13 +54,6 @@ export class Login {
 
   private homeFor(role: UserRole): string {
     return '/bienvenida';
-  }
-
-  forgotPassword(event: Event): void {
-    event.preventDefault();
-    this.notify.info(
-      'La recuperación de contraseña estará disponible próximamente.',
-    );
   }
 
   submit(): void {
