@@ -29,11 +29,13 @@ import { epicEnabled } from '../../core/demo-scope';
             Demo 1 mantiene visibles las rutas principales en la URL, mientras la
             experiencia visual se concentra en el login y esta confirmación.
           </p>
-          <div class="route-actions" aria-label="Accesos disponibles">
-            @for (route of routesForRole(); track route.url) {
-              <a mat-stroked-button [routerLink]="route.url">{{ route.label }}</a>
-            }
-          </div>
+          @if (routesForRole().length) {
+            <div class="route-actions" aria-label="Accesos disponibles">
+              @for (route of routesForRole(); track route.url) {
+                <a mat-stroked-button [routerLink]="route.url">{{ route.label }}</a>
+              }
+            </div>
+          }
           <button mat-stroked-button (click)="auth.logout()">
             <mat-icon>logout</mat-icon> Cerrar sesión
           </button>
@@ -94,9 +96,7 @@ export class Bienvenida {
           { url: '/organizer/dashboard', label: 'Dashboard de ventas' },
         ];
       case 'ADMIN':
-        return [
-          { url: '/admin/panel', label: 'Panel central' },
-        ];
+        return [];
       default:
         return [
           { url: '/attendee/catalog', label: 'Catálogo de eventos' },

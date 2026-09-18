@@ -7,7 +7,7 @@
     </a>
 
     <nav class="links" aria-label="Navegación principal">
-      @if (epicEnabled(2)) {
+      @if (isClient() && epicEnabled(2)) {
         <a routerLink="/attendee/catalog" routerLinkActive="active">Eventos</a>
       }
       @if (isClient() && epicEnabled(3)) {
@@ -20,9 +20,6 @@
         @if (epicEnabled(2)) {
           <a routerLink="/organizer/create-event" routerLinkActive="active">Crear evento</a>
         }
-      }
-      @if (isAdmin()) {
-        <a routerLink="/admin/panel" routerLinkActive="active">Administración</a>
       }
     </nav>
 
@@ -64,11 +61,6 @@
             <mat-icon>insights</mat-icon> Dashboard de ventas
           </a>
         }
-        @if (isAdmin()) {
-          <a mat-menu-item routerLink="/admin/panel">
-            <mat-icon>shield_person</mat-icon> Administración
-          </a>
-        }
         <mat-divider />
         <button mat-menu-item (click)="logout()"><mat-icon>logout</mat-icon> Cerrar sesión</button>
       </mat-menu>
@@ -84,7 +76,7 @@
 </main>
 
 <nav class="mobile-nav" aria-label="Navegación móvil">
-  @if (epicEnabled(2)) {
+  @if (isClient() && epicEnabled(2)) {
     <a routerLink="/attendee/catalog" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
     <a routerLink="/attendee/catalog" [queryParams]="{ saved: '1' }"
       ><mat-icon>favorite_border</mat-icon>Guardados</a
@@ -96,11 +88,7 @@
     <a routerLink="/organizer/dashboard" routerLinkActive="active"
       ><mat-icon>insights</mat-icon>Dashboard</a
     >
-  } @else if (isAdmin()) {
-    <a routerLink="/admin/panel" routerLinkActive="active"
-      ><mat-icon>admin_panel_settings</mat-icon>Admin</a
-    >
-  } @else if (epicEnabled(3)) {
+  } @else if (isClient() && epicEnabled(3)) {
     <a routerLink="/attendee/tickets" routerLinkActive="active"
       ><mat-icon>confirmation_number</mat-icon>Tickets</a
     >

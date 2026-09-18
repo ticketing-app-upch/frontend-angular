@@ -36,11 +36,6 @@ export const routes: Routes = [
         title: 'Dashboard de ventas · AlpaTeck',
       },
       {
-        path: 'admin/panel',
-        loadComponent: bienvenida,
-        title: 'Panel administrativo · AlpaTeck',
-      },
-      {
         path: 'auth',
         children: [
           { path: '', redirectTo: 'login', pathMatch: 'full' },
