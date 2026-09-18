@@ -9,105 +9,46 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/main-layout/main-layout').then((m) => m.MainLayout),
     children: [
       { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+      { path: 'bienvenida', loadComponent: bienvenida, title: 'Bienvenida · AlpaTeck' },
       {
-        path: 'bienvenida',
+        path: 'attendee/catalog',
         loadComponent: bienvenida,
-        title: 'Bienvenida · AlpaTeck',
+        title: 'Catálogo de eventos · AlpaTeck',
       },
       {
-        path: 'eventos',
+        path: 'attendee/event/:id',
         loadComponent: bienvenida,
-        title: 'Eventos · AlpaTeck',
+        title: 'Detalle y compra · AlpaTeck',
       },
       {
-        path: 'eventos/:id',
+        path: 'attendee/tickets',
         loadComponent: bienvenida,
-        title: 'Detalle del evento · AlpaTeck',
+        title: 'Mis tickets · AlpaTeck',
       },
       {
-        path: 'comprar/:eventId',
+        path: 'organizer/create-event',
         loadComponent: bienvenida,
-        title: 'Comprar entradas · AlpaTeck',
+        title: 'Crear evento · AlpaTeck',
       },
       {
-        path: 'mis-entradas',
+        path: 'organizer/dashboard',
         loadComponent: bienvenida,
-        title: 'Mis entradas · AlpaTeck',
+        title: 'Dashboard de ventas · AlpaTeck',
       },
       {
-        path: 'organizador',
-        children: [
-          { path: '', redirectTo: 'panel', pathMatch: 'full' },
-          {
-            path: 'panel',
-            loadComponent: bienvenida,
-            title: 'Panel del organizador · AlpaTeck',
-          },
-          {
-            path: 'eventos',
-            loadComponent: bienvenida,
-            title: 'Mis eventos · AlpaTeck',
-          },
-          {
-            path: 'eventos/nuevo',
-            loadComponent: bienvenida,
-            title: 'Nuevo evento · AlpaTeck',
-          },
-          {
-            path: 'eventos/:id/editar',
-            loadComponent: bienvenida,
-            title: 'Editar evento · AlpaTeck',
-          },
-        ],
-      },
-      {
-        path: 'admin',
-        children: [
-          { path: '', redirectTo: 'resumen', pathMatch: 'full' },
-          {
-            path: 'resumen',
-            loadComponent: bienvenida,
-            title: 'Administración · AlpaTeck',
-          },
-          {
-            path: 'usuarios',
-            loadComponent: bienvenida,
-            title: 'Usuarios · Administración',
-          },
-          {
-            path: 'eventos',
-            loadComponent: bienvenida,
-            title: 'Eventos · Administración',
-          },
-          {
-            path: 'compras',
-            loadComponent: bienvenida,
-            title: 'Compras · Administración',
-          },
-        ],
+        path: 'admin/panel',
+        loadComponent: bienvenida,
+        title: 'Panel administrativo · AlpaTeck',
       },
       {
         path: 'auth',
         children: [
           { path: '', redirectTo: 'login', pathMatch: 'full' },
-          {
-            path: 'login',
-            loadComponent: login,
-            title: 'Ingresar · AlpaTeck',
-          },
-          {
-            path: 'registro',
-            loadComponent: login,
-            title: 'Crear cuenta · AlpaTeck',
-          },
+          { path: 'login', loadComponent: login, title: 'Ingresar · AlpaTeck' },
+          { path: 'register', loadComponent: login, title: 'Crear cuenta · AlpaTeck' },
         ],
       },
     ],
-  },
-  {
-    path: 'validar',
-    loadComponent: bienvenida,
-    title: 'Validar entrada · AlpaTeck',
   },
   { path: '**', redirectTo: '' },
 ];

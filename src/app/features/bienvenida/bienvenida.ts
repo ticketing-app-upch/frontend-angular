@@ -44,7 +44,7 @@ import { epicEnabled } from '../../core/demo-scope';
             un token distinto según seas Cliente, Organizador o Administrador.
           </p>
           <div class="actions">
-            <a mat-flat-button class="tkt-cta" routerLink="/auth/registro">Crear cuenta</a>
+            <a mat-flat-button class="tkt-cta" routerLink="/auth/register">Crear cuenta</a>
             <a mat-stroked-button routerLink="/auth/login">Ya tengo cuenta</a>
           </div>
         }
@@ -90,26 +90,18 @@ export class Bienvenida {
     switch (this.auth.user()?.role) {
       case 'ORGANIZER':
         return [
-          { url: '/eventos', label: 'Explorar eventos' },
-          { url: '/organizador/panel', label: 'Panel del organizador' },
-          { url: '/organizador/eventos', label: 'Mis eventos' },
-          { url: '/organizador/eventos/nuevo', label: 'Crear evento' },
-          { url: '/organizador/eventos/demo/editar', label: 'Editar evento' },
+          { url: '/organizer/create-event', label: 'Crear evento' },
+          { url: '/organizer/dashboard', label: 'Dashboard de ventas' },
         ];
       case 'ADMIN':
         return [
-          { url: '/admin/resumen', label: 'Resumen administrativo' },
-          { url: '/admin/usuarios', label: 'Gestionar usuarios' },
-          { url: '/admin/eventos', label: 'Gestionar eventos' },
-          { url: '/admin/compras', label: 'Gestionar compras' },
-          { url: '/validar', label: 'Validar entrada' },
+          { url: '/admin/panel', label: 'Panel central' },
         ];
       default:
         return [
-          { url: '/eventos', label: 'Explorar eventos' },
-          { url: '/eventos/demo', label: 'Ver evento' },
-          { url: '/comprar/demo', label: 'Comprar entrada' },
-          { url: '/mis-entradas', label: 'Mis entradas' },
+          { url: '/attendee/catalog', label: 'Catálogo de eventos' },
+          { url: '/attendee/event/1', label: 'Detalle y compra' },
+          { url: '/attendee/tickets', label: 'Mis tickets' },
         ];
     }
   }

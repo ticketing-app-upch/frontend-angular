@@ -26,8 +26,8 @@ import { epicEnabled } from '../../core/demo-scope';
 })
 export class MainLayout {
   readonly epicEnabled = epicEnabled;
-  /** A dónde manda el logo y el "cerrar sesión": catálogo si ya está prendido, si no la landing segura. */
-  readonly homeLink = epicEnabled(2) ? '/eventos' : '/bienvenida';
+  /** En Demo 1 el logo y el cierre de sesión regresan al acceso. */
+  readonly homeLink = '/auth/login';
   readonly dark = signal(false);
   private router = inject(Router);
   constructor() {
