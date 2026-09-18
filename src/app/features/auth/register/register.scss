@@ -302,27 +302,6 @@ form mat-form-field {
   flex: 1;
 }
 
-/* ---------- Consentimientos ---------- */
-.consents {
-  gap: 0.4rem;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
-}
-.consents mat-checkbox {
-  font-size: 0.83rem;
-  line-height: 1.4;
-}
-.consents a {
-  color: var(--mat-sys-primary);
-  font-weight: 600;
-}
-.c-error {
-  margin: 0 0 0.2rem;
-  font-size: 0.74rem;
-  color: var(--mat-sys-error);
-}
-
 .submit {
   margin-top: 0.35rem;
   height: 46px;
