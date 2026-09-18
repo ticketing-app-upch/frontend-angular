@@ -5,7 +5,6 @@
   <div class="tkt-cluster ticket-filters">
     <label>Buscar <input type="search" placeholder="Evento o código" [ngModel]="search()" (ngModelChange)="search.set($event)" /></label>
     <label>Mostrar <select [ngModel]="filter()" (ngModelChange)="filter.set($event)"><option value="all">Todas</option><option value="upcoming">Próximas</option><option value="past">Pasadas</option><option value="cancelled">Canceladas</option></select></label>
-    <a mat-button routerLink="/ayuda">Ayuda con mis entradas</a>
   </div>
   @if (error()) { <p role="alert">No pudimos cargar tus compras.</p><button mat-stroked-button (click)="load()">Reintentar</button> }
   @if (loading()) {

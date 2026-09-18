@@ -95,7 +95,6 @@ export class Bienvenida {
           { url: '/organizador/eventos', label: 'Mis eventos' },
           { url: '/organizador/eventos/nuevo', label: 'Crear evento' },
           { url: '/organizador/eventos/demo/editar', label: 'Editar evento' },
-          { url: '/ayuda', label: 'Ayuda' },
         ];
       case 'ADMIN':
         return [
@@ -104,7 +103,6 @@ export class Bienvenida {
           { url: '/admin/eventos', label: 'Gestionar eventos' },
           { url: '/admin/compras', label: 'Gestionar compras' },
           { url: '/validar', label: 'Validar entrada' },
-          { url: '/ayuda', label: 'Ayuda' },
         ];
       default:
         return [
@@ -112,7 +110,6 @@ export class Bienvenida {
           { url: '/eventos/demo', label: 'Ver evento' },
           { url: '/comprar/demo', label: 'Comprar entrada' },
           { url: '/mis-entradas', label: 'Mis entradas' },
-          { url: '/ayuda', label: 'Ayuda' },
         ];
     }
   }

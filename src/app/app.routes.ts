@@ -15,11 +15,6 @@ export const routes: Routes = [
         title: 'Bienvenida · AlpaTeck',
       },
       {
-        path: 'ayuda',
-        loadComponent: bienvenida,
-        title: 'Ayuda · AlpaTeck',
-      },
-      {
         path: 'eventos',
         loadComponent: bienvenida,
         title: 'Eventos · AlpaTeck',
