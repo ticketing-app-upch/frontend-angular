@@ -100,7 +100,8 @@ export class Bienvenida {
       default:
         return [
           { url: '/attendee/catalog', label: 'Catálogo de eventos' },
-          { url: '/attendee/event/1', label: 'Detalle y compra' },
+          { url: '/attendee/event/1', label: 'Detalle del evento' },
+          { url: '/attendee/checkout/1', label: 'Compra de entradas' },
           { url: '/attendee/tickets', label: 'Mis tickets' },
         ];
     }

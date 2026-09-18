@@ -18,7 +18,12 @@ export const routes: Routes = [
       {
         path: 'attendee/event/:id',
         loadComponent: bienvenida,
-        title: 'Detalle y compra · AlpaTeck',
+        title: 'Detalle del evento · AlpaTeck',
+      },
+      {
+        path: 'attendee/checkout/:id',
+        loadComponent: bienvenida,
+        title: 'Compra de entradas · AlpaTeck',
       },
       {
         path: 'attendee/tickets',
