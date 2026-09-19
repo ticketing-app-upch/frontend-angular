@@ -3,6 +3,7 @@ import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { EventService } from '../../../core/services/event.service';
 import { DiscoveryService } from '../../../core/services/discovery.service';
@@ -30,7 +31,7 @@ export class EventCompare {
 @Component({
   selector: 'tkt-event-list',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, FormsModule, CurrencyPipe, DatePipe, DecimalPipe, MatIconModule, MatDialogModule],
+  imports: [RouterLink, FormsModule, CurrencyPipe, DatePipe, DecimalPipe, MatIconModule, MatSelectModule, MatDialogModule],
   templateUrl: './event-list.html',
   styleUrl: './event-list.scss',
 })
@@ -163,5 +164,16 @@ export class EventList {
   surprise(): void {
     const available = this.filtered().filter(e => this.capacity(e).available > 0);
     if (available.length) void this.router.navigate(['/eventos', available[Math.floor(Math.random() * available.length)].id]);
+  }
+
+  /** Insignia "N experiencias": baja con scroll suave hasta el catálogo. */
+  scrollToCatalog(): void {
+    document.getElementById('catalog-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** Insignia "Tú eliges el presupuesto": abre el planificador (igual que "Encuentra mi plan") y lo trae a la vista. */
+  openPlanner(): void {
+    this.planner.set(true);
+    setTimeout(() => document.getElementById('planner-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   }
 }

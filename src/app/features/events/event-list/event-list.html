@@ -8,7 +8,10 @@
         <button class="primary" (click)="planner.set(!planner())"><mat-icon>auto_awesome</mat-icon> Encuentra mi plan</button>
         <button class="text-button" (click)="surprise()" [disabled]="!filtered().length">Sorpréndeme <mat-icon>north_east</mat-icon></button>
       </div>
-      <div class="trust"><span><mat-icon>confirmation_number</mat-icon> {{ publicCount() }} experiencias</span><span><mat-icon>tune</mat-icon> Tú eliges el presupuesto</span></div>
+      <div class="trust">
+        <button type="button" (click)="scrollToCatalog()"><mat-icon>confirmation_number</mat-icon> {{ publicCount() }} experiencias</button>
+        <button type="button" (click)="openPlanner()"><mat-icon>tune</mat-icon> Tú eliges el presupuesto</button>
+      </div>
     </div>
     @if (featured(); as event) {
       <div
@@ -17,7 +20,13 @@
         (mouseleave)="featuredPaused.set(false)"
       >
         <a class="feature" [routerLink]="['/eventos', event.id]">
-          <img [src]="event.imageUrl" [alt]="event.name" fetchpriority="high" />
+          <img
+            [src]="event.imageUrl"
+            [alt]="event.name"
+            fetchpriority="high"
+            [class.is-match]="matchArt(event.name, event.category)"
+            [style.object-position]="event.imageFocus ? (event.imageFocus.x + '% ' + event.imageFocus.y + '%') : null"
+          />
           @if (matchArt(event.name, event.category); as m) {
             <div class="match-crests">
               <img [src]="m.crestA" [alt]="m.teamA" (error)="m.crestA = m.crestAAlt" />
@@ -42,22 +51,30 @@
   </section>
   <section class="search-panel" aria-label="Buscar experiencias">
     <div class="searchbox"><mat-icon>search</mat-icon><input type="search" aria-label="Buscar evento, artista o lugar" placeholder="Un artista, un evento, un lugar…" [ngModel]="search()" (ngModelChange)="search.set($event); sync()" /></div>
-    <label class="select-field"><mat-icon>calendar_today</mat-icon><select aria-label="Cuándo" [ngModel]="date()" (ngModelChange)="date.set($event); sync()"><option value="any">Cualquier fecha</option><option value="week">Próximos 7 días</option><option value="month">Próximos 30 días</option></select></label>
-    <label class="select-field venue"><mat-icon>location_on</mat-icon><select aria-label="Recinto" [ngModel]="venue()" (ngModelChange)="venue.set($event); page.set(1)"><option value="">Todos los recintos</option>@for (v of venues(); track v) { <option [value]="v">{{ v }}</option> }</select></label>
+    <div class="select-field"><mat-icon>calendar_today</mat-icon><mat-select aria-label="Cuándo" [ngModel]="date()" (ngModelChange)="date.set($event); sync()" panelClass="tkt-filter-panel"><mat-option value="any">Cualquier fecha</mat-option><mat-option value="week">Próximos 7 días</mat-option><mat-option value="month">Próximos 30 días</mat-option></mat-select></div>
+    <div class="select-field venue"><mat-icon>location_on</mat-icon><mat-select aria-label="Recinto" [ngModel]="venue()" (ngModelChange)="venue.set($event); page.set(1)" panelClass="tkt-filter-panel"><mat-option value="">Todos los recintos</mat-option>@for (v of venues(); track v) { <mat-option [value]="v">{{ v }}</mat-option> }</mat-select></div>
   </section>
   @if (planner()) {
-    <section class="planner" aria-label="Planificador por presupuesto">
+    <section id="planner-section" class="planner" aria-label="Planificador por presupuesto">
       <div><span class="eyebrow">ALPATECK MATCH</span><h2>Un buen plan también cuida tu bolsillo.</h2><p>Buscamos una zona con cupos para tu grupo. El total incluye el 6% de servicio.</p></div>
-      <div class="planner-controls"><label>¿Cuántos van? <select aria-label="Personas del grupo" [ngModel]="party()" (ngModelChange)="party.set(+$event); page.set(1)">@for(n of [1,2,3,4,5,6]; track n){<option [value]="n">{{ n }} {{ n === 1 ? 'persona' : 'personas' }}</option>}</select></label>
+      <div class="planner-controls"><label>¿Cuántos van?
+        <div class="sort-field party-field">
+          <select aria-label="Personas del grupo" [ngModel]="party()" (ngModelChange)="party.set(+$event); page.set(1)">@for(n of [1,2,3,4,5,6]; track n){<option [value]="n">{{ n }} {{ n === 1 ? 'persona' : 'personas' }}</option>}</select>
+          <mat-icon>expand_more</mat-icon>
+        </div>
+      </label>
       <label>Presupuesto total <strong>{{ budget() | currency:'PEN':'symbol-narrow':'1.0-0' }}</strong><input type="range" min="50" max="3000" step="50" aria-label="Presupuesto total en soles" [ngModel]="budget()" (ngModelChange)="budget.set(+$event); page.set(1)" /></label></div>
       <button class="icon-button" aria-label="Cerrar planificador" (click)="planner.set(false)"><mat-icon>close</mat-icon></button>
     </section>
   }
   <nav class="categories" aria-label="Categorías de eventos">@for (c of categories; track c.value) {<button [class.active]="category() === c.value" [attr.aria-pressed]="category() === c.value" (click)="category.set(c.value); sync()"><mat-icon>{{ c.icon }}</mat-icon>{{ c.label }}</button>}</nav>
-  <div class="catalog-head">
+  <div id="catalog-head" class="catalog-head">
     <div><span class="eyebrow">EXPLORA A TU RITMO</span><h2>{{ savedOnly() ? 'Tu lista de próximos recuerdos' : planner() ? 'Planes que encajan contigo' : 'La ciudad tiene planes.' }}</h2><p role="status">{{ filtered().length }} experiencias {{ planner() ? 'dentro de tu presupuesto' : 'para descubrir' }}</p></div>
     <div class="catalog-options"><button class="filter-button" [class.active]="savedOnly()" [attr.aria-pressed]="savedOnly()" (click)="savedOnly.set(!savedOnly()); sync()"><mat-icon>favorite_border</mat-icon> Guardados · {{ discovery.favorites().length }}</button>
-      <select aria-label="Ordenar eventos" [ngModel]="sort()" (ngModelChange)="sort.set($event)"><option value="date">Más próximos</option><option value="price">Menor precio</option><option value="availability">Más disponibilidad</option></select>
+      <div class="sort-field">
+        <select aria-label="Ordenar eventos" [ngModel]="sort()" (ngModelChange)="sort.set($event)"><option value="date">Más próximos</option><option value="price">Menor precio</option><option value="availability">Más disponibilidad</option></select>
+        <mat-icon>expand_more</mat-icon>
+      </div>
     </div>
   </div>
   <label class="availability"><input type="checkbox" [ngModel]="onlyAvailable()" (ngModelChange)="onlyAvailable.set($event); page.set(1)" /> Solo con entradas disponibles</label>
@@ -71,7 +88,7 @@
     <div class="event-grid">
       @for(e of shown(); track e.id) {
         <article class="event-card" [class.sold-out]="!capacity(e).available">
-          <div class="poster"><a [routerLink]="['/eventos', e.id]" tabindex="-1" aria-hidden="true"><img [src]="e.imageUrl" [alt]="e.name" loading="lazy" /></a>
+          <div class="poster"><a [routerLink]="['/eventos', e.id]" tabindex="-1" aria-hidden="true"><img [src]="e.imageUrl" [alt]="e.name" loading="lazy" [class.is-match]="matchArt(e.name, e.category)" [style.object-position]="e.imageFocus ? (e.imageFocus.x + '% ' + e.imageFocus.y + '%') : null" /></a>
             @if (matchArt(e.name, e.category); as m) {
               <div class="match-crests small">
                 <img [src]="m.crestA" [alt]="m.teamA" (error)="m.crestA = m.crestAAlt" />

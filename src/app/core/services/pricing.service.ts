@@ -3,8 +3,9 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, forkJoin, map, throwError, timeout } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import { mockResponse } from '../mock/mock-latency';
-import { EventItem, Zone } from '../models/event.model';
-import { SERVICE_FEE_RATE, zonePrice } from '../models/ticketing-rules';
+import { BANK_LABELS, EventItem, Zone } from '../models/event.model';
+import { OrderItem } from '../models/ticket.model';
+import { ACCESSIBLE_DISCOUNT_RATE, SERVICE_FEE_RATE, zonePrice } from '../models/ticketing-rules';
 
 export interface PriceQuoteItem {
   zoneId: string;
@@ -39,7 +40,7 @@ export class PricingService {
 
   quote(
     event: EventItem,
-    items: { zoneId: string; quantity: number }[],
+    items: OrderItem[],
   ): Observable<PriceQuote> {
     if (environment.useMock) {
       return mockResponse(this.buildLocalQuote(event, items));
@@ -53,8 +54,21 @@ export class PricingService {
         fecha_evento: event.startsAt, fecha_publicacion: event.publishedAt, precio_base: zone.price,
       }).pipe(map(response => {
         if (typeof response.precio_ajustado !== 'number' || !Number.isFinite(response.precio_ajustado) || response.precio_ajustado < 0) throw new Error('Respuesta de precios inválida.');
+        const bankDiscount = !item.accessible && item.bank
+          ? event.bankDiscounts?.find((d) => d.bank === item.bank && d.enabled)
+          : undefined;
+        const unitPrice = item.accessible
+          ? round2(response.precio_ajustado * (1 - ACCESSIBLE_DISCOUNT_RATE))
+          : bankDiscount
+            ? round2(response.precio_ajustado * (1 - bankDiscount.percent / 100))
+            : round2(response.precio_ajustado);
+        const note = item.accessible
+          ? 'Descuento CONADIS · Ley 29973 −20%'
+          : bankDiscount
+            ? `Descuento ${BANK_LABELS[bankDiscount.bank]} −${bankDiscount.percent}%`
+            : response.motivo;
         return { zoneId: zone.id, zoneName: zone.name, basePrice: zone.price, quantity: item.quantity,
-          unitPrice: round2(response.precio_ajustado), note: response.motivo };
+          unitPrice, note };
       }));
     })).pipe(timeout(10000), map(lines => {
       const subtotal = round2(lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0));
@@ -65,13 +79,13 @@ export class PricingService {
 
   buildLocalQuote(
     event: EventItem,
-    items: { zoneId: string; quantity: number }[],
+    items: OrderItem[],
   ): PriceQuote {
     const lines: PriceQuoteItem[] = items
-      .map(({ zoneId, quantity }) => {
+      .map(({ zoneId, quantity, accessible, bank }) => {
         const zone = event.zones.find((z) => z.id === zoneId);
         if (!zone || quantity <= 0) return null;
-        return this.priceZone(event, zone, quantity);
+        return this.priceZone(event, zone, quantity, accessible, bank);
       })
       .filter((l): l is PriceQuoteItem => l !== null);
 
@@ -87,8 +101,8 @@ export class PricingService {
     };
   }
 
-  private priceZone(event: EventItem, zone: Zone, quantity: number): PriceQuoteItem {
-    const { unitPrice, note } = zonePrice(event, zone);
+  private priceZone(event: EventItem, zone: Zone, quantity: number, accessible?: boolean, bank?: OrderItem['bank']): PriceQuoteItem {
+    const { unitPrice, note } = zonePrice(event, zone, Date.now(), accessible, bank);
     return {
       zoneId: zone.id,
       zoneName: zone.name,

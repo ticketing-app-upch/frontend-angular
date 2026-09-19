@@ -1,0 +1,180 @@
+:host {
+  display: block;
+  /* Fijos (no dependen de --mat-sys-surface): así el contraste entre
+   * distritos sin datos, sus bordes y el fondo de la tarjeta se mantiene
+   * parejo tanto en tema claro como oscuro. */
+  --map-empty: color-mix(in srgb, var(--mat-sys-on-surface) 13%, var(--mat-sys-surface));
+  --map-stroke: color-mix(in srgb, var(--mat-sys-on-surface) 22%, transparent);
+}
+
+.map-status {
+  display: grid;
+  place-items: center;
+  padding: 3rem 0;
+}
+
+.map-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.8fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.map-svg {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  overflow: visible;
+}
+
+.map-svg path {
+  stroke: var(--map-stroke);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  cursor: pointer;
+  transition: filter 0.15s ease, stroke 0.15s ease, stroke-width 0.15s ease, opacity 0.15s ease;
+  outline: none;
+}
+.map-svg path.has-data:hover,
+.map-svg path.has-data:focus-visible,
+.map-svg path.active {
+  filter: brightness(1.1) saturate(1.15);
+  stroke: var(--mat-sys-primary);
+  stroke-width: 2.4;
+}
+.map-svg path:not(.has-data) {
+  cursor: default;
+}
+/* Con algo hovereado/seleccionado, el resto del mapa se atenúa para que
+ * resalte solo el distrito activo (pero sigue visible, no desaparece). */
+.map-svg.has-hover path:not(.active) {
+  opacity: 0.45;
+}
+/* Seleccionado (clic, no sólo hover): además del resalte, un anillo fijo
+ * para que no dependa de que el mouse siga encima. */
+.map-svg path.pinned {
+  stroke: var(--mat-sys-primary);
+  stroke-width: 3;
+}
+
+/* ---------- Panel lateral ---------- */
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.clear-selection {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  align-self: flex-start;
+  margin-bottom: 0.2rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 30%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+  color: var(--mat-sys-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.clear-selection mat-icon { font-size: 15px; width: 15px; height: 15px; }
+.clear-selection:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+
+.district-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+.district-detail.pinned {
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, transparent);
+  border-color: var(--mat-sys-primary);
+}
+.district-detail strong {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ranking {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.ranking li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ranking li:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+}
+.ranking li.pinned {
+  background: color-mix(in srgb, var(--mat-sys-primary) 10%, transparent);
+}
+.ranking li.pinned .name { color: var(--mat-sys-primary); }
+.ranking .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+.ranking .name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking .rev {
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface-variant);
+  flex: none;
+}
+
+.unmatched {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+.unmatched mat-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  flex: none;
+  margin-top: 0.1rem;
+}
+
+@media (max-width: 760px) {
+  .map-body { grid-template-columns: 1fr; }
+}

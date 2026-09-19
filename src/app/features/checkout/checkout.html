@@ -223,12 +223,82 @@
             </span>
           </div>
 
+          @if (showAccessibleToggle()) {
+            <button
+              type="button"
+              class="accessible-toggle"
+              role="switch"
+              [class.on]="accessibleMode()"
+              [attr.aria-checked]="accessibleMode()"
+              [disabled]="placing()"
+              (click)="toggleAccessibleMode()"
+            >
+              <mat-icon>{{ accessibleMode() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+              <span class="accessible-copy">
+                <b
+                  >Descuento por discapacidad · Ley N.º 29973 −{{
+                    accessibleDiscountPct
+                  }}%</b
+                >
+                <small
+                  >Válido para {{ accessibleMaxQty }} entrada. Presenta tu carné de
+                  CONADIS o documento de identidad al ingreso.</small
+                >
+              </span>
+            </button>
+          }
+
+          @if (bankDiscounts().length) {
+            <div class="bank-row">
+              <span class="bank-row-label">
+                <mat-icon inline>percent</mat-icon> Descuento por banco:
+              </span>
+              @for (d of bankDiscounts(); track d.bank) {
+                <button
+                  type="button"
+                  class="bank-chip"
+                  role="switch"
+                  [class.on]="selectedBank() === d.bank"
+                  [attr.aria-checked]="selectedBank() === d.bank"
+                  [attr.aria-label]="
+                    (selectedBank() === d.bank ? 'Quitar descuento ' : 'Aplicar descuento ') +
+                    bankLabels[d.bank] +
+                    ' ' +
+                    d.percent +
+                    '%'
+                  "
+                  [title]="
+                    selectedBank() === d.bank
+                      ? 'Clic para quitar este descuento'
+                      : 'Clic para aplicar este descuento'
+                  "
+                  [disabled]="placing()"
+                  (click)="selectBank(d.bank)"
+                >
+                  {{ bankLabels[d.bank] }} −{{ d.percent }}%
+                  @if (selectedBank() === d.bank) {
+                    <mat-icon inline>close</mat-icon>
+                  }
+                </button>
+              }
+            </div>
+          }
+
           <ul class="zones">
             @for (zone of ev.zones; track zone.id; let i = $index) {
               <li class="zrow" [class.disabled]="zoneAvailable(zone.id) === 0">
                 <span class="swatch" [style.background]="zoneColor(i)"></span>
                 <div class="zmeta">
-                  <span class="zname">{{ zone.name }}</span>
+                  <span class="zname"
+                    >{{ zone.name
+                    }}{{
+                      accessibleMode()
+                        ? ' · CONADIS'
+                        : selectedBank()
+                          ? ' · ' + bankLabels[selectedBank()!]
+                          : ''
+                    }}</span
+                  >
                   <span class="zavail tkt-muted">
                     @if (zoneAvailable(zone.id) === 0) {
                       Agotado
@@ -239,6 +309,11 @@
                 </div>
                 <span class="zprice">
                   {{ unitPrice(zone) | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                  @if (accessibleMode()) {
+                    <small class="zprice-note">−{{ accessibleDiscountPct }}%</small>
+                  } @else if (selectedBank(); as bank) {
+                    <small class="zprice-note">−{{ bankDiscountPct(bank) }}%</small>
+                  }
                 </span>
                 <div class="stepper">
                   <button
@@ -424,6 +499,71 @@
                 }}</mat-icon>
               </button>
             </div>
+
+            @if (paymentMethod === 'CARD') {
+              <div class="card-form">
+                <label class="card-field">
+                  <span>Número de tarjeta*</span>
+                  <input
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="cc-number"
+                    placeholder="1234 5678 9012 3456"
+                    maxlength="19"
+                    required
+                    pattern="[\d ]{15,19}"
+                    [ngModel]="cardNumber"
+                    (ngModelChange)="onCardNumberInput($event)"
+                    [disabled]="placing()"
+                  />
+                </label>
+                <label class="card-field">
+                  <span>Nombre en la tarjeta*</span>
+                  <input
+                    type="text"
+                    autocomplete="cc-name"
+                    placeholder="Como figura en la tarjeta"
+                    required
+                    minlength="3"
+                    [(ngModel)]="cardName"
+                    [disabled]="placing()"
+                  />
+                </label>
+                <div class="card-field-row">
+                  <label class="card-field">
+                    <span>Vencimiento*</span>
+                    <input
+                      type="text"
+                      inputmode="numeric"
+                      autocomplete="cc-exp"
+                      placeholder="MM/AA"
+                      maxlength="5"
+                      required
+                      pattern="(0[1-9]|1[0-2])\/\d{2}"
+                      [ngModel]="cardExpiry"
+                      (ngModelChange)="onCardExpiryInput($event)"
+                      [disabled]="placing()"
+                    />
+                  </label>
+                  <label class="card-field">
+                    <span>CVV*</span>
+                    <input
+                      type="text"
+                      tktDigitsOnly
+                      inputmode="numeric"
+                      autocomplete="cc-csc"
+                      placeholder="123"
+                      maxlength="4"
+                      required
+                      pattern="\d{3,4}"
+                      [(ngModel)]="cardCvv"
+                      [disabled]="placing()"
+                    />
+                  </label>
+                </div>
+              </div>
+            }
+
             <p class="gateway-protection">
               <mat-icon>lock</mat-icon> Tu información se gestiona mediante una conexión protegida.
             </p>
@@ -431,7 +571,7 @@
               mat-flat-button
               class="gateway-pay"
               (click)="confirm()"
-              [disabled]="placing() || secondsLeft() === 0"
+              [disabled]="placing() || secondsLeft() === 0 || !cardValid()"
             >
               @if (placing()) {
                 Procesando pago…

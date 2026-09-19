@@ -487,6 +487,81 @@
 }
 .limit mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
 
+/* ---------- Descuento por discapacidad ---------- */
+.accessible-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 24%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--mat-sys-primary) 6%, var(--mat-sys-surface));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.accessible-toggle:disabled { cursor: not-allowed; opacity: 0.6; }
+.accessible-toggle mat-icon {
+  flex: none;
+  margin-top: 0.05rem;
+  color: var(--mat-sys-primary);
+}
+.accessible-toggle.on {
+  border-color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 12%, var(--mat-sys-surface));
+}
+.accessible-copy { display: flex; flex-direction: column; gap: 0.15rem; }
+.accessible-copy b { font-size: 0.88rem; }
+.accessible-copy small { font-size: 0.78rem; color: var(--mat-sys-on-surface-variant); }
+
+/* ---------- Descuento por banco ---------- */
+.bank-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+.bank-row-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  color: var(--mat-sys-on-surface-variant);
+}
+.bank-row-label mat-icon { font-size: 1rem; width: 1rem; height: 1rem; }
+
+.bank-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 16%, transparent);
+  border-radius: 999px;
+  background: var(--mat-sys-surface);
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.bank-chip:disabled { cursor: not-allowed; opacity: 0.6; }
+.bank-chip.on {
+  border-color: var(--mat-sys-primary);
+  background: color-mix(in srgb, var(--mat-sys-primary) 14%, var(--mat-sys-surface));
+  color: var(--mat-sys-primary);
+}
+.bank-chip.on:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 22%, var(--mat-sys-surface));
+}
+.bank-chip mat-icon {
+  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+}
+
 .zones { list-style: none; margin: 0.75rem 0 0; padding: 0; }
 
 .zrow {
@@ -507,10 +582,18 @@
 .zavail { font-size: 0.76rem; }
 
 .zprice {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+.zprice-note {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--mat-sys-primary);
 }
 
 .stepper { display: flex; align-items: center; gap: 0.15rem; }
@@ -700,33 +783,60 @@
   backdrop-filter: blur(10px);
 }
 .payment-gateway {
-  width: min(460px, 100%);
-  overflow: hidden;
+  width: min(400px, 100%);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
   border: 1px solid color-mix(in srgb, var(--mat-sys-primary) 38%, #fff);
-  border-radius: 22px;
+  border-radius: 20px;
   color: #f8fafc;
   background: linear-gradient(145deg, #151130, #0d1d36);
   box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
 }
-.gateway-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
-.gateway-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; letter-spacing: -.02em; }
+.gateway-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.1); }
+.gateway-brand { display: inline-flex; align-items: center; gap: 8px; font-weight: 900; letter-spacing: -.02em; font-size: 14px; }
 .gateway-brand mat-icon { color: #9b87f5; }
-.gateway-close { width: 34px; height: 34px; display: grid; place-items: center; padding: 0; color: #fff; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); cursor: pointer; }
-.gateway-close mat-icon { font-size: 19px; width: 19px; height: 19px; }
-.gateway-merchant { display: grid; gap: 5px; padding: 22px 24px 16px; background: rgba(255,255,255,.035); }
-.gateway-merchant span, .gateway-merchant strong { font-size: 13px; color: rgba(255,255,255,.68); }
-.gateway-merchant strong { color: #fff; font-size: 15px; }
-.gateway-merchant b { margin-top: 4px; font-size: 29px; letter-spacing: -1px; }
-.payment-gateway h2 { margin: 20px 24px 12px; font-size: 17px; }
-.payment-options { display: grid; gap: 10px; padding: 0 24px; }
-.payment-options button { display: grid; grid-template-columns: 28px 1fr 22px; align-items: center; gap: 12px; width: 100%; padding: 14px; text-align: left; color: #fff; border-radius: 14px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05); cursor: pointer; }
+.gateway-close { width: 30px; height: 30px; display: grid; place-items: center; padding: 0; color: #fff; border-radius: 50%; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08); cursor: pointer; flex: none; }
+.gateway-close mat-icon { font-size: 17px; width: 17px; height: 17px; }
+.gateway-merchant { display: grid; gap: 4px; padding: 16px 20px 14px; background: rgba(255,255,255,.035); }
+.gateway-merchant span, .gateway-merchant strong { font-size: 12px; color: rgba(255,255,255,.68); }
+.gateway-merchant strong { color: #fff; font-size: 14px; }
+.gateway-merchant b { margin-top: 2px; font-size: 24px; letter-spacing: -1px; }
+.payment-gateway h2 { margin: 16px 20px 10px; font-size: 15px; }
+.payment-options { display: grid; gap: 8px; padding: 0 20px; }
+.payment-options button { display: grid; grid-template-columns: 24px 1fr 20px; align-items: center; gap: 10px; width: 100%; padding: 11px; text-align: left; color: #fff; border-radius: 12px; border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05); cursor: pointer; }
 .payment-options button.active { border-color: #a78bfa; background: rgba(139,92,246,.2); box-shadow: 0 0 0 1px rgba(167,139,250,.25) inset; }
 .payment-options button > mat-icon:first-child { color: #c4b5fd; }
 .payment-options span { display: grid; gap: 3px; }
 .payment-options b { font-size: 14px; }
 .payment-options small { color: rgba(255,255,255,.6); font-size: 11px; }
 .payment-options .check { font-size: 20px; width: 20px; height: 20px; color: #c4b5fd; }
-.gateway-protection { display: flex; align-items: center; gap: 7px; margin: 16px 24px; font-size: 11px; color: rgba(255,255,255,.65); }
-.gateway-protection mat-icon { width: 15px; height: 15px; font-size: 15px; color: #86efac; }
-.gateway-pay { width: calc(100% - 48px); height: 50px; margin: 0 24px; border-radius: 12px; font-weight: 800; }
-.gateway-expiry { margin: 12px 24px 20px; text-align: center; color: rgba(255,255,255,.55); font-size: 11px; }
+.card-form { display: grid; gap: 10px; padding: 14px 20px 0; min-width: 0; }
+.card-field { display: grid; gap: 5px; min-width: 0; font-size: 12px; color: rgba(255,255,255,.7); }
+.card-field input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.05);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+.card-field input::placeholder { color: rgba(255,255,255,.32); }
+.card-field input:focus {
+  outline: none;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 1px rgba(167,139,250,.35);
+}
+.card-field input:disabled { opacity: 0.5; cursor: not-allowed; }
+.card-field input:invalid:not(:placeholder-shown) { border-color: rgba(248,113,113,.6); }
+.card-field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; min-width: 0; }
+
+.gateway-protection { display: flex; align-items: center; gap: 7px; margin: 14px 20px; font-size: 11px; color: rgba(255,255,255,.65); }
+.gateway-protection mat-icon { width: 14px; height: 14px; font-size: 14px; color: #86efac; flex: none; }
+.gateway-pay { width: calc(100% - 40px); height: 46px; margin: 0 20px; border-radius: 12px; font-weight: 800; }
+.gateway-expiry { margin: 10px 20px 18px; text-align: center; color: rgba(255,255,255,.55); font-size: 11px; }

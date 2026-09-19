@@ -13,9 +13,10 @@ import {
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
-import { Zone } from '../../core/models/event.model';
-import { Router, RouterLink } from '@angular/router';
+import { ACCESSIBLE_DISCOUNT_RATE, ACCESSIBLE_MAX_QTY, SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
+import { BankName, BANK_LABELS, normalizeBankDiscounts, Zone } from '../../core/models/event.model';
+import { OrderItem } from '../../core/models/ticket.model';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -26,6 +27,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { EventItem } from '../../core/models/event.model';
 import { TicketOrder } from '../../core/models/ticket.model';
 import { EmptyState } from '../../shared/empty-state/empty-state';
+import { DigitsOnly } from '../../shared/digits-only';
 import { ZoneMap, zoneColor } from '../../shared/zone-map/zone-map';
 import { matchArt, venueMap, venueHotspots, venueShape, VenueShape } from '../../shared/event-image';
 
@@ -43,6 +45,7 @@ import { matchArt, venueMap, venueHotspots, venueShape, VenueShape } from '../..
     MatIconModule,
     MatProgressSpinnerModule,
     EmptyState,
+    DigitsOnly,
     ZoneMap,
   ],
   templateUrl: './checkout.html',
@@ -54,6 +57,7 @@ export class Checkout {
   private tickets = inject(TicketService);
   private notify = inject(NotificationService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   private quoteRequest?: Subscription;
   private attemptKey = crypto.randomUUID();
@@ -61,6 +65,45 @@ export class Checkout {
   private expiresAt = 0;
   paymentMethod: 'CARD' | 'WALLET' = 'CARD';
   readonly paymentGateway = signal(false);
+
+  /** Datos de tarjeta (simulados: AlpaTeck Pay no procesa pagos reales). */
+  cardNumber = '';
+  cardName = '';
+  cardExpiry = '';
+  cardCvv = '';
+
+  /** Reformatea en grupos de 4 mientras se escribe (máx. 16 dígitos). */
+  onCardNumberInput(raw: string): void {
+    const digits = raw.replace(/\D/g, '').slice(0, 16);
+    this.cardNumber = digits.replace(/(\d{4})(?=\d)/g, '$1 ');
+  }
+
+  /** Inserta la barra tras los primeros 2 dígitos (MM/AA). */
+  onCardExpiryInput(raw: string): void {
+    const digits = raw.replace(/\D/g, '').slice(0, 4);
+    this.cardExpiry = digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
+  }
+
+  /**
+   * No es un `computed()`: cardNumber/cardName/etc. son propiedades planas
+   * (como `paymentMethod`), no signals, así que no hay nada que trackear.
+   * Se re-evalúa en cada ciclo de detección de cambios, que ya se dispara
+   * con cada tecla gracias a los bindings (input)/(ngModelChange) del form.
+   */
+  cardValid(): boolean {
+    if (this.paymentMethod !== 'CARD') return true;
+    const digits = this.cardNumber.replace(/\D/g, '');
+    const [month, year] = this.cardExpiry.split('/');
+    const monthOk = !!month && Number(month) >= 1 && Number(month) <= 12;
+    return (
+      (digits.length === 15 || digits.length === 16) &&
+      this.cardName.trim().length >= 3 &&
+      monthOk &&
+      !!year &&
+      year.length === 2 &&
+      (this.cardCvv.length === 3 || this.cardCvv.length === 4)
+    );
+  }
   readonly eventId = input.required<string>();
 
   readonly loading = signal(true);
@@ -69,6 +112,30 @@ export class Checkout {
 
   /** zoneId -> cantidad elegida */
   readonly quantities = signal<Record<string, number>>({});
+
+  private readonly discountParam = this.route.snapshot.queryParamMap.get('descuento');
+
+  /** Descuento por discapacidad (Ley N.º 29973): -20%, máx. 1 entrada por orden. */
+  readonly accessibleMode = signal(false);
+  /**
+   * El cuadro de descuento por discapacidad solo aparece si llegaron desde
+   * ese botón específico Y el organizador lo habilitó para este evento.
+   */
+  readonly showAccessibleToggle = computed(
+    () => this.discountParam === 'discapacidad' && !!this.event()?.accessibleDiscount,
+  );
+  /** Llegó desde "Precio regular": no se ofrece ningún descuento (ni discapacidad ni banco). */
+  readonly hideDiscounts = this.discountParam === 'regular';
+  readonly accessibleMaxQty = ACCESSIBLE_MAX_QTY;
+  readonly accessibleDiscountPct = ACCESSIBLE_DISCOUNT_RATE * 100;
+
+  /** Banco de tarjeta elegido para el descuento del organizador (mutuamente excluyente con `accessibleMode`). */
+  readonly selectedBank = signal<BankName | null>(null);
+  readonly bankDiscounts = computed(() =>
+    this.hideDiscounts
+      ? []
+      : normalizeBankDiscounts(this.event()?.bankDiscounts).filter((d) => d.enabled),
+  );
 
   readonly reviewing = signal(false);
   readonly quoting = signal(false);
@@ -85,13 +152,14 @@ export class Checkout {
   private legendStartHeight = 0;
 
   readonly zoneColor = zoneColor;
+  readonly bankLabels = BANK_LABELS;
 
   readonly match = computed(() => {
     const e = this.event();
     return e ? matchArt(e.name, e.category) : null;
   });
 
-  readonly venuePlan = computed(() => venueMap(this.event()?.venue));
+  readonly venuePlan = computed(() => venueMap(this.event()?.venue, this.event()?.zones ?? []));
   readonly venueSpots = computed(() => {
     const e = this.event();
     return e ? venueHotspots(e.venue, e.zones) : [];
@@ -143,7 +211,10 @@ export class Checkout {
     Object.values(this.quantities()).reduce((a, n) => a + n, 0),
   );
 
-  readonly maxPerOrder = computed(() => Math.min(6, this.event()?.maxPerOrder ?? 0));
+  readonly maxPerOrder = computed(() => {
+    const base = Math.min(6, this.event()?.maxPerOrder ?? 0);
+    return this.accessibleMode() ? Math.min(base, this.accessibleMaxQty) : base;
+  });
   readonly remaining = computed(() => this.maxPerOrder() - this.totalQty());
   readonly hasSelection = computed(() => this.totalQty() > 0);
 
@@ -186,6 +257,20 @@ export class Checkout {
           this.quantities.set(
             Object.fromEntries(ev.zones.map((z) => [z.id, 0])),
           );
+          // "Descuento -10%": si el evento tiene un banco con ese
+          // porcentaje habilitado, se aplica solo, sin que el comprador
+          // tenga que elegirlo a mano.
+          if (this.discountParam === '10') {
+            const auto = normalizeBankDiscounts(ev.bankDiscounts).find(
+              (d) => d.enabled && d.percent === 10,
+            );
+            if (auto) this.selectedBank.set(auto.bank);
+          }
+          // "Pers. con discapacidad": solo se activa si el organizador
+          // habilitó este descuento para el evento.
+          if (this.discountParam === 'discapacidad' && ev.accessibleDiscount) {
+            this.accessibleMode.set(true);
+          }
           this.loading.set(false);
         },
         error: () => {
@@ -197,7 +282,39 @@ export class Checkout {
     });
   }
 
-  unitPrice(zone: Zone): number { return this.event() ? zonePrice(this.event()!, zone).unitPrice : zone.price; }
+  unitPrice(zone: Zone): number {
+    const ev = this.event();
+    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode(), this.selectedBank() ?? undefined).unitPrice : zone.price;
+  }
+
+  priceNote(zone: Zone): string | undefined {
+    const ev = this.event();
+    return ev ? zonePrice(ev, zone, Date.now(), this.accessibleMode(), this.selectedBank() ?? undefined).note : undefined;
+  }
+
+  /** Alterna el descuento por discapacidad; si excede el nuevo tope, reinicia la selección. */
+  toggleAccessibleMode(): void {
+    if (this.placing()) return;
+    const next = !this.accessibleMode();
+    this.accessibleMode.set(next);
+    if (next) this.selectedBank.set(null);
+    if (next && this.totalQty() > this.accessibleMaxQty) this.quantities.set({});
+    this.quote.set(null);
+    this.reviewing.set(false);
+  }
+
+  bankDiscountPct(bank: BankName): number {
+    return this.bankDiscounts().find((d) => d.bank === bank)?.percent ?? 0;
+  }
+
+  /** Elige (o quita) el banco para su descuento; desactiva el de discapacidad si estaba activo. */
+  selectBank(bank: BankName): void {
+    if (this.placing()) return;
+    this.selectedBank.update((current) => (current === bank ? null : bank));
+    if (this.selectedBank()) this.accessibleMode.set(false);
+    this.quote.set(null);
+    this.reviewing.set(false);
+  }
 
   zoneAvailable(zoneId: string): number {
     const zone = this.event()?.zones.find((z) => z.id === zoneId);
@@ -252,16 +369,24 @@ export class Checkout {
     if (!this.placing()) this.paymentGateway.set(false);
   }
 
+  private buildItems(): OrderItem[] {
+    const accessible = this.accessibleMode();
+    const bank = accessible ? undefined : this.selectedBank() ?? undefined;
+    return this.selectedLines().map((l) => ({
+      zoneId: l.zone.id,
+      quantity: l.qty,
+      accessible,
+      bank,
+    }));
+  }
+
   requestQuote(): void {
     if (this.placing()) return;
     this.quoteRequest?.unsubscribe();
     this.quote.set(null);
     const ev = this.event();
     if (!ev || !this.hasSelection()) return;
-    const items = this.selectedLines().map((l) => ({
-      zoneId: l.zone.id,
-      quantity: l.qty,
-    }));
+    const items = this.buildItems();
     this.quoting.set(true);
     this.quoteRequest = this.pricing.quote(ev, items).subscribe({
       next: (q) => {
@@ -284,10 +409,7 @@ export class Checkout {
     const quote = this.quote();
     if (!ev || this.placing() || !quote || this.quoting()) return;
     if (Date.now() >= this.expiresAt) { this.notify.error('La cotización venció. Actualízala antes de pagar.'); return; }
-    const items = this.selectedLines().map((l) => ({
-      zoneId: l.zone.id,
-      quantity: l.qty,
-    }));
+    const items = this.buildItems();
     this.placing.set(true);
     this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey }).subscribe({
       next: (ord) => {

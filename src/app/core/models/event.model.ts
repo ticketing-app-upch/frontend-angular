@@ -7,6 +7,15 @@ export type EventCategory =
 
 export type EventStatus = 'BORRADOR' | 'PUBLICADO' | 'AGOTADO' | 'FINALIZADO';
 
+export type BankName = 'BCP' | 'BBVA' | 'INTERBANK';
+
+export interface BankDiscount {
+  bank: BankName;
+  /** Porcentaje de descuento: 10 o 20. */
+  percent: 10 | 20;
+  enabled: boolean;
+}
+
 export interface Zone {
   id: string;
   name: string;
@@ -33,10 +42,34 @@ export interface EventItem {
   /** Capacidad física declarada del recinto. */
   venueCapacity?: number;
   imageUrl: string;
+  /**
+   * Punto de interés (0-100, % desde la esquina superior izquierda) para el
+   * recorte de `imageUrl` en la tarjeta y el banner. Sólo lo define el
+   * organizador cuando sube una imagen propia (artista/URL); si falta, se usa
+   * el encuadre por defecto (centrado, sesgado hacia arriba).
+   */
+  imageFocus?: { x: number; y: number };
   organizerId: string;
   /** Máximo de entradas por transacción. */
   maxPerOrder: number;
   zones: Zone[];
+  /** Descuentos por banco (tarjeta), configurados por el organizador. Independientes del pricing dinámico. */
+  bankDiscounts?: BankDiscount[];
+  /** El organizador habilitó el descuento por discapacidad (Ley N.º 29973) para este evento. */
+  accessibleDiscount?: boolean;
+}
+
+export const BANK_NAMES: BankName[] = ['BCP', 'BBVA', 'INTERBANK'];
+
+export const BANK_LABELS: Record<BankName, string> = {
+  BCP: 'BCP',
+  BBVA: 'BBVA',
+  INTERBANK: 'Interbank',
+};
+
+/** Arma la lista de descuentos por banco con un valor por omisión (desactivado, 10%) para los bancos ausentes. */
+export function normalizeBankDiscounts(discounts?: BankDiscount[]): BankDiscount[] {
+  return BANK_NAMES.map((bank) => discounts?.find((d) => d.bank === bank) ?? { bank, percent: 10, enabled: false });
 }
 
 export interface EventCapacity {

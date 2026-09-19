@@ -36,12 +36,76 @@
 
 .loading { display: grid; place-items: center; padding: 4rem 0; }
 
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 1rem;
+/* ---------- Buscador del panel ---------- */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
   margin-bottom: 1.5rem;
 }
+.filter-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface-variant);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.filter-field:focus-within {
+  border-color: var(--mat-sys-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--mat-sys-primary) 16%, transparent);
+}
+.filter-field mat-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  flex: none;
+  color: var(--mat-sys-primary);
+}
+.filter-field select,
+.filter-field input {
+  border: 0;
+  outline: none;
+  background: none;
+  color: var(--mat-sys-on-surface);
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 0;
+}
+.filter-field select { cursor: pointer; }
+.filter-field.text { flex: 1; min-width: 200px; max-width: 280px; }
+.filter-field.text input { flex: 1; width: 100%; }
+
+.clear-filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-error) 30%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-error) 8%, transparent);
+  color: var(--mat-sys-error);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.clear-filters mat-icon { font-size: 16px; width: 16px; height: 16px; }
+.clear-filters:hover {
+  background: color-mix(in srgb, var(--mat-sys-error) 14%, transparent);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  transition: opacity 0.15s ease;
+}
+.stat-grid.is-refreshing { opacity: 0.55; }
 
 /* ---------- Paneles ---------- */
 .panel {

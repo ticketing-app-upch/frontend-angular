@@ -13,12 +13,12 @@ export const environment = {
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
   /**
-   * Épicas habilitadas en este build (ver `core/demo-scope.ts`). Esta rama es
-   * feat/demo-2-auth: solo Épica 1 (registro + login). Para trabajar en el
-   * resto del catálogo/compra/paneles, hacé `git checkout feat/frontend-mvp`
-   * (ahí queda todo prendido) o subí este número a mano en tu copia local.
+   * Épicas habilitadas en este build (ver `core/demo-scope.ts`). Esta es
+   * feat/frontend-mvp: la rama de desarrollo sin restricciones, con las 5
+   * épicas prendidas. Las ramas feat/demo-N-* recortan esta lista para
+   * mostrar solo lo que corresponde a cada demo puntual.
    */
-  enabledEpics: [1],
+  enabledEpics: [1, 2, 3, 4, 5],
   /**
    * Clave HMAC con la que se firman los QR de las entradas y con la
    * que la puerta (`/validar`) verifica su autenticidad. En un sistema real

@@ -56,7 +56,14 @@ function daysFromNow(days: number, hour = 20): string {
   return d.toISOString();
 }
 
-const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
+/**
+ * Datos "de autor" de la semilla. `SEED_EVENTS` (más abajo) le añade encima
+ * el `imageUrl` calculado por `eventImage()` — un dato *derivado*, no de
+ * autor. `MockStore` usa `RAW_EVENTS` (no `SEED_EVENTS`) para decidir si la
+ * semilla cambió: así, tocar la lógica de imágenes no invalida por error los
+ * eventos/compras que el usuario ya guardó en su navegador.
+ */
+export const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
   {
     id: 'ev-1',
     name: 'Sinfonía bajo las estrellas',
@@ -70,10 +77,11 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 6,
     zones: [
-      { id: 'z-1a', name: 'Platea', price: 180, capacity: 300, sold: 214 },
-      { id: 'z-1b', name: 'Palco', price: 260, capacity: 120, sold: 96 },
-      { id: 'z-1c', name: 'Campo', price: 90, capacity: 800, sold: 421 },
+      { id: 'z-1a', name: 'VIP', price: 220, capacity: 700, sold: 480 },
+      { id: 'z-1b', name: 'Preferencial', price: 140, capacity: 2400, sold: 1450 },
+      { id: 'z-1c', name: 'General', price: 75, capacity: 1200, sold: 640 },
     ],
+    accessibleDiscount: true,
   },
   {
     id: 'ev-2',
@@ -98,6 +106,12 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
       { id: 'z-2b', name: 'Oriente', price: 150, capacity: 5000, sold: 4510 },
       { id: 'z-2c', name: 'Norte', price: 70, capacity: 8000, sold: 7990 },
       { id: 'z-2d', name: 'Tribuna Familiar Sur', price: 120, capacity: 8000, sold: 6100 },
+    ],
+    accessibleDiscount: true,
+    bankDiscounts: [
+      { bank: 'BCP', percent: 10, enabled: true },
+      { bank: 'BBVA', percent: 10, enabled: false },
+      { bank: 'INTERBANK', percent: 10, enabled: false },
     ],
   },
   {
@@ -201,9 +215,11 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 4,
     zones: [
-      { id: 'z-8a', name: 'Occidente', price: 150, capacity: 1800, sold: 1800 },
-      { id: 'z-8b', name: 'Oriente', price: 120, capacity: 1800, sold: 1800 },
-      { id: 'z-8c', name: 'Populares', price: 55, capacity: 2400, sold: 2400 },
+      { id: 'z-8a', name: 'Alta General', price: 55, capacity: 2400, sold: 2400 },
+      { id: 'z-8b', name: 'Oriente Preferencial', price: 120, capacity: 900, sold: 900 },
+      { id: 'z-8c', name: 'Occidente Preferencial', price: 120, capacity: 900, sold: 900 },
+      { id: 'z-8d', name: 'Norte Preferencial', price: 150, capacity: 700, sold: 700 },
+      { id: 'z-8e', name: 'Sur Preferencial', price: 150, capacity: 700, sold: 700 },
     ],
   },
   {
@@ -306,8 +322,9 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 6,
     zones: [
-      { id: 'z-14a', name: 'General', price: 170, capacity: 6000, sold: 5780 },
-      { id: 'z-14b', name: 'VIP', price: 360, capacity: 1200, sold: 1180 },
+      { id: 'z-14a', name: 'Campo A', price: 220, capacity: 3500, sold: 3200 },
+      { id: 'z-14b', name: 'Campo B', price: 160, capacity: 3000, sold: 2700 },
+      { id: 'z-14c', name: 'Tribuna', price: 280, capacity: 1400, sold: 1050 },
     ],
   },
   {
@@ -340,9 +357,53 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 4,
     zones: [
-      { id: 'z-16a', name: 'Occidente', price: 120, capacity: 8000, sold: 5200 },
-      { id: 'z-16b', name: 'Oriente', price: 80, capacity: 12000, sold: 7400 },
-      { id: 'z-16c', name: 'Norte', price: 45, capacity: 15000, sold: 9100 },
+      { id: 'z-16a', name: 'Palco Platino', price: 280, capacity: 400, sold: 250 },
+      { id: 'z-16b', name: 'Occidente Central', price: 150, capacity: 6000, sold: 3800 },
+      { id: 'z-16c', name: 'Occidente Lateral', price: 100, capacity: 5000, sold: 3000 },
+      { id: 'z-16d', name: 'Oriente Central', price: 150, capacity: 6000, sold: 3600 },
+      { id: 'z-16e', name: 'Oriente Lateral', price: 100, capacity: 5000, sold: 2900 },
+      { id: 'z-16f', name: 'Sur', price: 60, capacity: 9000, sold: 5500 },
+      { id: 'z-16g', name: 'Norte', price: 60, capacity: 9000, sold: 5400 },
+    ],
+  },
+  {
+    id: 'ev-17',
+    name: 'Ritmo Mundial — Gira Sudamérica',
+    description:
+      'El Estadio Nacional se transforma en formato concierto: campo dividido en dos sectores frente al escenario y tribunas laterales completas alrededor.',
+    category: 'CONCIERTO',
+    status: 'PUBLICADO',
+    venue: 'Estadio Nacional',
+    city: 'Lima',
+    startsAt: daysFromNow(55, 20),
+    organizerId: 'u-org-1',
+    maxPerOrder: 6,
+    zones: [
+      { id: 'z-17a', name: 'Campo A', price: 220, capacity: 8000, sold: 3100 },
+      { id: 'z-17b', name: 'Campo B', price: 170, capacity: 7000, sold: 2600 },
+      { id: 'z-17c', name: 'OR1', price: 190, capacity: 3000, sold: 1400 },
+      { id: 'z-17d', name: 'OR2', price: 130, capacity: 3000, sold: 1100 },
+      { id: 'z-17e', name: 'OCC1', price: 190, capacity: 3000, sold: 1500 },
+      { id: 'z-17f', name: 'OCC2', price: 130, capacity: 3000, sold: 1250 },
+      { id: 'z-17g', name: 'Norte', price: 85, capacity: 12000, sold: 5300 },
+    ],
+  },
+  {
+    id: 'ev-18',
+    name: 'Noche de Salsa — Leyendas en Vivo',
+    description:
+      'Concierto de salsa con orquesta en vivo y artistas invitados. El Coliseo Dibós se arma en formato concierto: escenario al centro, zona VIP y tribunas Platinum alrededor.',
+    category: 'CONCIERTO',
+    status: 'PUBLICADO',
+    venue: 'Coliseo Eduardo Dibós',
+    city: 'Lima',
+    startsAt: daysFromNow(33, 20),
+    organizerId: 'u-org-1',
+    maxPerOrder: 6,
+    zones: [
+      { id: 'z-18a', name: 'Platinum', price: 320, capacity: 800, sold: 410 },
+      { id: 'z-18b', name: 'Zona VIP', price: 210, capacity: 1200, sold: 640 },
+      { id: 'z-18c', name: 'General', price: 110, capacity: 2600, sold: 1500 },
     ],
   },
 ];

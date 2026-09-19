@@ -17,10 +17,13 @@ import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
+import { LegalDialog, LegalDoc } from '../../../shared/legal/legal-dialog';
 import { EventService } from '../../../core/services/event.service';
 import {
   computeCapacity,
   EventItem,
+  normalizeBankDiscounts,
 } from '../../../core/models/event.model';
 import { AuthService } from '../../../core/auth/auth.service';
 import { CapacityBar } from '../../../shared/capacity-bar/capacity-bar';
@@ -56,6 +59,7 @@ export class EventDetail {
   readonly price = zonePrice;
   private events = inject(EventService);
   private auth = inject(AuthService);
+  private dialog = inject(MatDialog);
 
   /** Ligado desde la ruta `eventos/:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
@@ -74,6 +78,15 @@ export class EventDetail {
 
   readonly soldOut = computed(() => !this.capacity()?.available);
   readonly ended = computed(() => Date.parse(this.event()?.startsAt ?? '') <= Date.now() || this.event()?.status !== 'PUBLICADO');
+  /** Ni agotado ni finalizado: los botones de compra siguen habilitados. */
+  readonly canBuy = computed(() => !this.soldOut() && !this.ended());
+
+  /** El organizador activó algún banco con -10%: solo entonces se ofrece ese acceso directo. */
+  readonly hasTenPercentBank = computed(() =>
+    normalizeBankDiscounts(this.event()?.bankDiscounts).some((d) => d.enabled && d.percent === 10),
+  );
+  /** El organizador activó el descuento por discapacidad para este evento. */
+  readonly hasAccessibleDiscount = computed(() => !!this.event()?.accessibleDiscount);
 
   readonly match = computed(() => {
     const e = this.event();
@@ -117,5 +130,25 @@ export class EventDetail {
 
   zoneAvailable(sold: number, capacity: number): number {
     return Math.max(0, capacity - sold);
+  }
+
+  scrollToId(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /** Los botones de compra quedan deshabilitados (no navegan) si el evento ya no se puede comprar. */
+  blockIfUnavailable(event: Event): void {
+    if (!this.canBuy()) event.preventDefault();
+  }
+
+  openLegal(doc: LegalDoc): void {
+    this.dialog.open(LegalDialog, {
+      data: { key: doc, role: 'CLIENTE' },
+      width: 'min(680px, 94vw)',
+      maxWidth: '94vw',
+      autoFocus: false,
+      backdropClass: 'tkt-legal-backdrop',
+      panelClass: 'tkt-legal-panel',
+    });
   }
 }

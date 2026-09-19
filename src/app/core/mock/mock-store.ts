@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { EventItem } from '../models/event.model';
 import { TicketOrder } from '../models/ticket.model';
-import { SEED_EVENTS, SEED_ORDERS, SEED_USERS, SeedUser } from './mock-data';
+import { RAW_EVENTS, SEED_EVENTS, SEED_ORDERS, SEED_USERS, SeedUser } from './mock-data';
 
 interface StoreShape {
   users: SeedUser[];
@@ -17,9 +17,14 @@ interface PersistedShape {
 
 const STORAGE_KEY = 'tkt.mock.v1';
 
-/** Huella corta y determinista de la semilla actual (mock-data.ts). */
+/**
+ * Huella corta y determinista de la semilla actual (mock-data.ts).
+ * Usa `RAW_EVENTS` (los datos de autor) en vez de `SEED_EVENTS` (que además
+ * trae el `imageUrl` ya calculado): así, un cambio en la lógica de imágenes
+ * por defecto no invalida la data que el usuario ya guardó en su navegador.
+ */
 function seedRevision(): string {
-  const raw = JSON.stringify([SEED_USERS, SEED_EVENTS, SEED_ORDERS]);
+  const raw = JSON.stringify([SEED_USERS, RAW_EVENTS, SEED_ORDERS]);
   let h = 0;
   for (let i = 0; i < raw.length; i++) {
     h = (Math.imul(31, h) + raw.charCodeAt(i)) | 0;
