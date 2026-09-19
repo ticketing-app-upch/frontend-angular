@@ -1,0 +1,153 @@
+<div class="tkt-page">
+  <a routerLink="/organizador/eventos" class="back">
+    <mat-icon>arrow_back</mat-icon> Mis eventos
+  </a>
+  <h1 class="tkt-section-title">{{ title() }}</h1>
+  <p class="tkt-section-sub">
+    Define la información pública y las zonas con su aforo y precio.
+  </p>
+
+  @if (loading()) {
+    <p class="tkt-muted">Cargando…</p>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form">
+      <mat-card class="block">
+        <h2><mat-icon>info</mat-icon> Información general</h2>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Nombre del evento</mat-label>
+          <input matInput formControlName="name" />
+          @if (form.controls.name.invalid && form.controls.name.touched) {
+            <mat-error>Mínimo 4 caracteres.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Descripción</mat-label>
+          <textarea matInput rows="4" formControlName="description"></textarea>
+          @if (form.controls.description.invalid && form.controls.description.touched) {
+            <mat-error>Cuéntanos un poco más (mínimo 20 caracteres).</mat-error>
+          }
+        </mat-form-field>
+
+        <div class="two">
+          <mat-form-field appearance="outline">
+            <mat-label>Categoría</mat-label>
+            <mat-select formControlName="category">
+              @for (c of categories; track c) {
+                <mat-option [value]="c">{{ c | titlecase }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Estado</mat-label>
+            <mat-select formControlName="status">
+              @for (s of statuses; track s) {
+                <mat-option [value]="s">{{ s | titlecase }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="two">
+          <mat-form-field appearance="outline">
+            <mat-label>Lugar / recinto</mat-label>
+            <input matInput formControlName="venue" list="venue-suggestions" />
+            <datalist id="venue-suggestions">@for (v of venueOptions() ?? []; track v) { <option [value]="v"></option> }</datalist>
+            @if (form.controls.venue.invalid && form.controls.venue.touched) {
+              <mat-error>El recinto es obligatorio.</mat-error>
+            } @else {
+              <mat-hint>Escribe un recinto o usa una sugerencia; verifica sus condiciones con el organizador.</mat-hint>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Ciudad</mat-label>
+            <input matInput formControlName="city" />
+            @if (form.controls.city.invalid && form.controls.city.touched) {
+              <mat-error>La ciudad es obligatoria.</mat-error>
+            } @else {
+              <mat-hint>Indica la ciudad real del evento.</mat-hint>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="two">
+          <mat-form-field appearance="outline">
+            <mat-label>Fecha y hora</mat-label>
+            <input matInput type="datetime-local" formControlName="startsAt" />
+            @if (form.controls.startsAt.invalid && form.controls.startsAt.touched) {
+              <mat-error>Indica cuándo es el evento.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Máx. entradas por compra</mat-label>
+            <input matInput type="number" min="1" max="6" step="1" formControlName="maxPerOrder" />
+            <mat-hint>Hasta 6 entradas por transacción.</mat-hint>
+          </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Capacidad física del recinto</mat-label>
+          <input matInput type="number" min="1" step="1" formControlName="venueCapacity" />
+          <mat-hint>La suma de zonas no puede superar este aforo.</mat-hint>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>URL de imagen (opcional)</mat-label>
+          <input matInput formControlName="imageUrl" placeholder="https://…" />
+          <mat-hint>Si la dejas vacía, generamos una imagen para tu evento.</mat-hint>
+        </mat-form-field>
+      </mat-card>
+
+      <mat-card class="block">
+        <div class="zones-head">
+          <h2><mat-icon>event_seat</mat-icon> Zonas</h2>
+          <button mat-stroked-button type="button" (click)="addZone()">
+            <mat-icon>add</mat-icon> Agregar zona
+          </button>
+        </div>
+
+        <div formArrayName="zones" class="zones">
+          @for (zone of zones.controls; track zone; let i = $index) {
+            <div class="zone" [formGroupName]="i">
+              <span class="zone-num">{{ i + 1 }}</span>
+              <mat-form-field appearance="outline">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="name" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Precio (S/)</mat-label>
+                <input matInput type="number" min="0" formControlName="price" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Aforo</mat-label>
+                <input matInput type="number" min="1" formControlName="capacity" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Vendidas</mat-label>
+                <input matInput type="number" min="0" formControlName="sold" readonly />
+              </mat-form-field>
+              <button
+                mat-icon-button
+                type="button"
+                class="del"
+                (click)="removeZone(i)"
+                [disabled]="zones.length <= 1"
+                aria-label="Eliminar zona"
+              >
+                <mat-icon>delete_outline</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </mat-card>
+
+      <div class="form-actions">
+        <a mat-stroked-button routerLink="/organizador/eventos">Cancelar</a>
+        <button mat-flat-button type="submit" class="tkt-cta" [disabled]="saving()">
+          @if (saving()) { Guardando… } @else { Guardar evento }
+        </button>
+      </div>
+    </form>
+  }
+</div>

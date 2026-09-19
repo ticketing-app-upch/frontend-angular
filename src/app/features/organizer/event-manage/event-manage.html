@@ -1,0 +1,60 @@
+<div class="tkt-page">
+  <div class="tkt-cluster head">
+    <div>
+      <h1 class="tkt-section-title">Mis eventos</h1>
+      <p class="tkt-section-sub">Crea, edita y controla el aforo de tus eventos.</p>
+    </div>
+    <span class="tkt-spacer"></span>
+    <a mat-flat-button routerLink="/organizador/eventos/nuevo">
+      <mat-icon>add</mat-icon> Nuevo evento
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><mat-progress-spinner mode="indeterminate" diameter="42" /></div>
+  } @else if (items().length === 0) {
+    <tkt-empty-state
+      icon="event_note"
+      title="No tienes eventos"
+      message="Empieza creando tu primer evento y sus zonas."
+    >
+      <a mat-flat-button routerLink="/organizador/eventos/nuevo">Crear evento</a>
+    </tkt-empty-state>
+  } @else {
+    <div class="list">
+      @for (ev of items(); track ev.id) {
+        <article class="row">
+          <img [src]="ev.imageUrl" [alt]="ev.name" />
+          <div class="main">
+            <div class="row-top">
+              <h2>{{ ev.name }}</h2>
+              <span class="badge" [attr.data-status]="ev.status">
+                {{ ev.status | titlecase }}
+              </span>
+            </div>
+            <p class="meta">
+              {{ ev.startsAt | date: "d 'de' MMM, y · HH:mm" }} · {{ ev.venue }}, {{ ev.city }}
+            </p>
+            <div class="cap">
+              <tkt-capacity-bar
+                [sold]="cap(ev).sold"
+                [total]="cap(ev).total"
+              />
+            </div>
+            <p class="figures">
+              <span>{{ ev.zones.length }} zona(s)</span>
+              <span>desde {{ minPrice(ev) | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</span>
+              <span>{{ cap(ev).available }} disponibles</span>
+            </p>
+          </div>
+          <div class="actions">
+            <a mat-stroked-button [routerLink]="['/organizador/eventos', ev.id, 'editar']">
+              <mat-icon>edit</mat-icon> Editar
+            </a>
+            <a mat-button [routerLink]="['/eventos', ev.id]">Ver ficha</a>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

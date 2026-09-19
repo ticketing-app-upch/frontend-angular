@@ -1,0 +1,277 @@
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import {
+  FormArray,
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TitleCasePipe } from '@angular/common';
+import { Router, RouterLink } from '@angular/router';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { EventService } from '../../../core/services/event.service';
+import { AuthService } from '../../../core/auth/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import {
+  EventCategory,
+  EventItem,
+  EventStatus,
+  Zone,
+} from '../../../core/models/event.model';
+import { eventImage } from '../../../shared/event-image';
+import { eventIssues } from '../../../core/models/ticketing-rules';
+
+@Component({
+  selector: 'tkt-event-form',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    TitleCasePipe,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatIconModule,
+    MatDividerModule,
+  ],
+  templateUrl: './event-form.html',
+  styleUrl: './event-form.scss',
+})
+export class EventForm {
+  private fb = inject(FormBuilder);
+  private events = inject(EventService);
+  private auth = inject(AuthService);
+  private notify = inject(NotificationService);
+  private router = inject(Router);
+
+  /** Presente sólo en modo edición (ruta `eventos/:id/editar`). */
+  readonly id = input<string>();
+
+  readonly saving = signal(false);
+  readonly loading = signal(false);
+  private editing = signal<EventItem | null>(null);
+
+  readonly isEdit = computed(() => !!this.id());
+  readonly title = computed(() => (this.isEdit() ? 'Editar evento' : 'Nuevo evento'));
+
+  readonly categories: EventCategory[] = [
+    'CONCIERTO',
+    'FESTIVAL',
+    'TEATRO',
+    'DEPORTE',
+    'CONFERENCIA',
+  ];
+  readonly statuses: EventStatus[] = ['BORRADOR', 'PUBLICADO'];
+
+  readonly form = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(4)]],
+    description: ['', [Validators.required, Validators.minLength(20)]],
+    category: ['CONCIERTO' as EventCategory, Validators.required],
+    status: ['BORRADOR' as EventStatus, Validators.required],
+    venue: ['', Validators.required],
+    city: ['Lima', Validators.required],
+    startsAt: ['', Validators.required],
+    venueCapacity: [1000, [Validators.required, Validators.min(1)]],
+    imageUrl: [''],
+    maxPerOrder: [
+      6,
+      [Validators.required, Validators.min(1), Validators.max(6)],
+    ],
+    zones: this.fb.array([this.newZone()]),
+  });
+
+  get zones(): FormArray {
+    return this.form.controls.zones;
+  }
+
+  /** Estadios de Lima habilitados para partidos de fútbol. */
+  readonly footballVenues = [
+    'Estadio Monumental',
+    'Estadio Nacional',
+    'Estadio San Marcos',
+    'Estadio Alejandro Villanueva',
+    'Estadio Iván Elías Moreno',
+    'Estadio Alberto Gallardo',
+    'Estadio Miguel Grau',
+  ];
+
+  /**
+   * Recintos de Lima aptos para conciertos. Se excluye la Explanada del Jockey
+   * Club: la Municipalidad de Surco mantiene la restricción a conciertos masivos
+   * desde 2023 y a 2026 no se ha levantado.
+   */
+  readonly concertVenues = [
+    'Estadio Nacional',
+    'Estadio San Marcos',
+    'Estadio Monumental',
+    'Estadio Alejandro Villanueva',
+    'Arena 1 - Costa Verde',
+    'Multiespacio Costa 21',
+    'Coliseo Eduardo Dibós',
+    'Explanada Costa Verde',
+    'Anfiteatro del Parque de la Exposición',
+    'Gran Teatro Nacional',
+    'Teatro Municipal de Lima',
+    'Teatro Peruano Japonés',
+  ];
+
+  private categoryValue = toSignal(this.form.controls.category.valueChanges, {
+    initialValue: this.form.controls.category.value,
+  });
+  /**
+   * Lista cerrada de recintos según la categoría (DEPORTE / CONCIERTO).
+   * `null` = el recinto es texto libre.
+   */
+  readonly venueOptions = computed<readonly string[] | null>(() => {
+    switch (this.categoryValue()) {
+      case 'DEPORTE':
+        return this.footballVenues;
+      case 'CONCIERTO':
+        return this.concertVenues;
+      default:
+        return null;
+    }
+  });
+
+  constructor() {
+    effect(() => {
+      const id = this.id();
+      if (!id) {
+        if (this.zones.length === 0) this.addZone();
+        return;
+      }
+      this.loading.set(true);
+      this.events.getById(id).subscribe({
+        next: (ev) => {
+          this.editing.set(ev);
+          this.patch(ev);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.notify.error('No se pudo cargar el evento.');
+          this.router.navigate(['/organizador/eventos']);
+        },
+      });
+    });
+  }
+
+  newZone(zone?: Partial<Zone>) {
+    return this.fb.nonNullable.group({
+      id: [zone?.id ?? ''],
+      name: [zone?.name ?? '', Validators.required],
+      price: [zone?.price ?? 0, [Validators.required, Validators.min(0)]],
+      capacity: [
+        zone?.capacity ?? 100,
+        [Validators.required, Validators.min(1)],
+      ],
+      sold: [zone?.sold ?? 0],
+    });
+  }
+
+  addZone(): void {
+    this.zones.push(this.newZone());
+  }
+
+  removeZone(index: number): void {
+    if (this.zones.length <= 1) return;
+    if (this.zones.at(index).get('sold')?.value > 0) { this.notify.error('Esta zona ya tiene ventas y no se puede eliminar.'); return; }
+    this.zones.removeAt(index);
+  }
+
+  private patch(ev: EventItem): void {
+    this.form.patchValue({
+      name: ev.name,
+      description: ev.description,
+      category: ev.category,
+      status: ev.status === 'AGOTADO' || ev.status === 'FINALIZADO'
+        ? 'PUBLICADO'
+        : ev.status,
+      venue: ev.venue,
+      city: ev.city,
+      venueCapacity: ev.venueCapacity ?? ev.zones.reduce((s, z) => s + z.capacity, 0),
+      startsAt: toLocalInput(ev.startsAt),
+      imageUrl: ev.imageUrl,
+      maxPerOrder: ev.maxPerOrder,
+    });
+    this.zones.clear();
+    ev.zones.forEach((z) => this.zones.push(this.newZone(z)));
+  }
+
+  submit(): void {
+    if (this.form.invalid || this.saving()) {
+      this.form.markAllAsTouched();
+      this.notify.error('Revisa los campos marcados.');
+      return;
+    }
+    const raw = this.form.getRawValue();
+    const existing = this.editing();
+    if (!Number.isFinite(new Date(raw.startsAt).getTime())) { this.notify.error('Ingresa una fecha válida.'); return; }
+
+    const payload: EventItem = {
+      id: existing?.id ?? '',
+      name: raw.name.trim(),
+      description: raw.description.trim(),
+      category: raw.category,
+      status: raw.status,
+      venue: raw.venue.trim(),
+      city: raw.city.trim(),
+      venueCapacity: raw.venueCapacity,
+      publishedAt: existing?.publishedAt ?? (raw.status === 'PUBLICADO' ? new Date().toISOString() : undefined),
+      startsAt: new Date(raw.startsAt).toISOString(),
+      imageUrl:
+        raw.imageUrl.trim() ||
+        eventImage({ name: raw.name.trim(), category: raw.category }),
+      organizerId: existing?.organizerId ?? this.auth.user()?.id ?? '',
+      maxPerOrder: raw.maxPerOrder,
+      zones: raw.zones.map((z, i) => ({
+        ...existing?.zones.find(old => old.id === z.id),
+        id: z.id || `z-${crypto.randomUUID().slice(0, 6)}-${i}`,
+        name: z.name.trim(),
+        price: z.price,
+        capacity: z.capacity,
+        sold: existing?.zones.find(old => old.id === z.id)?.sold ?? 0,
+      })),
+    };
+
+    const issues = eventIssues(payload, existing ?? undefined);
+    if (issues.length) { this.notify.error(issues[0]); return; }
+    this.saving.set(true);
+    this.events.save(payload).subscribe({
+      next: () => {
+        this.notify.success(
+          this.isEdit() ? 'Evento actualizado.' : 'Evento creado.',
+        );
+        this.router.navigate(['/organizador/eventos']);
+      },
+      error: () => {
+        this.saving.set(false);
+        this.notify.error('No se pudo guardar. Comprueba tus permisos y la conexión.');
+      },
+    });
+  }
+}
+
+/** ISO -> valor para <input type="datetime-local"> en hora local. */
+function toLocalInput(iso: string): string {
+  const d = new Date(iso);
+  const pad = (n: number) => `${n}`.padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+    d.getHours(),
+  )}:${pad(d.getMinutes())}`;
+}
