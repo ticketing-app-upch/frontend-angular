@@ -1,0 +1,202 @@
+@use '@angular/material' as mat;
+
+// ---------------------------------------------------------------------------
+// Tema Material 3 — plataforma de ticketing
+// ---------------------------------------------------------------------------
+html {
+  color-scheme: light dark;
+
+  @include mat.theme(
+    (
+      color: (
+        primary: mat.$violet-palette,
+        tertiary: mat.$orange-palette,
+      ),
+      typography: (
+        plain-family: 'Inter, Roboto, "Helvetica Neue", sans-serif',
+        brand-family: 'Inter, Roboto, "Helvetica Neue", sans-serif',
+      ),
+      density: 0,
+    )
+  );
+}
+
+:root {
+  --tkt-page-max: 1180px;
+  --tkt-gap: 1.5rem;
+  --tkt-radius: 16px;
+  --tkt-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 12px 32px -12px rgba(20, 12, 45, 0.22);
+
+  /* Acento cálido: acción y urgencia (comprar, precio, "quedan pocas"). */
+  --tkt-accent: #f43f5e;
+  --tkt-accent-soft: #fb7185;
+  --tkt-accent-strong: #e11d48;
+  --tkt-accent-ink: #4c0519;
+}
+
+/* Acción principal / de compra: coral con degradado y texto blanco. */
+.tkt-cta.mat-mdc-unelevated-button:not(:disabled),
+.tkt-cta.mat-mdc-raised-button:not(:disabled) {
+  background-color: var(--tkt-accent);
+  background-image: linear-gradient(
+    180deg,
+    var(--tkt-accent-soft),
+    var(--tkt-accent-strong)
+  );
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.tkt-cta.mat-mdc-unelevated-button:not(:disabled):hover {
+  background-color: var(--tkt-accent-strong);
+  background-image: linear-gradient(
+    180deg,
+    var(--tkt-accent),
+    var(--tkt-accent-strong)
+  );
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  font-family: Inter, Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--mat-sys-surface-container-low, #f5f3fb);
+  color: var(--mat-sys-on-surface, #1c1b1f);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+.tkt-page {
+  max-width: var(--tkt-page-max);
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.tkt-section-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  letter-spacing: -0.02em;
+}
+
+.tkt-section-sub {
+  margin: 0 0 1.75rem;
+  color: var(--mat-sys-on-surface-variant, #5b5b66);
+}
+
+.tkt-grid {
+  display: grid;
+  gap: var(--tkt-gap);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+}
+
+.tkt-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tkt-spacer {
+  flex: 1 1 auto;
+}
+
+.tkt-muted {
+  color: var(--mat-sys-on-surface-variant, #5b5b66);
+}
+
+// ---- Panel de administración: tarjeta + tabla ----
+.adm-card {
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 9%, transparent);
+  border-radius: 18px;
+  background: var(--mat-sys-surface);
+  box-shadow: 0 2px 6px rgba(16, 12, 40, 0.05),
+    0 22px 50px -32px rgba(76, 29, 149, 0.3);
+  overflow: hidden;
+}
+.adm-scroll { overflow-x: auto; }
+.adm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.adm-table th {
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mat-sys-on-surface-variant);
+  padding: 0.8rem 1rem;
+  white-space: nowrap;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+}
+.adm-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 6%, transparent);
+  vertical-align: middle;
+}
+.adm-table tbody tr:last-child td { border-bottom: 0; }
+.adm-table tbody tr:hover {
+  background: color-mix(in srgb, var(--mat-sys-primary) 4%, transparent);
+}
+
+.adm-chip {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 10%, transparent);
+  color: var(--mat-sys-on-surface-variant);
+}
+.adm-chip.st-PUBLICADO,
+.adm-chip.st-CONFIRMADA {
+  background: color-mix(in srgb, #16a34a 18%, transparent);
+  color: #15803d;
+}
+.adm-chip.st-AGOTADO {
+  background: color-mix(in srgb, var(--tkt-accent) 15%, transparent);
+  color: var(--tkt-accent-strong);
+}
+.adm-chip.st-CANCELADA {
+  background: color-mix(in srgb, var(--mat-sys-error) 16%, transparent);
+  color: var(--mat-sys-error);
+}
+
+// Scrollbar discreta
+* {
+  scrollbar-width: thin;
+}
+
+// Diálogo de documentos legales: fondo difuminado + tarjeta redondeada
+.tkt-legal-backdrop {
+  backdrop-filter: blur(6px);
+  background: rgba(12, 8, 22, 0.5);
+}
+
+.tkt-legal-panel .mat-mdc-dialog-surface {
+  border-radius: 20px;
+  overflow: hidden;
+}
+ :focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }

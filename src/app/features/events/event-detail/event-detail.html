@@ -1,0 +1,183 @@
+@if (loading()) {
+  <div class="tkt-page center">
+    <mat-progress-spinner mode="indeterminate" diameter="46" />
+  </div>
+} @else if (notFound()) {
+  <div class="tkt-page">
+    <tkt-empty-state
+      icon="search_off"
+      title="Evento no encontrado"
+      message="El evento que buscas no existe o dejó de estar disponible."
+    >
+      <a mat-flat-button routerLink="/eventos">Ver todos los eventos</a>
+    </tkt-empty-state>
+  </div>
+} @else if (event(); as ev) {
+  <div class="banner" [class.is-match]="match() !== null">
+    @if (match(); as m) {
+      <span
+        class="match-bg"
+        [style.background-image]="'url(' + ev.imageUrl + ')'"
+      ></span>
+      <div class="match-crests">
+        <img
+          [src]="m.crestA"
+          [alt]="m.teamA"
+          (error)="onCrestError($event, m.crestAAlt)"
+        />
+        <span class="vs">VS</span>
+        <img
+          [src]="m.crestB"
+          [alt]="m.teamB"
+          (error)="onCrestError($event, m.crestBAlt)"
+        />
+      </div>
+    } @else {
+      <img [src]="ev.imageUrl" [alt]="ev.name" />
+    }
+    <div class="banner-shade"></div>
+    <div class="banner-text">
+      <a routerLink="/eventos" class="back">
+        <mat-icon>arrow_back</mat-icon> Eventos
+      </a>
+      <span class="cat">{{ ev.category | titlecase }}</span>
+      <h1>{{ ev.name }}</h1>
+      <p class="when">
+        <mat-icon inline>event</mat-icon>
+        {{ ev.startsAt | date: "EEEE d 'de' MMMM, y · HH:mm" }}
+      </p>
+      <p class="where">
+        <mat-icon inline>place</mat-icon>
+        {{ ev.venue }}, {{ ev.city }}
+      </p>
+    </div>
+  </div>
+
+  <div class="tkt-page detail-grid">
+    <div class="about">
+      <div class="tkt-cluster" style="margin-bottom:24px">
+        <button mat-stroked-button (click)="discovery.toggle(ev.id)" [attr.aria-pressed]="discovery.has(ev.id)"><mat-icon>{{ discovery.has(ev.id) ? 'favorite' : 'favorite_border' }}</mat-icon>{{ discovery.has(ev.id) ? 'Guardado' : 'Guardar evento' }}</button>
+        <button mat-stroked-button (click)="calendar(ev)"><mat-icon>event_available</mat-icon>Mi calendario</button>
+        <button mat-stroked-button (click)="share()"><mat-icon>share</mat-icon>Compartir</button>
+      </div>
+      <section class="block">
+        <h2 class="tkt-section-title">Sobre el evento</h2>
+        <p class="desc">{{ ev.description }}</p>
+      </section>
+
+      <section class="block">
+        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Estimación dinámica por entrada + 6% de servicio. El total se confirma antes del pago.</p>
+        <div class="zones">
+          @for (zone of ev.zones; track zone.id) {
+            @let avail = zoneAvailable(zone.sold, zone.capacity);
+            @let pct = zone.capacity ? (zone.sold / zone.capacity) * 100 : 0;
+            <div
+              class="zone"
+              [class.gone]="avail === 0"
+              [class.low]="avail > 0 && pct >= 90"
+            >
+              <div class="zone-top">
+                <span class="zone-name">
+                  {{ zone.name }}
+                  @if (avail === 0) {
+                    <span class="zone-tag sold">Agotada</span>
+                  } @else if (pct >= 90) {
+                    <span class="zone-tag low">Quedan {{ avail | number }}</span>
+                  }
+                </span>
+                <span class="zone-price">
+                  {{ price(ev, zone).unitPrice | currency: 'PEN' : 'symbol-narrow' : '1.0-2' }}
+                </span>
+              </div>
+              <tkt-capacity-bar
+                [sold]="zone.sold"
+                [total]="zone.capacity"
+                [showLabel]="false"
+              />
+              <div class="zone-foot">
+                <span>
+                  @if (avail === 0) {
+                    Sin disponibilidad
+                  } @else {
+                    {{ avail | number }} entradas disponibles
+                  }
+                </span>
+                <span>{{ price(ev, zone).note }}</span><span>{{ pct | number: '1.0-0' }}% ocupado</span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <aside class="buy-box">
+      <div class="buy-card">
+        @if (!soldOut()) { <div class="price-head">
+          <span class="ph-label">Entradas desde</span>
+          <span class="ph-price">
+            {{ minPrice() | currency: 'PEN' : 'symbol-narrow' : '1.2-2' }}
+          </span>
+        </div>
+
+        }
+        @if (capacity(); as cap) {
+          <div class="aforo">
+            <div class="aforo-row">
+              <span>Aforo</span>
+              <strong>{{ cap.ratio * 100 | number: '1.0-0' }}%</strong>
+            </div>
+            <tkt-capacity-bar
+              [sold]="cap.sold"
+              [total]="cap.total"
+              [showLabel]="false"
+            />
+            <span class="aforo-left">
+              {{ cap.available | number }} entradas disponibles
+            </span>
+          </div>
+        }
+
+        <ul class="facts">
+          <li>
+            <mat-icon>event</mat-icon>
+            <span>{{ ev.startsAt | date: "EEE d 'de' MMM · HH:mm" }}</span>
+          </li>
+          <li>
+            <mat-icon>place</mat-icon>
+            <span>{{ ev.venue }}, {{ ev.city }}</span>
+          </li>
+          <li>
+            <mat-icon>confirmation_number</mat-icon>
+            <span>Máximo {{ ev.maxPerOrder }} entradas por compra</span>
+          </li>
+        </ul>
+
+        @if (soldOut()) {
+          <button mat-flat-button disabled class="cta">Evento agotado</button>
+        } @else if (ended()) { <button mat-flat-button disabled class="cta">Venta no disponible</button>
+        } @else if (isOrganizer()) {
+          <button mat-stroked-button disabled class="cta">
+            <mat-icon>store</mat-icon> Vista de gestión
+          </button>
+        } @else if (isAuthenticated()) {
+          <a mat-flat-button class="cta tkt-cta" [routerLink]="['/comprar', ev.id]">
+            <mat-icon>local_activity</mat-icon> Comprar entradas
+          </a>
+        } @else {
+          <a
+            mat-flat-button
+            class="cta tkt-cta"
+            [routerLink]="['/auth/login']"
+            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+          >
+            <mat-icon>login</mat-icon> Ingresa para comprar
+          </a>
+        }
+
+        <p class="fine">
+          <mat-icon>lock</mat-icon> Compra protegida
+        </p>
+      </div>
+    </aside>
+  </div>
+}

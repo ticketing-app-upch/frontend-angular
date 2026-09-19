@@ -1,0 +1,102 @@
+.toaster {
+  position: fixed;
+  /* debajo del header sticky (60px) */
+  top: 4.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: min(92vw, 420px);
+  pointer-events: none;
+}
+
+.toast {
+  position: relative;
+  overflow: hidden;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.85rem 0.8rem 0.85rem 1.1rem;
+  border-radius: 14px;
+  color: var(--mat-sys-on-surface);
+  background: color-mix(in srgb, var(--mat-sys-surface) 96%, transparent);
+  backdrop-filter: blur(10px);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 12%, transparent);
+  box-shadow:
+    0 2px 6px rgba(16, 12, 40, 0.06),
+    0 18px 44px -14px rgba(20, 12, 45, 0.4);
+  animation: toast-in 0.28s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+
+/* franja de color a la izquierda según el tipo */
+.toast::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+}
+
+.toast .ico {
+  flex: none;
+  font-size: 1.3rem;
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.toast .msg {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.toast .x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mat-sys-on-surface-variant);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.toast .x:hover {
+  background: color-mix(in srgb, var(--mat-sys-on-surface) 8%, transparent);
+}
+.toast .x mat-icon {
+  font-size: 1.05rem;
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.is-success::before { background: #16a34a; }
+.is-success .ico { color: #16a34a; }
+
+.is-error::before { background: var(--mat-sys-error); }
+.is-error .ico { color: var(--mat-sys-error); }
+
+.is-info::before { background: var(--mat-sys-primary); }
+.is-info .ico { color: var(--mat-sys-primary); }
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast { animation: none; }
+}
