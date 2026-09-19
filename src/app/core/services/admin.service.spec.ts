@@ -55,10 +55,12 @@ describe('AdminService (modo mock)', () => {
     await expect(firstValueFrom(admin.deleteUser('no-existe'))).rejects.toMatchObject({ status: 404 });
   });
 
-  it('cambiar el rol de un usuario que sí existe funciona', async () => {
+  it('no permite cambiar el rol de un cliente u organizador', async () => {
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.ADMIN));
-    const updated = await firstValueFrom(admin.setUserRole('u-cli-1', 'ORGANIZER'));
-    expect(updated.role).toBe('ORGANIZER');
+    await expect(firstValueFrom(admin.setUserRole('u-cli-1', 'ORGANIZER')))
+      .rejects.toMatchObject({ status: 409 });
+    const unchanged = store.users.find((u) => u.id === 'u-cli-1');
+    expect(unchanged?.role).toBe('CLIENT');
   });
 
   it('las métricas cuadran con lo que hay en el store', async () => {
