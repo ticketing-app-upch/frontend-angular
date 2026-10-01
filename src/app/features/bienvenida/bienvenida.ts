@@ -25,14 +25,14 @@ import { epicEnabled } from '../../core/demo-scope';
         }
         <mat-icon class="brand-icon">confirmation_number</mat-icon>
         @if (auth.isAuthenticated()) {
-          <h1>¡Sesión iniciada!</h1>
+          <h1>{{ roleHeading() }}</h1>
           <p>
             Hola <strong>{{ auth.user()!.fullName }}</strong>, bienvenido a AlpaTeck.
             Tu sesión está activa como <strong>{{ roleLabel() }}</strong>.
           </p>
           <p class="muted">
-            Demo 1 mantiene visibles las rutas principales en la URL, mientras la
-            experiencia visual se concentra en el login y esta confirmación.
+            La épica 1 muestra el acceso correspondiente a cada rol, mientras la
+            integración de eventos y compras se presenta en próximas épicas.
           </p>
           @if (routesForRole().length) {
             <div class="route-actions" aria-label="Accesos disponibles">
@@ -100,6 +100,11 @@ export class Bienvenida {
   }
   readonly epicEnabled = epicEnabled;
 
+  roleHeading(): string {
+    const role = this.auth.user()?.role;
+    return role === 'ADMIN' ? 'Panel de administración' : role === 'ORGANIZER' ? 'Panel del organizador' : 'Panel del asistente';
+  }
+
   roleLabel(): string {
     const role = this.auth.user()?.role;
     return role === 'ADMIN' ? 'Administrador' : role === 'ORGANIZER' ? 'Organizador' : 'Cliente';
@@ -108,19 +113,11 @@ export class Bienvenida {
   routesForRole(): { url: string; label: string }[] {
     switch (this.auth.user()?.role) {
       case 'ORGANIZER':
-        return [
-          { url: '/organizer/create-event', label: 'Crear evento' },
-          { url: '/organizer/dashboard', label: 'Dashboard de ventas' },
-        ];
+        return [];
       case 'ADMIN':
         return [];
       default:
-        return [
-          { url: '/attendee/catalog', label: 'Catálogo de eventos' },
-          { url: '/attendee/event/1', label: 'Detalle del evento' },
-          { url: '/attendee/checkout/1', label: 'Compra de entradas' },
-          { url: '/attendee/tickets', label: 'Mis tickets' },
-        ];
+        return [{ url: '/attendee/catalog', label: 'Catálogo de eventos' }];
     }
   }
 }

@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, roleGuard } from './core/auth/auth.guards';
+import { epicGuard } from './core/demo-scope';
 
 const bienvenida = () => import('./features/bienvenida/bienvenida').then((m) => m.Bienvenida);
 const login = () => import('./features/auth/login/login').then((m) => m.Login);
@@ -33,27 +34,33 @@ export const routes: Routes = [
       },
       {
         path: 'attendee/checkout/:id',
-        canActivate: [authGuard, roleGuard('CLIENT')],
+        canActivate: [authGuard, roleGuard('CLIENT'), epicGuard(3)],
         loadComponent: bienvenida,
         title: 'Compra de entradas · AlpaTeck',
       },
       {
         path: 'attendee/tickets',
-        canActivate: [authGuard, roleGuard('CLIENT')],
+        canActivate: [authGuard, roleGuard('CLIENT'), epicGuard(3)],
         loadComponent: bienvenida,
         title: 'Mis entradas · AlpaTeck',
       },
       {
         path: 'organizer/create-event',
-        canActivate: [authGuard, roleGuard('ORGANIZER')],
+        canActivate: [authGuard, roleGuard('ORGANIZER'), epicGuard(2)],
         loadComponent: bienvenida,
         title: 'Crear evento · AlpaTeck',
       },
       {
-        path: 'organizer/dashboard',
+        path: 'organizer/home',
         canActivate: [authGuard, roleGuard('ORGANIZER')],
         loadComponent: bienvenida,
-        title: 'Dashboard de ventas · AlpaTeck',
+        title: 'Panel del organizador · AlpaTeck',
+      },
+      {
+        path: 'admin/home',
+        canActivate: [authGuard, roleGuard('ADMIN')],
+        loadComponent: bienvenida,
+        title: 'Panel de administración · AlpaTeck',
       },
       {
         path: 'auth',

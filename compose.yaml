@@ -1,10 +1,56 @@
 services:
-  web:
+  db:
+    image: mysql:8.0
+    container_name: ticketing_integracion_db
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: ticketing
+      MYSQL_USER: ticketing_user
+      MYSQL_PASSWORD: ticketing_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ticketing_integracion_backend
+    ports:
+      - "8080:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: ticketing
+      DB_USERNAME: ticketing_user
+      DB_PASSWORD: ticketing_password
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ticketing-frontend:latest
-    container_name: ticketing-frontend-web
+    container_name: ticketing_integracion_frontend
     ports:
       - "8081:80"
+    depends_on:
+      - app
     restart: unless-stopped
+
+volumes:
+  mysql_data:

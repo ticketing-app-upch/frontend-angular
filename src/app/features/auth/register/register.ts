@@ -60,12 +60,12 @@ export class Register {
     client: this.fb.nonNullable.group({
       country: ['', Validators.required],
       city: ['', Validators.required],
-      document: ['', [Validators.required, Validators.minLength(8)]],
+      document: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
       phone: ['', [Validators.required, Validators.minLength(6)]],
     }),
     organizer: this.fb.nonNullable.group({
       companyName: ['', [Validators.required, Validators.minLength(2)]],
-      taxId: ['', [Validators.required, Validators.minLength(8)]],
+      taxId: ['', [Validators.required, Validators.pattern(/^(10|15|17|20)[0-9]{9}$/)]],
       country: ['', Validators.required],
       phone: ['', [Validators.required, Validators.minLength(6)]],
     }),
@@ -160,11 +160,11 @@ export class Register {
       .subscribe({
         next: (res) => {
           this.notify.success(`Cuenta creada. ¡Bienvenido, ${res.user.fullName.split(' ')[0]}!`);
-          void this.router.navigateByUrl('/bienvenida');
+          void this.router.navigateByUrl(raw.role === 'CLIENT' ? '/attendee/catalog' : '/organizer/home');
         },
         error: (err) => {
           this.loading.set(false);
-          this.notify.error(err?.message ?? 'No se pudo crear la cuenta.');
+          this.notify.error(err?.error?.message ?? err?.message ?? 'No se pudo crear la cuenta.');
         },
       });
   }

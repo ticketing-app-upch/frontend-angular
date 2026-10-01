@@ -59,9 +59,11 @@
           <a mat-menu-item routerLink="/attendee/favorites">
             <mat-icon>favorite_border</mat-icon> Mis favoritos
           </a>
-          <a mat-menu-item routerLink="/attendee/tickets">
+          @if (epicEnabled(3)) {
+            <a mat-menu-item routerLink="/attendee/tickets">
             <mat-icon>local_activity</mat-icon> Mis entradas
-          </a>
+            </a>
+          }
         }
         @if (isOrganizer() && epicEnabled(5)) {
           <a mat-menu-item routerLink="/organizer/dashboard">
@@ -95,7 +97,7 @@
     <a routerLink="/organizer/dashboard" routerLinkActive="active"
       ><mat-icon>insights</mat-icon>Dashboard</a
     >
-  } @else if (isClient()) {
+  } @else if (isClient() && epicEnabled(3)) {
     <a routerLink="/attendee/tickets" routerLinkActive="active"
       ><mat-icon>confirmation_number</mat-icon>Mis entradas</a
     >

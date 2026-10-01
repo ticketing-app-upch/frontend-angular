@@ -56,7 +56,7 @@ export class AuthService {
   }
 
   register(payload: RegisterPayload): Observable<AuthResponse> {
-    const req = environment.useMock
+    const req = environment.useMockAuth
       ? this.mockRegister(payload)
       : this.http.post<AuthResponse>(`${this.base}/auth/register`, payload);
     return req.pipe(tap((res) => this.persistSession(res)));
@@ -208,7 +208,7 @@ export class AuthService {
 /** Solo vencimiento para UX; la autenticidad del JWT debe verificarse en el servidor. */
 export function sessionExpiresAt(token: string): number | null {
   if (token.startsWith('mock.')) {
-    if (!environment.useMock) return null;
+    if (!environment.useMockAuth) return null;
     const issuedAt = Number(token.split('.')[2]);
     return Number.isFinite(issuedAt) && issuedAt > 0 ? issuedAt + SESSION_DURATION_MS : null;
   }

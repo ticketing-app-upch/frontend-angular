@@ -81,7 +81,10 @@
             <div class="two">
               <mat-form-field appearance="outline">
                 <mat-label>DNI</mat-label>
-                <input matInput formControlName="document" inputmode="numeric" placeholder="Número de documento" />
+                <input matInput formControlName="document" inputmode="numeric" maxlength="8" placeholder="Número de documento" />
+                @if (client.controls.document.invalid && client.controls.document.touched) {
+                  <mat-error>El DNI debe tener 8 dígitos.</mat-error>
+                }
               </mat-form-field>
               <mat-form-field appearance="outline">
                 <mat-label>Teléfono</mat-label>
@@ -96,8 +99,11 @@
               <input matInput formControlName="companyName" placeholder="Empresa S.A." />
             </mat-form-field>
             <mat-form-field appearance="outline">
-              <mat-label>RUC / Identificación fiscal</mat-label>
-              <input matInput formControlName="taxId" inputmode="numeric" placeholder="12345678901" />
+              <mat-label>RUC</mat-label>
+              <input matInput formControlName="taxId" inputmode="numeric" maxlength="11" placeholder="20123456789" />
+              @if (organizer.controls.taxId.invalid && organizer.controls.taxId.touched) {
+                <mat-error>Ingresa un RUC válido de 11 dígitos.</mat-error>
+              }
             </mat-form-field>
             <div class="two">
               <mat-form-field appearance="outline">
