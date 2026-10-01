@@ -5,6 +5,7 @@ import { AdminService } from './admin.service';
 import { AuthService } from '../auth/auth.service';
 import { MockStore } from '../mock/mock-store';
 import { DEMO_CREDENTIALS } from '../mock/mock-data';
+import { environment } from '../../../enviroments/enviroment';
 
 describe('AdminService (modo mock)', () => {
   let admin: AdminService;
@@ -12,6 +13,7 @@ describe('AdminService (modo mock)', () => {
   let store: MockStore;
 
   beforeEach(() => {
+    environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     admin = TestBed.inject(AdminService);

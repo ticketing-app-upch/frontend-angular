@@ -14,7 +14,7 @@ import {
 
 const TOKEN_KEY = 'tkt.token';
 const USER_KEY = 'tkt.user';
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+const SESSION_DURATION_MS = 60 * 60 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -49,7 +49,7 @@ export class AuthService {
   }
 
   login(payload: LoginPayload): Observable<AuthResponse> {
-    const req = environment.useMock
+    const req = environment.useMockAuth
       ? this.mockLogin(payload)
       : this.http.post<AuthResponse>(`${this.base}/auth/login`, payload);
     return req.pipe(tap((res) => this.persistSession(res, payload.remember ?? true)));

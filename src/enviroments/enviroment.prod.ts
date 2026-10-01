@@ -9,6 +9,8 @@ export const environment = {
    * `apiBackendUrl` / `apiPricingUrl`.
    */
   useMock: true,
+  /** Producción conserva auth mock hasta configurar el proxy de Full stack. */
+  useMockAuth: true,
   mockLatencyMs: 200,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
   enabledEpics: [1],

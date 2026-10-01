@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { authGuard, roleGuard, clientGuard, guestGuard } from './auth.guards';
 import { AuthService, sessionTokenValid } from './auth.service';
 import { DEMO_CREDENTIALS } from '../mock/mock-data';
+import { environment } from '../../../enviroments/enviroment';
 
 /**
  * Los guards deciden quién entra a cada pantalla — son la última línea de
@@ -18,6 +19,7 @@ describe('Guards de ruta', () => {
   let harness: RouterTestingHarness;
 
   beforeEach(async () => {
+    environment.useMockAuth = true;
     localStorage.clear();
     sessionStorage.clear();
     TestBed.configureTestingModule({
@@ -113,11 +115,11 @@ describe('Guards de ruta', () => {
     });
   });
 
-  it('un token mock vence a las 8 horas', () => {
+  it('un token mock vence a los 60 minutos', () => {
     const issuedAt = Date.now();
     const token = `mock.${btoa('u-1:CLIENT')}.${issuedAt}`;
-    expect(sessionTokenValid(token, issuedAt + 8 * 60 * 60 * 1000 - 1)).toBe(true);
-    expect(sessionTokenValid(token, issuedAt + 8 * 60 * 60 * 1000)).toBe(false);
+    expect(sessionTokenValid(token, issuedAt + 60 * 60 * 1000 - 1)).toBe(true);
+    expect(sessionTokenValid(token, issuedAt + 60 * 60 * 1000)).toBe(false);
   });
 
   it('un token JWT vencido cuenta como no autenticado, aunque haya un usuario guardado', async () => {

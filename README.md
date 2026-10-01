@@ -6,7 +6,7 @@ Frontend Angular de la Demo 2 para autenticación, control de sesión y navegaci
 
 - Inicio de sesión y registro para asistentes y organizadores; el formulario exige aceptar los términos y condiciones.
 - Cierre de sesión que elimina el token y el usuario del almacenamiento del navegador.
-- Expiración de sesión a las 8 horas. Las respuestas `401` en rutas protegidas cierran la sesión y llevan al login; `403` conserva la sesión y muestra una página segura.
+- Expiración de sesión a los 60 minutos, alineada con el JWT del backend. Las respuestas `401` en rutas protegidas cierran la sesión y llevan al login; `403` conserva la sesión y muestra una página segura.
 - Guards de autenticación y rol para impedir la navegación a rutas de otro perfil desde el frontend. El backend debe repetir estas autorizaciones.
 - Catálogo de eventos para asistentes, con favoritos guardados localmente. El corazón permite añadir y quitar cada evento de “Mis favoritos”. La pantalla de detalle y compra siguen fuera del alcance de esta demo.
 
@@ -39,7 +39,7 @@ npm run build
 
 ## Integración con backend
 
-La base de API de desarrollo está en `src/enviroments/enviroment.ts` (`http://localhost:8080/api`) y `useMock` está en `true`. Por eso login, registro y catálogo utilizan datos locales; el repositorio de Demo 2 no contiene una implementación de backend para ejecutar una prueba extremo a extremo. Cambiar `useMock` a `false` activa las llamadas HTTP.
+La API de autenticación de desarrollo está en `src/enviroments/enviroment.ts` (`http://localhost:8080/api`) y `useMockAuth` está en `false`; login y registro usan el backend local. El resto de módulos de Demo 2 conserva datos mock mediante `useMock: true`.
 
 Contratos que el frontend espera al conectar el backend:
 
