@@ -1,6 +1,6 @@
 # Integración frontend + backend · AlpaTeck
 
-Rama de integración de Demo 2 en el repositorio `frontend-angular`. El backend se incluye como submódulo desde `backend-php` (`feat/demo2`); no se duplica su código.
+Rama de integración de Demo 2 organizada en carpetas independientes: `frontend/` contiene Angular y `backend/` contiene Laravel (PHP). El backend se incluye como código del repositorio, no como submódulo.
 
 ## Alcance de esta demo
 
@@ -9,34 +9,21 @@ Rama de integración de Demo 2 en el repositorio `frontend-angular`. El backend 
 - Catálogo y favoritos con datos mock locales.
 - Los endpoints de eventos, compra y reportes se habilitarán en sus respectivas épicas.
 
-## Obtener el proyecto
-
-Clona esta rama incluyendo el backend:
-
-```bash
-git clone --branch integracion-back-front --recurse-submodules https://github.com/ticketing-app-upch/frontend-angular.git
-cd frontend-angular
-```
-
-Si ya clonaste la rama sin submódulos:
-
-```bash
-git submodule update --init --recursive
-```
-
 ## Configurar el backend
 
-El único ejemplo de entorno está dentro del submódulo: `backend/.env.example`. Crea la configuración local antes de levantar Compose:
+El ejemplo de variables de entorno está en `backend/.env.example`. Crea la configuración local antes de levantar Compose:
 
 ```powershell
 Copy-Item backend/.env.example backend/.env
 ```
 
-En `backend/.env`, completa los tres valores `INITIAL_ADMIN_NAME`, `INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD`. Deja `APP_KEY` y `JWT_SECRET` vacíos: los comandos de abajo los generan dentro del volumen local del backend. Ninguno de estos valores se sube a GitHub. El README público no incluye una contraseña de administrador.
+En `backend/.env`, completa `INITIAL_ADMIN_NAME`, `INITIAL_ADMIN_EMAIL` e `INITIAL_ADMIN_PASSWORD`. Deja `APP_KEY` y `JWT_SECRET` vacíos; los comandos de abajo los generan. El archivo `.env` es local y no debe subirse a GitHub. Este repositorio público no publica la contraseña de administrador.
 
 > Si tienes corriendo el stack de la carpeta `Full stack`, detenlo con `docker compose down` desde esa carpeta antes de usar esta configuración: ambas usan los puertos 8080, 8081 y 3307. Este comando conserva los datos de MySQL.
 
 ## Ejecutar
+
+Desde la raíz del repositorio:
 
 ```bash
 docker compose up -d --build

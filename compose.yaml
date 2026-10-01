@@ -43,7 +43,7 @@ services:
 
   frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: ticketing_integracion_frontend
     ports:
