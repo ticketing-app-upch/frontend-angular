@@ -39,7 +39,7 @@ npm run build
 
 ## Integración con backend
 
-La API de autenticación de desarrollo está en `src/enviroments/enviroment.ts` (`http://localhost:8080/api`) y `useMockAuth` está en `false`; login y registro usan el backend local. El resto de módulos de Demo 2 conserva datos mock mediante `useMock: true`.
+La Demo 2 standalone usa autenticación mock (`useMockAuth: true`) y el resto de módulos conserva datos mock (`useMock: true`). La configuración del backend se mantiene en la copia de `Full stack`, separada de esta rama.
 
 Contratos que el frontend espera al conectar el backend:
 
