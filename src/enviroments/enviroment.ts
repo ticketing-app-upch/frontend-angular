@@ -1,40 +1,17 @@
 export const environment = {
   production: false,
-  /** Núcleo de negocio: auth, eventos, tickets, aforo. */
+  /** API de autenticación y eventos para integrar el backend. */
   apiBackendUrl: 'http://localhost:8080/api',
-  /** Servicio de precios / tarifas dinámicas. */
+  /** Servicio de precios, previsto para una demo posterior. */
   apiPricingUrl: 'http://localhost:8000/api',
-  /**
-   * Mientras el backend no esté disponible, los servicios responden con
-   * datos falsos en memoria (semilla en `core/mock`). Ponlo en `false`
-   * cuando quieras pegarle a las APIs reales.
-   */
+  /** Mock local activo hasta conectar y validar el backend de esta demo. */
   useMock: true,
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
-  /**
-   * Épicas habilitadas en este build (ver `core/demo-scope.ts`). Esta rama es
-   * feat/demo-2-auth: solo Épica 1 (registro + login). Para trabajar en el
-   * resto del catálogo/compra/paneles, hacé `git checkout feat/frontend-mvp`
-   * (ahí queda todo prendido) o subí este número a mano en tu copia local.
-   */
+  /** Épica 1 de autenticación; el catálogo de Demo 2 usa datos mock. */
   enabledEpics: [1],
-  /**
-   * Clave HMAC con la que se firman los QR de las entradas y con la
-   * que la puerta (`/validar`) verifica su autenticidad. En un sistema real
-   * esta clave vive SOLO en el backend / la app del escáner, nunca en el
-   * cliente; el backend debe reemplazarla por una clave privada.
-   */
+  /** Clave local de QR para funciones fuera del alcance de Demo 2. */
   ticketSecret: 'aforo-clave-local-de-firma-2026-no-usar-en-produccion',
-  /**
-   * Base absoluta que se incrusta en el QR de la entrada (la puerta abre
-   * `<publicBaseUrl>/validar#<token>`). Déjalo vacío para usar el origen
-   * desde el que se abrió la app.
-   *
-   * Ponlo cuando abres la app en `localhost` pero el QR lo escanea un
-   * teléfono: usa la IP de tu PC en la red local o una URL de túnel, p. ej.
-   *   'http://192.168.1.40:4200'   (mismo Wi-Fi)
-   *   'https://aforo.tu-tunel.dev' (ngrok / cloudflared)
-   */
+  /** Origen público para QR; vacío usa el origen actual de la aplicación. */
   publicBaseUrl: '',
 };

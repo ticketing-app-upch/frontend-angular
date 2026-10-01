@@ -112,6 +112,18 @@
           </section>
         }
 
+        <div class="terms-consent">
+          <mat-checkbox formControlName="acceptedTerms">
+            Acepto los términos y condiciones
+          </mat-checkbox>
+          <button type="button" class="terms-link" (click)="openTerms()">
+            Leer términos y condiciones
+          </button>
+          @if (form.controls.acceptedTerms.invalid && form.controls.acceptedTerms.touched) {
+            <p class="terms-error" role="alert">Debes aceptar los términos y condiciones para continuar.</p>
+          }
+        </div>
+
         <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
           @if (loading()) { Creando cuenta… } @else { Crear cuenta }
         </button>

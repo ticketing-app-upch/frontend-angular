@@ -11,6 +11,8 @@ import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -19,6 +21,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { PASSWORD_PATTERN } from '../../../core/auth/password-policy';
 import { PublicRole } from '../../../core/models/user.model';
 import { NotificationService } from '../../../core/services/notification.service';
+import { LegalDialog } from '../../../shared/legal/legal-dialog';
 
 @Component({
   selector: 'tkt-register',
@@ -29,6 +32,7 @@ import { NotificationService } from '../../../core/services/notification.service
     MatButtonModule,
     MatButtonToggleModule,
     MatCardModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
@@ -42,6 +46,7 @@ export class Register {
   private auth = inject(AuthService);
   private router = inject(Router);
   private notify = inject(NotificationService);
+  private dialog = inject(MatDialog);
 
   readonly loading = signal(false);
   readonly hide = signal(true);
@@ -51,6 +56,7 @@ export class Register {
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
     role: ['CLIENT' as PublicRole, Validators.required],
+    acceptedTerms: [false, Validators.requiredTrue],
     client: this.fb.nonNullable.group({
       country: ['', Validators.required],
       city: ['', Validators.required],
@@ -87,6 +93,13 @@ export class Register {
     this.client.enable({ emitEvent: false });
   }
 
+  openTerms(): void {
+    this.dialog.open(LegalDialog, {
+      data: { key: 'terms', role: this.isOrganizer() ? 'ORGANIZADOR' : 'CLIENTE' },
+      width: 'min(94vw, 720px)',
+    });
+  }
+
   submit(): void {
     if (this.loading()) return;
 
@@ -95,10 +108,13 @@ export class Register {
       this.form.controls.fullName.invalid ||
       this.form.controls.email.invalid ||
       this.form.controls.password.invalid ||
-      branch.invalid
+      branch.invalid ||
+      this.form.controls.acceptedTerms.invalid
     ) {
       this.form.markAllAsTouched();
-      this.notify.error('Completa los campos obligatorios.');
+      this.notify.error(this.form.controls.acceptedTerms.invalid
+        ? 'Debes aceptar los términos y condiciones para registrarte.'
+        : 'Completa los campos obligatorios.');
       return;
     }
 
@@ -110,7 +126,7 @@ export class Register {
         email: raw.email.trim(),
         password: raw.password,
         role: raw.role,
-        acceptedTerms: true,
+        acceptedTerms: raw.acceptedTerms,
         marketingOptIn: false,
         profile:
           raw.role === 'CLIENT'

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
+import { Router } from '@angular/router';
 import { environment } from '../../../enviroments/enviroment';
 import { MockStore } from '../mock/mock-store';
 import { mockError, mockResponse } from '../mock/mock-latency';
@@ -13,12 +14,18 @@ import {
 
 const TOKEN_KEY = 'tkt.token';
 const USER_KEY = 'tkt.user';
+const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
   private store = inject(MockStore);
   private base = environment.apiBackendUrl;
+  private router = inject(Router);
+  private expiryTimer: ReturnType<typeof setTimeout> | null = null;
+  private expiryRedirectPending = false;
+  private readonly _sessionExpired = signal(false);
+  readonly sessionExpired = this._sessionExpired.asReadonly();
 
   private readonly _user = signal<User | null>(this.restoreUser());
   private readonly _token = signal<string | null>(this.restoreToken());
@@ -29,9 +36,15 @@ export class AuthService {
   readonly isClient = computed(() => this._user()?.role === 'CLIENT');
   readonly isAdmin = computed(() => this._user()?.role === 'ADMIN');
 
+  constructor() {
+    const stored = this.storedToken();
+    if (stored && !sessionTokenValid(stored)) this.expireSession(false);
+    else this.scheduleExpiry();
+  }
+
   get token(): string | null {
     const token = this._token();
-    if (token && !sessionTokenValid(token)) { this.logout(); return null; }
+    if (token && !sessionTokenValid(token)) { this.expireSession(false); return null; }
     return token;
   }
 
@@ -50,9 +63,59 @@ export class AuthService {
   }
 
   logout(): void {
+    if (this.expiryTimer !== null) clearTimeout(this.expiryTimer);
+    this.expiryTimer = null;
+    this.expiryRedirectPending = false;
+    this._sessionExpired.set(false);
     this._token.set(null);
     this._user.set(null);
-    try { for (const storage of [localStorage, sessionStorage]) { storage.removeItem(TOKEN_KEY); storage.removeItem(USER_KEY); } } catch { /* sesión en memoria eliminada */ }
+    for (const storage of [localStorage, sessionStorage]) {
+      try {
+        storage.removeItem(TOKEN_KEY);
+        storage.removeItem(USER_KEY);
+      } catch { /* La sesión en memoria ya fue eliminada. */ }
+    }
+  }
+
+  /** Cierra una sesión vencida o rechazada por el backend. */
+  expireSession(redirectToLogin = true): void {
+    if (!this._sessionExpired()) {
+      this.logout();
+      this._sessionExpired.set(true);
+    }
+    if (!redirectToLogin || this.expiryRedirectPending) return;
+    this.expiryRedirectPending = true;
+    queueMicrotask(() => {
+      this.expiryRedirectPending = false;
+      if (!this._sessionExpired()) return;
+      const current = this.router.url;
+      const redirect = current !== '/' && !current.startsWith('/auth/') ? current : null;
+      void this.router.navigate(['/auth/login'], {
+        queryParams: { reason: 'expired', ...(redirect ? { redirect } : {}) },
+        replaceUrl: true,
+      });
+    });
+  }
+
+  private scheduleExpiry(): void {
+    if (this.expiryTimer !== null) clearTimeout(this.expiryTimer);
+    this.expiryTimer = null;
+    const token = this._token();
+    if (!token) return;
+    const expiresAt = sessionExpiresAt(token);
+    if (expiresAt === null || expiresAt <= Date.now()) {
+      this.expireSession();
+      return;
+    }
+    this.expiryTimer = setTimeout(() => {
+      if (this._token() && !sessionTokenValid(this._token()!)) this.expireSession();
+      else this.scheduleExpiry();
+    }, Math.min(expiresAt - Date.now(), 2_147_483_647));
+  }
+
+  private storedToken(): string | null {
+    try { return sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY); }
+    catch { return null; }
   }
 
   // --- Sesión ---------------------------------------------------------
@@ -67,11 +130,12 @@ export class AuthService {
     } catch {
       /* almacenamiento no disponible */
     }
+    this.scheduleExpiry();
   }
 
   private restoreToken(): string | null {
     try {
-      const token = sessionStorage.getItem(TOKEN_KEY) ?? localStorage.getItem(TOKEN_KEY);
+      const token = this.storedToken();
       return token && sessionTokenValid(token) ? token : null;
     } catch {
       return null;
@@ -142,10 +206,25 @@ export class AuthService {
 }
 
 /** Solo vencimiento para UX; la autenticidad del JWT debe verificarse en el servidor. */
-export function sessionTokenValid(token: string, now = Date.now()): boolean {
-  if (token.startsWith('mock.')) return environment.useMock && Number.isFinite(Number(token.split('.')[2])) && now - Number(token.split('.')[2]) < 86400000;
+export function sessionExpiresAt(token: string): number | null {
+  if (token.startsWith('mock.')) {
+    if (!environment.useMock) return null;
+    const issuedAt = Number(token.split('.')[2]);
+    return Number.isFinite(issuedAt) && issuedAt > 0 ? issuedAt + SESSION_DURATION_MS : null;
+  }
   try {
     const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
-    return typeof payload.exp === 'number' && Number.isFinite(payload.exp) && payload.exp * 1000 > now;
-  } catch { return false; }
+    if (typeof payload.exp !== 'number' || !Number.isFinite(payload.exp)) return null;
+    const expiresAt = payload.exp * 1000;
+    return typeof payload.iat === 'number' && Number.isFinite(payload.iat)
+      ? Math.min(expiresAt, payload.iat * 1000 + SESSION_DURATION_MS)
+      : expiresAt;
+  } catch { return null; }
+}
+
+export function sessionTokenValid(token: string, now = Date.now()): boolean {
+  const expiresAt = sessionExpiresAt(token);
+  if (expiresAt === null || expiresAt <= now) return false;
+  if (token.startsWith('mock.')) return Number(token.split('.')[2]) <= now;
+  return true;
 }
