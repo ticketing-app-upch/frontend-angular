@@ -51,7 +51,7 @@ export class MainLayout {
 
   logout(): void {
     this.auth.logout();
-    void this.router.navigateByUrl(this.homeLink);
+    void this.router.navigateByUrl(this.homeLink, { replaceUrl: true });
   }
 
   initials(name: string): string {

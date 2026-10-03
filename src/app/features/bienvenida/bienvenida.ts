@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth/auth.service';
@@ -18,6 +20,9 @@ import { epicEnabled } from '../../core/demo-scope';
   template: `
     <div class="tkt-page center">
       <div class="card">
+        @if (accessDenied()) {
+          <p class="access-notice" role="alert">No tienes permiso para abrir esa sección.</p>
+        }
         <mat-icon class="brand-icon">confirmation_number</mat-icon>
         @if (auth.isAuthenticated()) {
           <h1>¡Sesión iniciada!</h1>
@@ -36,7 +41,7 @@ import { epicEnabled } from '../../core/demo-scope';
               }
             </div>
           }
-          <button mat-stroked-button (click)="auth.logout()">
+          <button mat-stroked-button (click)="logout()">
             <mat-icon>logout</mat-icon> Cerrar sesión
           </button>
         } @else {
@@ -64,6 +69,7 @@ import { epicEnabled } from '../../core/demo-scope';
       background: var(--mat-sys-surface);
       box-shadow: var(--tkt-shadow);
     }
+    .access-notice { padding: 0.75rem; border-radius: 10px; background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent); color: var(--mat-sys-error); }
     .brand-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: var(--mat-sys-primary); margin-bottom: 0.5rem; }
     h1 { margin: 0.25rem 0 0.75rem; font-size: 1.5rem; }
     p { margin: 0 0 0.75rem; line-height: 1.5; }
@@ -81,6 +87,17 @@ import { epicEnabled } from '../../core/demo-scope';
 })
 export class Bienvenida {
   readonly auth = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  readonly accessDenied = toSignal(
+    this.route.queryParamMap.pipe(map(params => params.get('reason') === 'forbidden')),
+    { initialValue: this.route.snapshot.queryParamMap.get('reason') === 'forbidden' },
+  );
+
+  logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/auth/login', { replaceUrl: true });
+  }
   readonly epicEnabled = epicEnabled;
 
   roleLabel(): string {

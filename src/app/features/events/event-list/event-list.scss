@@ -72,3 +72,14 @@ h1{font-size:clamp(40px,5.3vw,70px);line-height:1.02;letter-spacing:-.055em;marg
 @media(max-width:1000px){.intro{gap:24px}.event-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.catalog-head{align-items:start;flex-direction:column}.search-panel{flex-wrap:wrap}.searchbox{flex-basis:100%}.select-field{max-width:48%;border:0}}
 @media(max-width:600px){.discovery{padding:24px 18px 100px}.intro{grid-template-columns:1fr;gap:26px}.intro h1{font-size:46px;margin:18px 0}.intro-copy>p br{display:none}.intro-actions{gap:12px}.trust{gap:12px;font-size:11px}.feature{min-height:240px}.feature h2{font-size:24px}.feature-copy{padding:20px}.searchbox{padding:3px 8px}.select-field{padding:4px}.categories{flex-wrap:nowrap;overflow:auto;margin:0 -18px;padding:18px 18px 26px}.categories button{flex:none}.catalog-head h2{font-size:26px}.catalog-options{width:100%;justify-content:space-between;gap:5px}.filter-button{font-size:12px;padding:10px}.event-grid{grid-template-columns:1fr;gap:22px}.poster{height:240px}.event-title h3{min-height:0}.planner{grid-template-columns:1fr;padding:24px 18px;gap:12px}.planner h2{font-size:22px}.organize-banner{flex-direction:column;align-items:start;margin-top:35px}.organize-banner h2{font-size:28px}.compare-dock{bottom:76px;gap:8px;width:94vw;justify-content:space-between}.compare-dock .primary{padding:10px}.compare-dock>span{font-size:12px}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;}}
+
+/* Catálogo de consulta y favoritos de Demo 2. */
+.trust { margin-top: 24px; }
+.filter-button { text-decoration: none; }
+.favorites-heading { margin-bottom: 30px; }
+.favorites-heading h1 { font-size: clamp(36px, 5vw, 56px); }
+.favorites-heading p { color: var(--muted); line-height: 1.6; }
+.feature-container:focus-within .feature-next { opacity: 1; pointer-events: auto; right: 10px; }
+.feature-next:focus-visible, .save:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 3px; }
+.empty .primary { margin-left: 10px; }
+@media (hover: none) { .feature-next { opacity: 1; pointer-events: auto; right: 10px; } }
