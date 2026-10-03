@@ -58,16 +58,11 @@ export class Register {
     role: ['CLIENT' as PublicRole, Validators.required],
     acceptedTerms: [false, Validators.requiredTrue],
     client: this.fb.nonNullable.group({
-      country: ['', Validators.required],
-      city: ['', Validators.required],
       document: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
-      phone: ['', [Validators.required, Validators.minLength(6)]],
     }),
     organizer: this.fb.nonNullable.group({
       companyName: ['', [Validators.required, Validators.minLength(2)]],
       taxId: ['', [Validators.required, Validators.pattern(/^(10|15|17|20)[0-9]{9}$/)]],
-      country: ['', Validators.required],
-      phone: ['', [Validators.required, Validators.minLength(6)]],
     }),
   });
 
@@ -131,15 +126,15 @@ export class Register {
         profile:
           raw.role === 'CLIENT'
             ? {
-                country: raw.client.country.trim(),
-                city: raw.client.city.trim(),
+                country: 'PE',
+                city: '',
                 district: '',
                 hasPeruvianNationality: false,
                 docType: 'DNI',
                 docNumber: raw.client.document.trim(),
                 gender: 'F',
                 phoneCode: '+51',
-                phone: raw.client.phone.trim(),
+                phone: '',
               }
             : undefined,
         organizer:
@@ -150,8 +145,8 @@ export class Register {
                 taxId: raw.organizer.taxId.trim(),
                 legalName: raw.organizer.companyName.trim(),
                 repName: raw.fullName.trim(),
-                phone: raw.organizer.phone.trim(),
-                country: raw.organizer.country.trim(),
+                phone: '',
+                country: 'PE',
                 city: '',
                 website: '',
               }

@@ -6,7 +6,7 @@ export const environment = {
   apiPricingUrl: 'http://localhost:8000/api',
   /** Mock local activo hasta conectar y validar el backend de esta demo. */
   useMock: true,
-  /** Auth de Épica 1 usa el backend local; el resto de Demo 2 sigue en mock. */
+  /** La integración autentica contra Laravel mediante la API. */
   useMockAuth: false,
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,

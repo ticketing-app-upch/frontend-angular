@@ -4,7 +4,7 @@ export const environment = {
   apiPricingUrl: '/pricing/api',
   /** El catálogo continúa con datos mock durante la presentación de Épica 1. */
   useMock: true,
-  /** Full stack autentica contra el backend mediante el proxy /api. */
+  /** La integración autentica contra Laravel mediante la API. */
   useMockAuth: false,
   mockLatencyMs: 200,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */

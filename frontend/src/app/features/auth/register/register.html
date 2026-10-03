@@ -68,29 +68,13 @@
 
         @if (!isOrganizer()) {
           <section class="fs" formGroupName="client">
-            <div class="two">
-              <mat-form-field appearance="outline">
-                <mat-label>País</mat-label>
-                <input matInput formControlName="country" placeholder="Perú" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Ciudad</mat-label>
-                <input matInput formControlName="city" placeholder="Lima" />
-              </mat-form-field>
-            </div>
-            <div class="two">
-              <mat-form-field appearance="outline">
-                <mat-label>DNI</mat-label>
-                <input matInput formControlName="document" inputmode="numeric" maxlength="8" placeholder="Número de documento" />
-                @if (client.controls.document.invalid && client.controls.document.touched) {
-                  <mat-error>El DNI debe tener 8 dígitos.</mat-error>
-                }
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Teléfono</mat-label>
-                <input matInput formControlName="phone" inputmode="tel" placeholder="+51 999 999 999" />
-              </mat-form-field>
-            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>DNI</mat-label>
+              <input matInput formControlName="document" inputmode="numeric" maxlength="8" placeholder="Número de documento" />
+              @if (client.controls.document.invalid && client.controls.document.touched) {
+                <mat-error>El DNI debe tener 8 dígitos.</mat-error>
+              }
+            </mat-form-field>
           </section>
         } @else {
           <section class="fs" formGroupName="organizer">
@@ -105,16 +89,6 @@
                 <mat-error>Ingresa un RUC válido de 11 dígitos.</mat-error>
               }
             </mat-form-field>
-            <div class="two">
-              <mat-form-field appearance="outline">
-                <mat-label>País</mat-label>
-                <input matInput formControlName="country" placeholder="Perú" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Teléfono</mat-label>
-                <input matInput formControlName="phone" inputmode="tel" placeholder="+51 999 999 999" />
-              </mat-form-field>
-            </div>
           </section>
         }
 
@@ -130,7 +104,7 @@
           }
         </div>
 
-        <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+        <button mat-flat-button type="submit" class="submit" [disabled]="loading() || !form.controls.acceptedTerms.value">
           @if (loading()) { Creando cuenta… } @else { Crear cuenta }
         </button>
       </form>
