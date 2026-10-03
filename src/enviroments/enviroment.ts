@@ -6,7 +6,7 @@ export const environment = {
   apiPricingUrl: 'http://localhost:8000/api',
   /** Mock local activo hasta conectar y validar el backend de esta demo. */
   useMock: true,
-  /** Auth de Demo 2 standalone usa datos mock. */
+  /** La demo standalone usa cuentas de prueba locales para los tres roles. */
   useMockAuth: true,
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
