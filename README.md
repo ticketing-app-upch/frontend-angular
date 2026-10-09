@@ -37,6 +37,8 @@ npm test -- --watch=false
 npm run build
 ```
 
+Para presentar este frontend sin backend, también puedes iniciarlo con `docker compose up -d --build` y abrir [http://localhost:8082](http://localhost:8082). Usa autenticación y catálogo simulados, por lo que funciona aunque Laravel no esté disponible. Para detenerlo: `docker compose down`.
+
 ## Integración con backend
 
 La Demo 2 standalone usa autenticación mock (`useMockAuth: true`) y el resto de módulos conserva datos mock (`useMock: true`). La configuración del backend se mantiene en la copia de `Full stack`, separada de esta rama.
