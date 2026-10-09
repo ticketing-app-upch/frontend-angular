@@ -3,6 +3,7 @@ dist
 .angular
 .git
 .gitignore
+.env
 .vscode
 .idea
 .claude

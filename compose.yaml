@@ -1,34 +1,28 @@
+name: ticketing-demo2
+
 services:
   db:
     image: mysql:8.0
-    container_name: ticketing_integracion_db
-    ports:
-      - "3307:3306"
     environment:
       MYSQL_DATABASE: ticketing
       MYSQL_USER: ticketing_user
       MYSQL_PASSWORD: ticketing_password
       MYSQL_ROOT_PASSWORD: root_password
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_password"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 20
     restart: unless-stopped
 
   app:
     build:
-      context: ./backend
+      context: ${BACKEND_DIR:-../backend-php}
       dockerfile: Dockerfile
-    container_name: ticketing_integracion_backend
-    ports:
-      - "8080:8000"
-    env_file:
-      - ./backend/.env
-    volumes:
-      - ./backend:/var/www/html
     environment:
       DB_CONNECTION: mysql
       DB_HOST: db
@@ -36,6 +30,28 @@ services:
       DB_DATABASE: ticketing
       DB_USERNAME: ticketing_user
       DB_PASSWORD: ticketing_password
+    command: >-
+      sh -ec '
+      if [ ! -f .env ]; then
+        if [ -f .env.example ]; then cp .env.example .env;
+        else
+          echo APP_KEY= > .env;
+          echo JWT_SECRET= >> .env;
+          echo DB_CONNECTION=mysql >> .env;
+          echo DB_HOST=db >> .env;
+          echo DB_PORT=3306 >> .env;
+          echo DB_DATABASE=ticketing >> .env;
+          echo DB_USERNAME=ticketing_user >> .env;
+          echo DB_PASSWORD=ticketing_password >> .env;
+        fi;
+      fi;
+      if ! grep -q "^APP_KEY=base64:" .env; then php artisan key:generate --force; fi;
+      if ! grep -q "^JWT_SECRET=." .env; then php artisan jwt:secret --force; fi;
+      php artisan migrate --seed --force;
+      exec php artisan serve --host=0.0.0.0 --port=8000
+      '
+    ports:
+      - "${API_PORT:-8080}:8000"
     depends_on:
       db:
         condition: service_healthy
@@ -43,11 +59,11 @@ services:
 
   frontend:
     build:
-      context: ./frontend
+      context: .
       dockerfile: Dockerfile
-    container_name: ticketing_integracion_frontend
+    image: ticketing-demo2-integrated-frontend:latest
     ports:
-      - "8081:80"
+      - "${FRONTEND_PORT:-8081}:80"
     depends_on:
       - app
     restart: unless-stopped
