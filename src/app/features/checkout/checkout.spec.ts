@@ -30,6 +30,7 @@ describe('Checkout', () => {
   let notify: NotificationService;
 
   beforeEach(() => {
+    environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     environment.mockLatencyMs = 0;
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });

@@ -3,6 +3,7 @@ export const environment = {
   apiBackendUrl: 'http://localhost:8080/api',
   apiPricingUrl: 'http://localhost:8000/api',
   useMock: true,
+  useMockAuth: true,
   mockLatencyMs: 450,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
   enabledEpics: [1, 2, 3, 4, 5],

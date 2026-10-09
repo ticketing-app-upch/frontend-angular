@@ -63,6 +63,10 @@
         <p class="tkt-muted">Bienvenido de vuelta. Usa tu correo y contraseña.</p>
       </div>
 
+      @if (sessionExpired()) {
+        <p class="session-notice" role="alert">Tu sesión caducó. Inicia sesión nuevamente.</p>
+      }
+
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline">
           <mat-label>Correo</mat-label>
@@ -94,7 +98,7 @@
             <mat-icon>{{ hide() ? 'visibility' : 'visibility_off' }}</mat-icon>
           </button>
           @if (form.controls.password.invalid && form.controls.password.touched) {
-            <mat-error>Mínimo 8 caracteres, con mayúscula, número y carácter especial.</mat-error>
+            <mat-error>Ingresa tu contraseña.</mat-error>
           }
         </mat-form-field>
 
@@ -103,7 +107,8 @@
         </button>
       </form>
 
-      <div class="quick-access">
+      @if (demoAccess) {
+        <div class="quick-access">
         <span class="quick-access-label">Acceso de prueba</span>
         <div class="quick-access-btns">
           <button mat-stroked-button type="button" (click)="fill('ORGANIZER')">
@@ -116,7 +121,8 @@
             <mat-icon>admin_panel_settings</mat-icon> Administrador de prueba
           </button>
         </div>
-      </div>
+        </div>
+      }
 
       <p class="alt">
         ¿No tienes cuenta?

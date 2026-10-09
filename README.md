@@ -1,105 +1,33 @@
-# Ticketing Frontend Web App (Angular)
+# Demo 2 integrada · AlpaTeck
 
-> Aplicación web Single Page Application (SPA) para clientes y organizadores de eventos.
+Este repositorio contiene **solo Angular**. Laravel permanece en el repositorio independiente [`backend-php`](https://github.com/ticketing-app-upch/backend-php). Docker Compose construye ambos proyectos desde carpetas locales separadas; no se copia el código del backend a Git.
 
-![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white)
+## Preparación
 
-## 📌 Responsabilidades del Cliente Web
+Clona ambos repositorios al mismo nivel y selecciona las ramas de la demo:
 
-- Interfaz reactiva para registro, login y control de sesiones mediante JWT.
-- Catálogo interactivo de eventos con visualización de aforo disponible en tiempo real.
-- Flujo guiado de compra de tickets con selección de zonas y límite por transacción.
-- Dashboard analítico con reportes de ocupación y recaudación para organizadores.
-
-## 👥 Desarrolladores Responsables
-
-- **Developer Frontend 1:** José Manuel Ames
-- **Developer Frontend 2:** Jesus Morales
-
-## 🛠️ Requisitos Previos
-
-- Node.js 22 LTS (el repositorio incluye `.node-version`)
-- npm 11 (`npm ci` respeta exactamente `package-lock.json`)
-
-No necesitas instalar Angular CLI globalmente: los scripts usan la versión local.
-
-## 🚀 Cómo correr
-
-```bash
-npm ci
-npm start            # servidor de desarrollo en http://localhost:4200
-npm run build        # build de producción (usa enviroment.prod.ts)
-npm test             # pruebas unitarias (Vitest)
-npm run check        # pruebas + build de producción
+```powershell
+git clone -b integracion-back-front https://github.com/ticketing-app-upch/frontend-angular.git
+git clone -b feat/demo2 https://github.com/ticketing-app-upch/backend-php.git
+cd frontend-angular
+docker compose up -d --build
 ```
 
-## 🧪 Datos de prueba (sin backend)
+Abre [http://localhost:8081](http://localhost:8081). La API está en [http://localhost:8080/api](http://localhost:8080/api) y MySQL usa el puerto `3307`. El primer arranque genera las claves locales de Laravel, ejecuta migraciones y siembra roles automáticamente. Las claves se guardan en un volumen de Docker para sobrevivir a recreaciones del contenedor; no se versionan.
 
-El backend todavía está en construcción. Mientras tanto, `src/enviroments/enviroment.ts`
-trae `useMock: true`: todos los servicios responden con **datos falsos en memoria**
-(semilla en `src/app/core/mock/`), persistidos en `localStorage` para que las compras
-y los eventos creados sobrevivan a un refresco.
+Si el backend está en otra carpeta, crea un archivo `.env` **local** en esta carpeta con `BACKEND_DIR=C:/ruta/al/backend-php`. Ese archivo está ignorado por Git. También puedes configurar `FRONTEND_PORT`, `API_PORT` y `MYSQL_PORT` allí si los puertos predeterminados están ocupados.
 
-Cuando el backend esté listo, poner `useMock: false` y los mismos servicios pegarán a
-`apiBackendUrl` / `apiPricingUrl`.
-
-**Cuentas de prueba** (botones de acceso rápido en la pantalla de login):
-
-| Rol         | Correo               | Contraseña       |
-| ----------- | -------------------- | ---------------- |
-| Organizador | `organizador@tkt.pe` | `Organizador1$`  |
-| Cliente     | `cliente@tkt.pe`     | `Cliente1$`      |
-| Admin       | `admin@tkt.pe`       | `Admin123$`      |
-
-Para reiniciar la data: borrar la clave `tkt.mock.v1` de `localStorage`.
-
-## 🗺️ Estructura
-
-```
-src/app/
-  core/
-    auth/          AuthService (JWT + signals), guards, interceptor
-    models/        User, EventItem/Zone, TicketOrder, DashboardStats
-    services/      EventService, TicketService, PricingService, DashboardService
-    mock/          semilla y store en memoria (localStorage)
-  shared/          componentes reutilizables (event-card, capacity-bar, bar-chart, ...)
-  layout/          main-layout (toolbar + footer)
-  features/
-    auth/          login, registro
-    events/        catálogo + detalle de evento
-    checkout/      flujo guiado de compra (stepper)
-    account/       mis entradas
-    organizer/     panel analítico, gestión y formulario de eventos
+```powershell
+docker compose ps
+docker compose logs -f app
+docker compose down
 ```
 
-## 🧭 Rutas principales
+`down` conserva los datos de MySQL. El frontend usa `/api` a través del proxy Nginx. Registro e inicio de sesión usan Laravel/JWT; el catálogo y favoritos de esta demo siguen con datos de muestra locales. La rama `demo2` del frontend se puede levantar por separado para enseñar solo las pantallas con autenticación simulada.
 
-| Ruta                         | Acceso      | Descripción                            |
-| ---------------------------- | ----------- | -------------------------------------- |
-| `/eventos`                   | público     | Catálogo con búsqueda y filtros        |
-| `/eventos/:id`               | público     | Detalle, zonas y aforo en vivo         |
-| `/comprar/:eventId`          | autenticado | Compra guiada (zonas → resumen → pago) |
-| `/mis-entradas`              | autenticado | Órdenes y códigos de acceso            |
-| `/organizador/panel`         | organizador | Ocupación y recaudación                |
-| `/organizador/eventos`       | organizador | Gestión de eventos                     |
-| `/organizador/eventos/nuevo` | organizador | Alta / edición de evento y zonas       |
-| `/ayuda`                     | público     | Centro de ayuda                         |
+## Guion de verificación
 
-## Funciones destacadas del frontend
-
-- Catálogo responsive con favoritos locales, comparación, filtros combinados, orden y “AlpaTeck Match” por presupuesto y tamaño de grupo.
-- Planos interactivos distintos para Monumental, Estadio Nacional, San Marcos, teatros, arenas/coliseos y zonas generales. El modal ampliado permite selección múltiple.
-- Precio dinámico visible con motivo, cotización de dos minutos, comisión desglosada, idempotencia y pago aprobado/rechazado de prueba.
-- Panel por evento y por zona, laboratorio de escenarios de precio y exportación CSV protegida contra fórmulas.
-- Entradas con filtros, calendario `.ics`, resumen descargable y QR rotativo.
-- Tema claro/oscuro, navegación móvil, foco visible, reducción de movimiento y centro de ayuda.
-
-Consulta [FRONTEND_HANDOFF.md](./FRONTEND_HANDOFF.md) antes de integrar PHP y Python.
-
-## 🧱 Stack
-
-- Angular 21 (standalone, zoneless, señales, control-flow `@if`/`@for`)
-- Angular Material 3 + SCSS (tema violeta/cian, claro/oscuro)
-- RxJS para los servicios HTTP; gráficos hechos a mano (sin librería de charts)
+1. Abre `/auth/register`, acepta los términos y registra un cliente con DNI de ocho dígitos o un organizador con RUC de once dígitos.
+2. En DevTools, comprueba que `POST /api/auth/register` devuelve `201` y un token JWT.
+3. Cierra sesión e inicia sesión con la cuenta creada (`POST /api/auth/login`).
+4. Muestra la navegación por rol, el catálogo y favoritos. Aclara que estas últimas pantallas todavía usan datos locales.

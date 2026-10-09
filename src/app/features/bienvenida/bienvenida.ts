@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth/auth.service';
@@ -18,16 +20,19 @@ import { epicEnabled } from '../../core/demo-scope';
   template: `
     <div class="tkt-page center">
       <div class="card">
+        @if (accessDenied()) {
+          <p class="access-notice" role="alert">No tienes permiso para abrir esa sección.</p>
+        }
         <mat-icon class="brand-icon">confirmation_number</mat-icon>
         @if (auth.isAuthenticated()) {
-          <h1>¡Sesión iniciada!</h1>
+          <h1>{{ roleHeading() }}</h1>
           <p>
             Hola <strong>{{ auth.user()!.fullName }}</strong>, bienvenido a AlpaTeck.
             Tu sesión está activa como <strong>{{ roleLabel() }}</strong>.
           </p>
           <p class="muted">
-            Demo 1 mantiene visibles las rutas principales en la URL, mientras la
-            experiencia visual se concentra en el login y esta confirmación.
+            La épica 1 muestra el acceso correspondiente a cada rol, mientras la
+            integración de eventos y compras se presenta en próximas épicas.
           </p>
           @if (routesForRole().length) {
             <div class="route-actions" aria-label="Accesos disponibles">
@@ -36,7 +41,7 @@ import { epicEnabled } from '../../core/demo-scope';
               }
             </div>
           }
-          <button mat-stroked-button (click)="auth.logout()">
+          <button mat-stroked-button (click)="logout()">
             <mat-icon>logout</mat-icon> Cerrar sesión
           </button>
         } @else {
@@ -64,6 +69,7 @@ import { epicEnabled } from '../../core/demo-scope';
       background: var(--mat-sys-surface);
       box-shadow: var(--tkt-shadow);
     }
+    .access-notice { padding: 0.75rem; border-radius: 10px; background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent); color: var(--mat-sys-error); }
     .brand-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: var(--mat-sys-primary); margin-bottom: 0.5rem; }
     h1 { margin: 0.25rem 0 0.75rem; font-size: 1.5rem; }
     p { margin: 0 0 0.75rem; line-height: 1.5; }
@@ -81,7 +87,23 @@ import { epicEnabled } from '../../core/demo-scope';
 })
 export class Bienvenida {
   readonly auth = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  readonly accessDenied = toSignal(
+    this.route.queryParamMap.pipe(map(params => params.get('reason') === 'forbidden')),
+    { initialValue: this.route.snapshot.queryParamMap.get('reason') === 'forbidden' },
+  );
+
+  logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/auth/login', { replaceUrl: true });
+  }
   readonly epicEnabled = epicEnabled;
+
+  roleHeading(): string {
+    const role = this.auth.user()?.role;
+    return role === 'ADMIN' ? 'Panel de administración' : role === 'ORGANIZER' ? 'Panel del organizador' : 'Panel del asistente';
+  }
 
   roleLabel(): string {
     const role = this.auth.user()?.role;
@@ -91,19 +113,11 @@ export class Bienvenida {
   routesForRole(): { url: string; label: string }[] {
     switch (this.auth.user()?.role) {
       case 'ORGANIZER':
-        return [
-          { url: '/organizer/create-event', label: 'Crear evento' },
-          { url: '/organizer/dashboard', label: 'Dashboard de ventas' },
-        ];
+        return [];
       case 'ADMIN':
         return [];
       default:
-        return [
-          { url: '/attendee/catalog', label: 'Catálogo de eventos' },
-          { url: '/attendee/event/1', label: 'Detalle del evento' },
-          { url: '/attendee/checkout/1', label: 'Compra de entradas' },
-          { url: '/attendee/tickets', label: 'Mis tickets' },
-        ];
+        return [{ url: '/attendee/catalog', label: 'Catálogo de eventos' }];
     }
   }
 }

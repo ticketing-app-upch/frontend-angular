@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -14,7 +16,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UserRole } from '../../../core/models/user.model';
-import { PASSWORD_PATTERN } from '../../../core/auth/password-policy';
+import { environment } from '../../../../enviroments/enviroment';
 import { DEMO_CREDENTIALS } from '../../../core/mock/mock-data';
 
 @Component({
@@ -40,12 +42,17 @@ export class Login {
   private route = inject(ActivatedRoute);
   private notify = inject(NotificationService);
 
+  readonly sessionExpired = toSignal(
+    this.route.queryParamMap.pipe(map(params => params.get('reason') === 'expired')),
+    { initialValue: this.route.snapshot.queryParamMap.get('reason') === 'expired' },
+  );
+  readonly demoAccess = environment.useMockAuth;
   readonly loading = signal(false);
   readonly hide = signal(true);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
+    password: ['', [Validators.required]],
   });
 
   fill(kind: 'ORGANIZER' | 'CLIENT' | 'ADMIN'): void {
@@ -53,7 +60,7 @@ export class Login {
   }
 
   private homeFor(role: UserRole): string {
-    return '/bienvenida';
+    return role === 'CLIENT' ? '/attendee/catalog' : role === 'ORGANIZER' ? '/organizer/home' : '/admin/home';
   }
 
   submit(): void {

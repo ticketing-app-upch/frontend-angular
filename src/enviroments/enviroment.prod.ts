@@ -2,13 +2,10 @@ export const environment = {
   production: true,
   apiBackendUrl: '/api',
   apiPricingUrl: '/pricing/api',
-  /**
-   * El backend todavía no existe: el build desplegado corre con datos en
-   * memoria (semilla en `core/mock`), igual que en desarrollo. Cuando el
-   * backend esté listo, poner `useMock: false` y los servicios pegarán a
-   * `apiBackendUrl` / `apiPricingUrl`.
-   */
+  /** El catálogo continúa con datos mock durante la presentación de Épica 1. */
   useMock: true,
+  /** La integración autentica contra Laravel mediante la API. */
+  useMockAuth: false,
   mockLatencyMs: 200,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
   enabledEpics: [1],

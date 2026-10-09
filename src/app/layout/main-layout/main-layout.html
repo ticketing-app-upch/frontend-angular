@@ -7,8 +7,9 @@
     </a>
 
     <nav class="links" aria-label="Navegación principal">
-      @if (isClient() && epicEnabled(2)) {
+      @if (isClient()) {
         <a routerLink="/attendee/catalog" routerLinkActive="active">Eventos</a>
+        <a routerLink="/attendee/favorites" routerLinkActive="active">Mis favoritos</a>
       }
       @if (isClient() && epicEnabled(3)) {
         <a routerLink="/attendee/tickets" routerLinkActive="active">Mis tickets</a>
@@ -51,10 +52,18 @@
           }}</span>
         </div>
         <mat-divider />
-        @if (isClient() && epicEnabled(3)) {
-          <a mat-menu-item routerLink="/attendee/tickets">
-            <mat-icon>local_activity</mat-icon> Mis tickets
+        @if (isClient()) {
+          <a mat-menu-item routerLink="/attendee/catalog">
+            <mat-icon>explore</mat-icon> Explorar eventos
           </a>
+          <a mat-menu-item routerLink="/attendee/favorites">
+            <mat-icon>favorite_border</mat-icon> Mis favoritos
+          </a>
+          @if (epicEnabled(3)) {
+            <a mat-menu-item routerLink="/attendee/tickets">
+            <mat-icon>local_activity</mat-icon> Mis entradas
+            </a>
+          }
         }
         @if (isOrganizer() && epicEnabled(5)) {
           <a mat-menu-item routerLink="/organizer/dashboard">
@@ -76,10 +85,10 @@
 </main>
 
 <nav class="mobile-nav" aria-label="Navegación móvil">
-  @if (isClient() && epicEnabled(2)) {
-    <a routerLink="/attendee/catalog" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
-    <a routerLink="/attendee/catalog" [queryParams]="{ saved: '1' }"
-      ><mat-icon>favorite_border</mat-icon>Guardados</a
+  @if (isClient()) {
+    <a routerLink="/attendee/catalog" routerLinkActive="active"><mat-icon>explore</mat-icon>Eventos</a>
+    <a routerLink="/attendee/favorites" routerLinkActive="active"
+      ><mat-icon>favorite_border</mat-icon>Mis favoritos</a
     >
   } @else {
     <a [routerLink]="homeLink" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
@@ -90,7 +99,7 @@
     >
   } @else if (isClient() && epicEnabled(3)) {
     <a routerLink="/attendee/tickets" routerLinkActive="active"
-      ><mat-icon>confirmation_number</mat-icon>Tickets</a
+      ><mat-icon>confirmation_number</mat-icon>Mis entradas</a
     >
   }
 </nav>

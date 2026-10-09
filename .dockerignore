@@ -3,6 +3,7 @@ dist
 .angular
 .git
 .gitignore
+.env
 .vscode
 .idea
 .claude
@@ -11,3 +12,4 @@ npm-debug.log*
 Dockerfile
 .dockerignore
 README.md
+backend

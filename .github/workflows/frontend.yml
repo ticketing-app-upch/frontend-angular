@@ -2,9 +2,19 @@ name: Frontend CI
 
 on:
   push:
-    branches: [main, develop, feat/frontend-mvp, 'feat/demo-*']
+    branches: [main, develop, feat/frontend-mvp, 'feat/demo-*', integracion-back-front]
+    paths:
+      - 'src/**'
+      - 'package*.json'
+      - 'angular.json'
+      - '.github/workflows/frontend.yml'
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'src/**'
+      - 'package*.json'
+      - 'angular.json'
+      - '.github/workflows/frontend.yml'
 
 permissions:
   contents: read
@@ -19,6 +29,7 @@ jobs:
         with:
           node-version-file: .node-version
           cache: npm
+          cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm test -- --watch=false
       - run: npm run build
