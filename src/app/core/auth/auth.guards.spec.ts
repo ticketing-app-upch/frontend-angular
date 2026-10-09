@@ -4,8 +4,9 @@ import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { firstValueFrom } from 'rxjs';
 import { authGuard, roleGuard, clientGuard, guestGuard } from './auth.guards';
-import { AuthService } from './auth.service';
+import { AuthService, sessionTokenValid } from './auth.service';
 import { DEMO_CREDENTIALS } from '../mock/mock-data';
+import { environment } from '../../../enviroments/enviroment';
 
 /**
  * Los guards deciden quién entra a cada pantalla — son la última línea de
@@ -18,6 +19,7 @@ describe('Guards de ruta', () => {
   let harness: RouterTestingHarness;
 
   beforeEach(async () => {
+    environment.useMockAuth = true;
     localStorage.clear();
     sessionStorage.clear();
     TestBed.configureTestingModule({
@@ -28,6 +30,7 @@ describe('Guards de ruta', () => {
           { path: 'solo-organizador', canActivate: [roleGuard('ORGANIZER')], children: [] },
           { path: 'solo-cliente', canActivate: [authGuard, clientGuard], children: [] },
           { path: 'auth/login', canActivate: [guestGuard], children: [] },
+          { path: 'bienvenida', children: [] },
           { path: 'eventos', children: [] },
           { path: 'admin', children: [] },
           { path: 'organizador/panel', children: [] },
@@ -60,10 +63,10 @@ describe('Guards de ruta', () => {
   });
 
   describe('roleGuard', () => {
-    it('rechaza a un rol que no coincide y manda al catálogo', async () => {
+    it('rechaza a un rol que no coincide antes de mostrar la pantalla', async () => {
       await loginAs('CLIENT');
       await harness.navigateByUrl('/solo-organizador');
-      expect(router.url).toBe('/eventos');
+      expect(router.url).toBe('/bienvenida?reason=forbidden');
     });
 
     it('el rol correcto entra', async () => {
@@ -72,10 +75,10 @@ describe('Guards de ruta', () => {
       expect(router.url).toBe('/solo-organizador');
     });
 
-    it('ADMIN siempre pasa, sin importar qué roles pida la ruta', async () => {
+    it('ADMIN tampoco entra en una ruta exclusiva del organizador', async () => {
       await loginAs('ADMIN');
       await harness.navigateByUrl('/solo-organizador');
-      expect(router.url).toBe('/solo-organizador');
+      expect(router.url).toBe('/bienvenida?reason=forbidden');
     });
   });
 
@@ -83,13 +86,13 @@ describe('Guards de ruta', () => {
     it('un organizador autenticado no puede entrar a una ruta de cliente', async () => {
       await loginAs('ORGANIZER');
       await harness.navigateByUrl('/solo-cliente');
-      expect(router.url).toBe('/organizador/panel');
+      expect(router.url).toBe('/bienvenida?reason=forbidden');
     });
 
     it('un admin tampoco, lo manda a su panel', async () => {
       await loginAs('ADMIN');
       await harness.navigateByUrl('/solo-cliente');
-      expect(router.url).toBe('/admin');
+      expect(router.url).toBe('/bienvenida?reason=forbidden');
     });
 
     it('un cliente sí entra', async () => {
@@ -103,13 +106,20 @@ describe('Guards de ruta', () => {
     it('un usuario ya logueado no puede volver a ver el login', async () => {
       await loginAs('CLIENT');
       await harness.navigateByUrl('/auth/login');
-      expect(router.url).toBe('/eventos');
+      expect(router.url).toBe('/bienvenida');
     });
 
     it('sin sesión, puede ver el login', async () => {
       await harness.navigateByUrl('/auth/login');
       expect(router.url).toBe('/auth/login');
     });
+  });
+
+  it('un token mock vence a los 60 minutos', () => {
+    const issuedAt = Date.now();
+    const token = `mock.${btoa('u-1:CLIENT')}.${issuedAt}`;
+    expect(sessionTokenValid(token, issuedAt + 60 * 60 * 1000 - 1)).toBe(true);
+    expect(sessionTokenValid(token, issuedAt + 60 * 60 * 1000)).toBe(false);
   });
 
   it('un token JWT vencido cuenta como no autenticado, aunque haya un usuario guardado', async () => {
@@ -119,6 +129,7 @@ describe('Guards de ruta', () => {
     localStorage.setItem('tkt.token', expired);
     localStorage.setItem('tkt.user', JSON.stringify({ id: 'u-1', fullName: 'Vieja Sesión', role: 'CLIENT' }));
     await harness.navigateByUrl('/protegida');
-    expect(router.url).toBe('/auth/login?redirect=%2Fprotegida');
+    expect(router.url).toContain('/auth/login?');
+    expect(router.parseUrl(router.url).queryParams).toEqual({ redirect: '/protegida', reason: 'expired' });
   });
 });

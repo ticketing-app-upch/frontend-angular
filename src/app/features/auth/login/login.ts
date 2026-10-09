@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -40,6 +42,10 @@ export class Login {
   private route = inject(ActivatedRoute);
   private notify = inject(NotificationService);
 
+  readonly sessionExpired = toSignal(
+    this.route.queryParamMap.pipe(map(params => params.get('reason') === 'expired')),
+    { initialValue: this.route.snapshot.queryParamMap.get('reason') === 'expired' },
+  );
   readonly loading = signal(false);
   readonly hide = signal(true);
 
