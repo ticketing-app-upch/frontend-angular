@@ -212,6 +212,15 @@ mat-progress-bar {
   inset: 0 0 auto 0;
 }
 
+.session-notice {
+  margin: 0 0 1rem;
+  padding: 0.8rem 1rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent);
+  color: var(--mat-sys-error);
+  font-size: 0.86rem;
+}
+
 .head h1 {
   margin: 0 0 0.35rem;
   font-size: 1.7rem;

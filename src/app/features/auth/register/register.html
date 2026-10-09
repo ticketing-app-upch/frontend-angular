@@ -68,26 +68,13 @@
 
         @if (!isOrganizer()) {
           <section class="fs" formGroupName="client">
-            <div class="two">
-              <mat-form-field appearance="outline">
-                <mat-label>País</mat-label>
-                <input matInput formControlName="country" placeholder="Perú" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Ciudad</mat-label>
-                <input matInput formControlName="city" placeholder="Lima" />
-              </mat-form-field>
-            </div>
-            <div class="two">
-              <mat-form-field appearance="outline">
-                <mat-label>DNI</mat-label>
-                <input matInput formControlName="document" inputmode="numeric" placeholder="Número de documento" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Teléfono</mat-label>
-                <input matInput formControlName="phone" inputmode="tel" placeholder="+51 999 999 999" />
-              </mat-form-field>
-            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>DNI</mat-label>
+              <input matInput formControlName="document" inputmode="numeric" maxlength="8" placeholder="Número de documento" />
+              @if (client.controls.document.invalid && client.controls.document.touched) {
+                <mat-error>El DNI debe tener 8 dígitos.</mat-error>
+              }
+            </mat-form-field>
           </section>
         } @else {
           <section class="fs" formGroupName="organizer">
@@ -96,23 +83,28 @@
               <input matInput formControlName="companyName" placeholder="Empresa S.A." />
             </mat-form-field>
             <mat-form-field appearance="outline">
-              <mat-label>RUC / Identificación fiscal</mat-label>
-              <input matInput formControlName="taxId" inputmode="numeric" placeholder="12345678901" />
+              <mat-label>RUC</mat-label>
+              <input matInput formControlName="taxId" inputmode="numeric" maxlength="11" placeholder="20123456789" />
+              @if (organizer.controls.taxId.invalid && organizer.controls.taxId.touched) {
+                <mat-error>Ingresa un RUC válido de 11 dígitos.</mat-error>
+              }
             </mat-form-field>
-            <div class="two">
-              <mat-form-field appearance="outline">
-                <mat-label>País</mat-label>
-                <input matInput formControlName="country" placeholder="Perú" />
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Teléfono</mat-label>
-                <input matInput formControlName="phone" inputmode="tel" placeholder="+51 999 999 999" />
-              </mat-form-field>
-            </div>
           </section>
         }
 
-        <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+        <div class="terms-consent">
+          <mat-checkbox formControlName="acceptedTerms">
+            Acepto los términos y condiciones
+          </mat-checkbox>
+          <button type="button" class="terms-link" (click)="openTerms()">
+            Leer términos y condiciones
+          </button>
+          @if (form.controls.acceptedTerms.invalid && form.controls.acceptedTerms.touched) {
+            <p class="terms-error" role="alert">Debes aceptar los términos y condiciones para continuar.</p>
+          }
+        </div>
+
+        <button mat-flat-button type="submit" class="submit" [disabled]="loading() || !form.controls.acceptedTerms.value">
           @if (loading()) { Creando cuenta… } @else { Crear cuenta }
         </button>
       </form>

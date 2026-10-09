@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { authGuard, roleGuard } from './core/auth/auth.guards';
 
 const bienvenida = () => import('./features/bienvenida/bienvenida').then((m) => m.Bienvenida);
 const login = () => import('./features/auth/login/login').then((m) => m.Login);
@@ -13,31 +14,44 @@ export const routes: Routes = [
       { path: 'bienvenida', loadComponent: bienvenida, title: 'Bienvenida · AlpaTeck' },
       {
         path: 'attendee/catalog',
-        loadComponent: bienvenida,
-        title: 'Catálogo de eventos · AlpaTeck',
+        canActivate: [authGuard, roleGuard('CLIENT')],
+        loadComponent: () => import('./features/events/event-list/event-list').then(m => m.EventList),
+        title: 'Explorar eventos · AlpaTeck',
+      },
+      {
+        path: 'attendee/favorites',
+        canActivate: [authGuard, roleGuard('CLIENT')],
+        loadComponent: () => import('./features/events/event-list/event-list').then(m => m.EventList),
+        data: { favorites: true },
+        title: 'Mis favoritos · AlpaTeck',
       },
       {
         path: 'attendee/event/:id',
+        canActivate: [authGuard, roleGuard('CLIENT')],
         loadComponent: bienvenida,
         title: 'Detalle del evento · AlpaTeck',
       },
       {
         path: 'attendee/checkout/:id',
+        canActivate: [authGuard, roleGuard('CLIENT')],
         loadComponent: bienvenida,
         title: 'Compra de entradas · AlpaTeck',
       },
       {
         path: 'attendee/tickets',
+        canActivate: [authGuard, roleGuard('CLIENT')],
         loadComponent: bienvenida,
-        title: 'Mis tickets · AlpaTeck',
+        title: 'Mis entradas · AlpaTeck',
       },
       {
         path: 'organizer/create-event',
+        canActivate: [authGuard, roleGuard('ORGANIZER')],
         loadComponent: bienvenida,
         title: 'Crear evento · AlpaTeck',
       },
       {
         path: 'organizer/dashboard',
+        canActivate: [authGuard, roleGuard('ORGANIZER')],
         loadComponent: bienvenida,
         title: 'Dashboard de ventas · AlpaTeck',
       },

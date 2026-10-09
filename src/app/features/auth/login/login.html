@@ -63,6 +63,10 @@
         <p class="tkt-muted">Bienvenido de vuelta. Usa tu correo y contraseña.</p>
       </div>
 
+      @if (sessionExpired()) {
+        <p class="session-notice" role="alert">Tu sesión caducó. Inicia sesión nuevamente.</p>
+      }
+
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline">
           <mat-label>Correo</mat-label>

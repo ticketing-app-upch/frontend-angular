@@ -52,7 +52,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   const originalLatency = environment.mockLatencyMs;
   let auth: AuthService, store: MockStore, tickets: TicketService, event: EventItem;
   beforeEach(async () => {
-    localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.mockLatencyMs = 0;
+    localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.useMockAuth = true; environment.mockLatencyMs = 0;
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     auth = TestBed.inject(AuthService); store = TestBed.inject(MockStore); tickets = TestBed.inject(TicketService);
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));

@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { MockStore } from '../mock/mock-store';
 import { DEMO_CREDENTIALS } from '../mock/mock-data';
 import { EventItem } from '../models/event.model';
+import { environment } from '../../../enviroments/enviroment';
 
 const draft = (over: Partial<EventItem> = {}): EventItem => ({
   id: '', organizerId: 'u-org-1', name: 'Evento de prueba',
@@ -23,6 +24,7 @@ describe('EventService (modo mock)', () => {
   let store: MockStore;
 
   beforeEach(() => {
+    environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     events = TestBed.inject(EventService);
