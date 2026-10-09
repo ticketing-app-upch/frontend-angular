@@ -32,19 +32,20 @@ services:
       DB_PASSWORD: ticketing_password
     command: >-
       sh -ec '
-      if [ ! -f .env ]; then
-        if [ -f .env.example ]; then cp .env.example .env;
+      if [ ! -f .runtime/.env ]; then
+        if [ -f .env.example ]; then cp .env.example .runtime/.env;
         else
-          echo APP_KEY= > .env;
-          echo JWT_SECRET= >> .env;
-          echo DB_CONNECTION=mysql >> .env;
-          echo DB_HOST=db >> .env;
-          echo DB_PORT=3306 >> .env;
-          echo DB_DATABASE=ticketing >> .env;
-          echo DB_USERNAME=ticketing_user >> .env;
-          echo DB_PASSWORD=ticketing_password >> .env;
+          echo APP_KEY= > .runtime/.env;
+          echo JWT_SECRET= >> .runtime/.env;
+          echo DB_CONNECTION=mysql >> .runtime/.env;
+          echo DB_HOST=db >> .runtime/.env;
+          echo DB_PORT=3306 >> .runtime/.env;
+          echo DB_DATABASE=ticketing >> .runtime/.env;
+          echo DB_USERNAME=ticketing_user >> .runtime/.env;
+          echo DB_PASSWORD=ticketing_password >> .runtime/.env;
         fi;
       fi;
+      ln -sf .runtime/.env .env;
       if ! grep -q "^APP_KEY=base64:" .env; then php artisan key:generate --force; fi;
       if ! grep -q "^JWT_SECRET=." .env; then php artisan jwt:secret --force; fi;
       php artisan migrate --seed --force;
@@ -52,6 +53,8 @@ services:
       '
     ports:
       - "${API_PORT:-8080}:8000"
+    volumes:
+      - app_env:/var/www/html/.runtime
     depends_on:
       db:
         condition: service_healthy
@@ -70,3 +73,4 @@ services:
 
 volumes:
   mysql_data:
+  app_env:

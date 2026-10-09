@@ -13,7 +13,7 @@ cd frontend-angular
 docker compose up -d --build
 ```
 
-Abre [http://localhost:8081](http://localhost:8081). La API está en [http://localhost:8080/api](http://localhost:8080/api) y MySQL usa el puerto `3307`. El primer arranque genera las claves locales de Laravel, ejecuta migraciones y siembra roles automáticamente. No se versionan esas claves.
+Abre [http://localhost:8081](http://localhost:8081). La API está en [http://localhost:8080/api](http://localhost:8080/api) y MySQL usa el puerto `3307`. El primer arranque genera las claves locales de Laravel, ejecuta migraciones y siembra roles automáticamente. Las claves se guardan en un volumen de Docker para sobrevivir a recreaciones del contenedor; no se versionan.
 
 Si el backend está en otra carpeta, crea un archivo `.env` **local** en esta carpeta con `BACKEND_DIR=C:/ruta/al/backend-php`. Ese archivo está ignorado por Git. También puedes configurar `FRONTEND_PORT`, `API_PORT` y `MYSQL_PORT` allí si los puertos predeterminados están ocupados.
 
