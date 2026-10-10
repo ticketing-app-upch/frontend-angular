@@ -6,7 +6,7 @@ Frontend Angular de la Demo 2 para autenticación, control de sesión y navegaci
 
 - Inicio de sesión y registro para asistentes y organizadores; el formulario exige aceptar los términos y condiciones.
 - Cierre de sesión que elimina el token y el usuario del almacenamiento del navegador.
-- Expiración de sesión a los 60 minutos, alineada con el JWT del backend. Las respuestas `401` en rutas protegidas cierran la sesión y llevan al login; `403` conserva la sesión y muestra una página segura.
+- Expiración de sesión a las 8 horas, alineada con el JWT del backend. Las respuestas `401` en rutas protegidas cierran la sesión y llevan al login; `403` conserva la sesión y muestra una página segura.
 - Guards de autenticación y rol para impedir la navegación a rutas de otro perfil desde el frontend. El backend debe repetir estas autorizaciones.
 - Catálogo de eventos para asistentes, con favoritos guardados localmente. El corazón permite añadir y quitar cada evento de “Mis favoritos”. La pantalla de detalle y compra siguen fuera del alcance de esta demo.
 
@@ -41,7 +41,7 @@ Para presentar este frontend sin backend, también puedes iniciarlo con `docker 
 
 ## Integración con backend
 
-La Demo 2 standalone usa autenticación mock (`useMockAuth: true`) y el resto de módulos conserva datos mock (`useMock: true`). La configuración del backend se mantiene en la copia de `Full stack`, separada de esta rama.
+La Demo 2 standalone usa autenticación mock (`useMockAuth: true`) y el resto de módulos conserva datos mock (`useMock: true`). La integración con el backend está en la rama `integracion-back-front` de este repositorio y construye el repositorio independiente `backend-php`.
 
 Contratos que el frontend espera al conectar el backend:
 
