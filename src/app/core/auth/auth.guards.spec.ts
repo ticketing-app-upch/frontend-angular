@@ -115,11 +115,18 @@ describe('Guards de ruta', () => {
     });
   });
 
-  it('un token mock vence a los 60 minutos', () => {
+  it('un token mock vence a las 8 horas', () => {
     const issuedAt = Date.now();
     const token = `mock.${btoa('u-1:CLIENT')}.${issuedAt}`;
-    expect(sessionTokenValid(token, issuedAt + 60 * 60 * 1000 - 1)).toBe(true);
-    expect(sessionTokenValid(token, issuedAt + 60 * 60 * 1000)).toBe(false);
+    expect(sessionTokenValid(token, issuedAt + 8 * 60 * 60 * 1000 - 1)).toBe(true);
+    expect(sessionTokenValid(token, issuedAt + 8 * 60 * 60 * 1000)).toBe(false);
+  });
+
+  it('un JWT del backend sigue vigente después de una hora y vence a las ocho', () => {
+    const issuedAt = Math.floor(Date.now() / 1000);
+    const token = `header.${btoa(JSON.stringify({ iat: issuedAt, exp: issuedAt + 8 * 60 * 60 }))}.sig`;
+    expect(sessionTokenValid(token, (issuedAt + 2 * 60 * 60) * 1000)).toBe(true);
+    expect(sessionTokenValid(token, (issuedAt + 8 * 60 * 60) * 1000)).toBe(false);
   });
 
   it('un token JWT vencido cuenta como no autenticado, aunque haya un usuario guardado', async () => {

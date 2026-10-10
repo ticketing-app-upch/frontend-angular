@@ -155,7 +155,7 @@ export class Register {
       .subscribe({
         next: (res) => {
           this.notify.success(`Cuenta creada. ¡Bienvenido, ${res.user.fullName.split(' ')[0]}!`);
-          void this.router.navigateByUrl(raw.role === 'CLIENT' ? '/attendee/catalog' : '/organizer/home');
+          void this.router.navigateByUrl(raw.role === 'CLIENT' ? '/attendee/catalog' : '/bienvenida');
         },
         error: (err) => {
           this.loading.set(false);
