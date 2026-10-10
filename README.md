@@ -8,7 +8,7 @@ Clona ambos repositorios al mismo nivel y selecciona las ramas de la demo:
 
 ```powershell
 git clone -b integracion-back-front https://github.com/ticketing-app-upch/frontend-angular.git
-git clone -b feat/demo2 https://github.com/ticketing-app-upch/backend-php.git
+git clone -b main https://github.com/ticketing-app-upch/backend-php.git
 cd frontend-angular
 docker compose up -d --build
 ```
@@ -23,7 +23,7 @@ docker compose logs -f app
 docker compose down
 ```
 
-`down` conserva los datos de MySQL. El frontend usa `/api` a través del proxy Nginx. Registro e inicio de sesión usan Laravel/JWT; el catálogo y favoritos de esta demo siguen con datos de muestra locales. La rama `demo2` del frontend se puede levantar por separado para enseñar solo las pantallas con autenticación simulada.
+`down` conserva los datos de MySQL. El frontend usa `/api` a través del proxy Nginx. Registro e inicio de sesión usan Laravel/JWT con sesión de 8 horas; el catálogo y favoritos de esta demo siguen con datos de muestra locales. La versión independiente del frontend está fusionada en `main` y puede iniciarse por separado con autenticación simulada.
 
 ## Guion de verificación
 
