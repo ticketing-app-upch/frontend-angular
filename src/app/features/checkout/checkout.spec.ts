@@ -126,6 +126,23 @@ describe('Checkout', () => {
     expect(cmp.secondsLeft()).toBe(120);
   });
 
+  it('rechaza una tarjeta que vence en el mes actual (debe ser posterior a hoy)', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
+    const ev = seedEvent(store);
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.change('z1', 1);
+    cmp.startReview();
+    await flush(fixture);
+    useTestPayment(cmp);
+    const now = new Date();
+    cmp.cardExpiry = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()).toBeNull();
+    expect(cmp.paymentError()).toContain('expiración');
+  });
+
   it('sin sesión de cliente, confirmar falla y no genera orden', async () => {
     const ev = seedEvent(store);
     const fixture = await open(ev.id);

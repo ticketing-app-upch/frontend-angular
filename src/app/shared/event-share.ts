@@ -5,8 +5,12 @@ export function eventShareUrl(id: string): string {
 export async function copyEventLink(id: string): Promise<void> {
   const url = eventShareUrl(id);
   if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(url);
-    return;
+    try {
+      await navigator.clipboard.writeText(url);
+      return;
+    } catch {
+      // Sin foco o sin contexto seguro (http en red local): se usa el respaldo.
+    }
   }
   const field = document.createElement('textarea');
   field.value = url;

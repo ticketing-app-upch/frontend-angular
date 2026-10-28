@@ -297,7 +297,7 @@ export class Checkout {
     }
     const [year, month] = this.cardExpiry.split('-').map(Number);
     const now = new Date();
-    if (!year || !month || month < 1 || month > 12 || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
+    if (!year || !month || month < 1 || month > 12 || year < now.getFullYear() || (year === now.getFullYear() && month <= now.getMonth() + 1)) {
       this.paymentError.set('Ingresa una fecha de expiración vigente.');
       return;
     }
