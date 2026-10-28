@@ -28,6 +28,10 @@ Los recintos nuevos se pueden elegir al crear un evento y ya tienen eventos de e
 
 Los dos archivos son obligatorios y deben ser distintos. El navegador valida para ambos: extensión `.jpg` o `.jpeg`, tipo y contenido JPEG, tamaño máximo de 2 MiB, dimensiones mínimas 1920 × 480 px y proporción exacta 4:1. El formulario muestra el motivo del rechazo y no permite publicar sin las dos imágenes válidas. La portada aparece arriba del detalle; la imagen secundaria cierra la ficha después del plano y los precios.
 
+## Conectar con el backend
+
+Copia `.env.example` a `.env` (no se sube al repo) y ajusta `API_BACKEND_URL`, `API_PRICING_URL`, `USE_MOCK` y `USE_MOCK_AUTH`. `npm start` y `npm run build` ejecutan `scripts/set-env.mjs`, que escribe esos valores en `src/enviroments/enviroment*.ts`; cada llamada es `API_BACKEND_URL` + endpoint (por ejemplo `http://localhost:8080/api` + `/events`). Sin `.env` el proyecto sigue en modo mock. No subas al repo los `enviroment*.ts` modificados por el script.
+
 ## Ejecutar junto con el MVP
 
 En `C:\Users\jessz\OneDrive\Escritorio\Ticketing-frontend`, con las dependencias ya instaladas, levanta el MVP:

@@ -3,7 +3,7 @@
     <div class="verdict">
       <mat-icon>{{ entry() ? 'verified' : 'search_off' }}</mat-icon>
       <h1>{{ entry() ? 'Confirmación de compra' : 'Ticket no encontrado' }}</h1>
-      <p>{{ entry() ? 'Datos de esta entrada registrada en la demo.' : 'No hay una entrada confirmada con este código en este navegador.' }}</p>
+      <p>{{ entry() ? 'Datos de esta entrada registrada en la demo.' : 'No hay una entrada confirmada con este código.' }}</p>
     </div>
     @if (entry(); as entry) {
       <dl class="claims">
@@ -17,5 +17,5 @@
     }
     <div class="actions"><a mat-button routerLink="/eventos">Ver eventos</a></div>
   </div>
-  <p class="foot">Vista pública de la maqueta frontend. La consulta real entre dispositivos requiere el backend.</p>
+  <p class="foot">Consulta pública de la entrada.</p>
 </div>
