@@ -33,6 +33,10 @@ export interface EventItem {
   /** Capacidad física declarada del recinto. */
   venueCapacity?: number;
   imageUrl: string;
+  /** Portada panorámica JPG cargada por el organizador para el detalle. */
+  bannerUrl?: string;
+  /** Fotografía distinta para la sección «La experiencia» del detalle. */
+  secondaryBannerUrl?: string;
   organizerId: string;
   /** Máximo de entradas por transacción. */
   maxPerOrder: number;

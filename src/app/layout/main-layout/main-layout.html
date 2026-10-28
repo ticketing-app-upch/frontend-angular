@@ -1,39 +1,37 @@
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <header class="bar">
   <div class="bar-inner">
-    <a class="brand" [routerLink]="homeLink">
+    <a class="brand" [routerLink]="isAdmin() ? '/admin/usuarios' : homeLink">
       <mat-icon>confirmation_number</mat-icon>
       <span class="brand-name">AlpaTeck</span>
     </a>
 
     <nav class="links" aria-label="Navegación principal">
-      @if (epicEnabled(2)) {
-        <a routerLink="/eventos" routerLinkActive="active">Eventos</a>
+      @if (isClient()) {
+        <a routerLink="/attendee/catalog" routerLinkActive="active">Eventos</a>
+        <a routerLink="/attendee/favorites" routerLinkActive="active">Mis favoritos</a>
       }
       @if (isClient() && epicEnabled(3)) {
-        <a routerLink="/mis-entradas" routerLinkActive="active">Mis entradas</a>
+        <a routerLink="/attendee/tickets" routerLinkActive="active">Mis tickets</a>
       }
       @if (isOrganizer()) {
-        @if (epicEnabled(5)) {
-          <a routerLink="/organizador/panel" routerLinkActive="active">Panel</a>
-        }
         @if (epicEnabled(2)) {
           <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
+          <a routerLink="/organizador/eventos/nuevo" routerLinkActive="active">Crear evento</a>
         }
-      }
-      @if (isAdmin()) {
-        <a routerLink="/admin" routerLinkActive="active">Administración</a>
       }
     </nav>
 
     <span class="tkt-spacer"></span>
-    <button
-      mat-icon-button
-      (click)="toggleTheme()"
-      [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"
-    >
-      <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-    </button>
+    @if (!isAdmin()) {
+      <button
+        mat-icon-button
+        (click)="toggleTheme()"
+        [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"
+      >
+        <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+    }
 
     @if (isAuthenticated()) {
       <button mat-button [matMenuTriggerFor]="menu" class="account">
@@ -54,19 +52,20 @@
           }}</span>
         </div>
         <mat-divider />
-        @if (isClient() && epicEnabled(3)) {
-          <a mat-menu-item routerLink="/mis-entradas">
+        @if (isClient()) {
+          <a mat-menu-item routerLink="/attendee/catalog">
+            <mat-icon>explore</mat-icon> Explorar eventos
+          </a>
+          <a mat-menu-item routerLink="/attendee/favorites">
+            <mat-icon>favorite_border</mat-icon> Mis favoritos
+          </a>
+          <a mat-menu-item routerLink="/attendee/tickets">
             <mat-icon>local_activity</mat-icon> Mis entradas
           </a>
         }
-        @if (isOrganizer() && epicEnabled(5)) {
-          <a mat-menu-item routerLink="/organizador/panel">
-            <mat-icon>insights</mat-icon> Panel del organizador
-          </a>
-        }
-        @if (isAdmin()) {
-          <a mat-menu-item routerLink="/admin">
-            <mat-icon>shield_person</mat-icon> Administración
+        @if (isOrganizer()) {
+          <a mat-menu-item routerLink="/organizador/eventos">
+            <mat-icon>event</mat-icon> Mis eventos
           </a>
         }
         <mat-divider />
@@ -74,7 +73,7 @@
       </mat-menu>
     } @else {
       <a mat-button routerLink="/auth/login">Ingresar</a>
-      <a mat-flat-button routerLink="/auth/registro">Crear cuenta</a>
+      <a mat-flat-button routerLink="/auth/register">Crear cuenta</a>
     }
   </div>
 </header>
@@ -83,33 +82,29 @@
   <router-outlet />
 </main>
 
+@if (!isAdmin()) {
 <nav class="mobile-nav" aria-label="Navegación móvil">
-  @if (epicEnabled(2)) {
-    <a routerLink="/eventos" routerLinkActive="active"><mat-icon>explore</mat-icon>Explorar</a>
-    <a routerLink="/eventos" [queryParams]="{ saved: '1' }"
-      ><mat-icon>favorite_border</mat-icon>Guardados</a
+  @if (isClient()) {
+    <a routerLink="/attendee/catalog" routerLinkActive="active"><mat-icon>explore</mat-icon>Eventos</a>
+    <a routerLink="/attendee/favorites" routerLinkActive="active"
+      ><mat-icon>favorite_border</mat-icon>Mis favoritos</a
     >
   } @else {
     <a [routerLink]="homeLink" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
   }
-  @if (isOrganizer() && epicEnabled(5)) {
-    <a routerLink="/organizador/panel" routerLinkActive="active"
-      ><mat-icon>insights</mat-icon>Panel</a
+  @if (isOrganizer()) {
+    <a routerLink="/organizador/eventos" routerLinkActive="active"
+      ><mat-icon>event</mat-icon>Mis eventos</a
     >
-  } @else if (isAdmin()) {
-    <a routerLink="/admin" routerLinkActive="active"
-      ><mat-icon>admin_panel_settings</mat-icon>Admin</a
-    >
-  } @else if (epicEnabled(3)) {
-    <a routerLink="/mis-entradas" routerLinkActive="active"
-      ><mat-icon>confirmation_number</mat-icon>Entradas</a
+  } @else if (isClient()) {
+    <a routerLink="/attendee/tickets" routerLinkActive="active"
+      ><mat-icon>confirmation_number</mat-icon>Mis entradas</a
     >
   }
-  <a routerLink="/ayuda" routerLinkActive="active"><mat-icon>help_outline</mat-icon>Ayuda</a>
 </nav>
+}
 <footer class="foot">
   <div class="foot-inner">
     <span>© {{ year }} AlpaTeck · Tu próxima experiencia</span>
-    <a routerLink="/ayuda">Centro de ayuda</a>
   </div>
 </footer>

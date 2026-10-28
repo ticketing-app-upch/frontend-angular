@@ -1,3 +1,12 @@
+@if (intro()) {
+  <div class="event-intro" role="status" aria-live="polite"
+    [style.--event-primary]="palette().primary" [style.--event-secondary]="palette().secondary"
+    [style.--event-deep]="palette().deep">
+    <div class="intro-colors" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <div class="intro-brand"><span class="intro-logo" aria-hidden="true">✦</span><strong>AlpaTeck</strong><span>Preparando tu experiencia</span></div>
+    <div class="intro-progress" aria-hidden="true"></div>
+  </div>
+}
 @if (loading()) {
   <div class="tkt-page center">
     <mat-progress-spinner mode="indeterminate" diameter="46" />
@@ -13,12 +22,15 @@
     </tkt-empty-state>
   </div>
 } @else if (event(); as ev) {
-  <div class="banner" [class.is-match]="match() !== null">
-    @if (match(); as m) {
-      <span
-        class="match-bg"
-        [style.background-image]="'url(' + ev.imageUrl + ')'"
-      ></span>
+  <div class="event-experience" [style.--event-primary]="palette().primary"
+    [style.--event-secondary]="palette().secondary" [style.--event-deep]="palette().deep"
+    [style.--event-mid]="palette().mid" [style.--event-image]="'url(\'' + (ev.bannerUrl || ev.imageUrl) + '\')'">
+  <div class="banner" [class.is-match]="match() !== null && !ev.bannerUrl"
+    [class.has-upload]="!!ev.bannerUrl" [class.text-right]="!!ev.bannerUrl && palette().textSide === 'right'">
+    @if (ev.bannerUrl) {
+      <img [src]="ev.bannerUrl" [alt]="'Banner de ' + ev.name" (load)="onBannerLoad($event)" />
+    } @else if (match(); as m) {
+      <img class="match-bg" [src]="ev.imageUrl" alt="" (load)="onBannerLoad($event)" />
       <div class="match-crests">
         <img
           [src]="m.crestA"
@@ -33,7 +45,7 @@
         />
       </div>
     } @else {
-      <img [src]="ev.imageUrl" [alt]="ev.name" />
+      <img [src]="ev.imageUrl" [alt]="ev.name" (load)="onBannerLoad($event)" />
     }
     <div class="banner-shade"></div>
     <div class="banner-text">
@@ -56,23 +68,28 @@
   <div class="tkt-page detail-grid">
     <div class="about">
       <div class="tkt-cluster" style="margin-bottom:24px">
-        <button mat-stroked-button (click)="discovery.toggle(ev.id)" [attr.aria-pressed]="discovery.has(ev.id)"><mat-icon>{{ discovery.has(ev.id) ? 'favorite' : 'favorite_border' }}</mat-icon>{{ discovery.has(ev.id) ? 'Guardado' : 'Guardar evento' }}</button>
-        <button mat-stroked-button (click)="calendar(ev)"><mat-icon>event_available</mat-icon>Mi calendario</button>
-        <button mat-stroked-button (click)="share()"><mat-icon>share</mat-icon>Compartir</button>
+        <button mat-stroked-button (click)="toggleFavorite(ev.id)" [attr.aria-pressed]="discovery.has(ev.id)"><mat-icon>{{ discovery.has(ev.id) ? 'favorite' : 'favorite_border' }}</mat-icon>{{ discovery.has(ev.id) ? 'Guardado' : 'Guardar evento' }}</button>
+        <button mat-stroked-button (click)="share()"><mat-icon>link</mat-icon>Copiar enlace</button>
       </div>
-      <section class="block">
-        <h2 class="tkt-section-title">Sobre el evento</h2>
-        <p class="desc">{{ ev.description }}</p>
+      <section class="block plan-preview">
+        <h2 class="tkt-section-title">Plano referencial del recinto</h2>
+        @if (venueMap(ev.venue, ev.zones); as plan) {
+          <figure class="plan-image" [class.plan-crop-sides]="ev.venue === 'Gran Teatro Nacional'"><img [src]="plan" [alt]="'Plano referencial de ' + ev.venue" loading="lazy" /><figcaption>{{ ev.venue }} · plano referencial</figcaption></figure>
+        } @else {
+          <p class="tkt-muted">El plano referencial de este recinto aún no está disponible.</p>
+        }
+        <p class="plan-note"><mat-icon inline>info</mat-icon>Consulta aquí la distribución. Podrás elegir zona y cantidad al comenzar la compra.</p>
       </section>
 
       <section class="block">
-        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Estimación dinámica por entrada + 6% de servicio. El total se confirma antes del pago.</p>
+        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Precio base por entrada + 6% de servicio. El total se confirma antes del pago.</p>
         <div class="zones">
-          @for (zone of ev.zones; track zone.id) {
+          @for (zone of ev.zones; track zone.id; let i = $index) {
             @let avail = zoneAvailable(zone.sold, zone.capacity);
             @let pct = zone.capacity ? (zone.sold / zone.capacity) * 100 : 0;
             <div
               class="zone"
+              [style.--zone-color]="zoneColor(i, ev.venue)"
               [class.gone]="avail === 0"
               [class.low]="avail > 0 && pct >= 90"
             >
@@ -179,5 +196,15 @@
         </p>
       </div>
     </aside>
+  </div>
+  <section class="story-banner" [class.text-left]="!!ev.bannerUrl && palette().textSide === 'left'" aria-labelledby="story-title">
+    <img [src]="ev.secondaryBannerUrl || ev.imageUrl" alt="" aria-hidden="true" class="story-art" />
+    <div class="story-content">
+      <span class="story-kicker">LA EXPERIENCIA</span>
+      <h2 id="story-title">{{ ev.name }}</h2>
+      <p>{{ ev.description }}</p>
+      <div class="story-facts"><span><mat-icon inline>event</mat-icon>{{ ev.startsAt | date: "d 'de' MMMM, y · HH:mm" }}</span><span><mat-icon inline>place</mat-icon>{{ ev.venue }}, {{ ev.city }}</span></div>
+    </div>
+  </section>
   </div>
 }

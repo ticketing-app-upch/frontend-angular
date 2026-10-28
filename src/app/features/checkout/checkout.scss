@@ -453,6 +453,8 @@
   user-select: none;
 }
 .legend-item.sold { opacity: 0.35; cursor: not-allowed; }
+.legend-item.active { border-color: rgba(255,255,255,.8); background: rgba(124,58,237,.28); }
+.legend-item.selected { box-shadow: inset 0 0 0 1px rgba(255,255,255,.45); }
 .legend-item b { color: #fff; }
 .legend-name { max-width: 15ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .legend-item button { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255,255,255,.2); background: rgba(255,255,255,.08); color: #fff; cursor: pointer; }
@@ -499,6 +501,8 @@
 }
 .zrow:last-child { border-bottom: 0; }
 .zrow.disabled { opacity: 0.5; }
+.zrow.active { border-radius: 10px; background: color-mix(in srgb, var(--mat-sys-primary) 14%, transparent); outline: 1px solid color-mix(in srgb, var(--mat-sys-primary) 50%, transparent); }
+.zrow.selected { box-shadow: inset 3px 0 0 var(--mat-sys-primary); }
 
 .swatch { width: 12px; height: 12px; border-radius: 4px; }
 
@@ -730,3 +734,9 @@
 .gateway-protection mat-icon { width: 15px; height: 15px; font-size: 15px; color: #86efac; }
 .gateway-pay { width: calc(100% - 48px); height: 50px; margin: 0 24px; border-radius: 12px; font-weight: 800; }
 .gateway-expiry { margin: 12px 24px 20px; text-align: center; color: rgba(255,255,255,.55); font-size: 11px; }
+.card-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 24px; }
+.card-fields label { display: grid; gap: 6px; color: #fff; font-size: 12px; }
+.card-fields label:first-child { grid-column: 1 / -1; }
+.card-fields input { width: 100%; box-sizing: border-box; border: 1px solid rgba(255,255,255,.3); background: rgba(255,255,255,.08); color: #fff; border-radius: 9px; padding: 12px; font: inherit; }
+.card-fields input:focus { outline: 2px solid #c4b5fd; }
+.payment-error { color: #fca5a5; margin: 0 24px; font-size: 12px; }

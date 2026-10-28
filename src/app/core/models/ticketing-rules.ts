@@ -1,4 +1,5 @@
 import { EventItem, Zone } from './event.model';
+import { environment } from '../../../enviroments/enviroment';
 
 export const MAX_TICKETS = 6;
 export const SERVICE_FEE_RATE = 0.06;
@@ -8,6 +9,7 @@ const DAY = 86_400_000;
 /** Simulación académica. El servidor debe recalcular y autorizar el precio final. */
 export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zone: Zone, now = Date.now()) {
   const available = Math.max(0, zone.capacity - zone.sold);
+  if (!environment.enabledEpics.includes(4)) return { unitPrice: zone.price, multiplier: 1, note: 'Precio base', available };
   const days = (Date.parse(event.startsAt) - now) / DAY;
   const age = event.publishedAt ? (now - Date.parse(event.publishedAt)) / DAY : 0;
   const scarce = zone.capacity > 0 && available / zone.capacity < 0.15;
@@ -25,7 +27,7 @@ export function eventIssues(event: EventItem, previous?: EventItem): string[] {
   if (!Number.isInteger(event.maxPerOrder) || event.maxPerOrder < 1 || event.maxPerOrder > MAX_TICKETS) issues.push('El límite por compra debe ser de 1 a 6 entradas.');
   if (!event.venue.trim() || !event.city.trim()) issues.push('Indica el recinto y la ciudad.');
   if (!Number.isInteger(event.venueCapacity) || (event.venueCapacity ?? 0) < 1) issues.push('Declara la capacidad física del recinto.');
-  if (!event.zones.length) issues.push('Agrega al menos una zona.');
+  if (event.zones.length < 2) issues.push('El recinto debe tener al menos dos zonas.');
   if (event.zones.reduce((sum, zone) => sum + zone.capacity, 0) > (event.venueCapacity ?? 0)) issues.push('Las zonas superan la capacidad física del recinto.');
   const names = new Set<string>();
   for (const zone of event.zones) {
@@ -33,7 +35,7 @@ export function eventIssues(event: EventItem, previous?: EventItem): string[] {
     if (!name || names.has(name)) issues.push('Cada zona debe tener un nombre único.');
     names.add(name);
     if (!Number.isInteger(zone.capacity) || zone.capacity < 1 || !Number.isInteger(zone.sold) || zone.sold < 0 || zone.sold > zone.capacity) issues.push('El aforo debe ser entero y no puede ser menor que las entradas vendidas.');
-    if (!Number.isFinite(zone.price) || zone.price < 0) issues.push('El precio debe ser un número positivo o cero.');
+    if (!Number.isFinite(zone.price) || zone.price <= 0) issues.push('Cada zona debe tener un precio mayor a cero.');
   }
   for (const old of previous?.zones ?? []) {
     const next = event.zones.find(zone => zone.id === old.id);

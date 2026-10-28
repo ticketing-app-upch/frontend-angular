@@ -1,105 +1,55 @@
-# Ticketing Frontend Web App (Angular)
+# Demo 3 · AlpaTeck (solo frontend)
 
-> Aplicación web Single Page Application (SPA) para clientes y organizadores de eventos.
+Esta rama presenta las épicas 2 y 3 con datos de prueba locales. Parte de la base de autenticación y administración de Demo 2. El alcance está contrastado con el backlog específico de Demo 3.
 
-![Angular](https://img.shields.io/badge/Angular-DD0031?style=for-the-badge&logo=angular&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
-![SCSS](https://img.shields.io/badge/SCSS-CC6699?style=for-the-badge&logo=sass&logoColor=white)
+[Revisión de cobertura HU y límites del frontend](REVISION_HU_DEMO3.md).
 
-## 📌 Responsabilidades del Cliente Web
+## Fuentes de alcance
 
-- Interfaz reactiva para registro, login y control de sesiones mediante JWT.
-- Catálogo interactivo de eventos con visualización de aforo disponible en tiempo real.
-- Flujo guiado de compra de tickets con selección de zonas y límite por transacción.
-- Dashboard analítico con reportes de ocupación y recaudación para organizadores.
+- [Backlog específico de Demo 3](https://docs.google.com/spreadsheets/d/1OVCKw5iUykEIbMcC_lXoJPvdsiNQK0slApaCRojbNAk/edit): HU-09 a HU-16 y HU-21.
+- [Documento del proyecto](https://docs.google.com/document/d/1aYndYjXIGhOfS65gEhUG8tgTSAvvXf6YjlAaRVTzvl4/edit): Demo 2 corresponde a la épica 1; Demo 3, a las épicas 2 y 3.
+- [Recintos compartidos del grupo](https://drive.google.com/drive/folders/1aXdDs-vaDtalNcmsiOck67E8RABK8fCK): los originales de Monumental, Nacional y San Marcos se conservan junto con los nuevos planos en `public/recintos/`.
 
-## 👥 Desarrolladores Responsables
+## Funciones listas para revisar
 
-- **Developer Frontend 1:** José Manuel Ames
-- **Developer Frontend 2:** Jesus Morales
+| HU | Pantalla o comportamiento |
+| --- | --- |
+| 07–08 | `/admin/usuarios`: asistentes y organizadores, filtros de rol/estado, confirmación antes de desactivar, reactivación inmediata y bloqueo de login de cuentas inactivas. El administrador no puede desactivar a otro administrador. |
+| 09 | `/eventos`: catálogo de eventos publicados y futuros, filtros por categoría, fecha y recinto. |
+| 10–11 | `/organizador/eventos` y `/organizador/eventos/nuevo`: eventos propios, creación con uno de 15 recintos predefinidos, aforos fijos, mapa y precios positivos por zona. |
+| 12–13 | Corazones y `/attendee/favorites`: favoritos persistidos por cuenta en este navegador. |
+| 21 | Copiar enlace desde catálogo o detalle; la ruta compartida conserva el destino tras iniciar sesión. |
+| 14 | `/comprar/:id`: zonas seleccionables directamente sobre el plano, límite de seis entradas, resumen, disponibilidad y pasarela **simulada** con datos ficticios. |
+| 15–16 | `/mis-entradas` y `/validar/:code`: una tarjeta, código y QR estático por cada entrada; vista pública y PDF local. |
 
-## 🛠️ Requisitos Previos
+Los recintos nuevos se pueden elegir al crear un evento y ya tienen eventos de ejemplo para probar la compra: `ev-16` (Estadio Nacional), `ev-7` (Estadio San Marcos) y `ev-2` (Estadio Monumental). Los aforos y zonas son **valores de maqueta**, no capacidades oficiales certificadas.
 
-- Node.js 22 LTS (el repositorio incluye `.node-version`)
-- npm 11 (`npm ci` respeta exactamente `package-lock.json`)
+## Banners del organizador
 
-No necesitas instalar Angular CLI globalmente: los scripts usan la versión local.
+Los dos archivos son obligatorios y deben ser distintos. El navegador valida para ambos: extensión `.jpg` o `.jpeg`, tipo y contenido JPEG, tamaño máximo de 2 MiB, dimensiones mínimas 1920 × 480 px y proporción exacta 4:1. El formulario muestra el motivo del rechazo y no permite publicar sin las dos imágenes válidas. La portada aparece arriba del detalle; la imagen secundaria cierra la ficha después del plano y los precios.
 
-## 🚀 Cómo correr
+## Ejecutar junto con el MVP
 
-```bash
-npm ci
-npm start            # servidor de desarrollo en http://localhost:4200
-npm run build        # build de producción (usa enviroment.prod.ts)
-npm test             # pruebas unitarias (Vitest)
-npm run check        # pruebas + build de producción
+En `C:\Users\jessz\OneDrive\Escritorio\Ticketing-frontend`, con las dependencias ya instaladas, levanta el MVP:
+
+```powershell
+npm.cmd run start -- --port 4200
 ```
 
-## 🧪 Datos de prueba (sin backend)
+En otra terminal, desde esta carpeta `Plataforma de Ticketing\Demo 3`, levanta Demo 3:
 
-El backend todavía está en construcción. Mientras tanto, `src/enviroments/enviroment.ts`
-trae `useMock: true`: todos los servicios responden con **datos falsos en memoria**
-(semilla en `src/app/core/mock/`), persistidos en `localStorage` para que las compras
-y los eventos creados sobrevivan a un refresco.
-
-Cuando el backend esté listo, poner `useMock: false` y los mismos servicios pegarán a
-`apiBackendUrl` / `apiPricingUrl`.
-
-**Cuentas de prueba** (botones de acceso rápido en la pantalla de login):
-
-| Rol         | Correo               | Contraseña       |
-| ----------- | -------------------- | ---------------- |
-| Organizador | `organizador@tkt.pe` | `Organizador1$`  |
-| Cliente     | `cliente@tkt.pe`     | `Cliente1$`      |
-| Admin       | `admin@tkt.pe`       | `Admin123$`      |
-
-Para reiniciar la data: borrar la clave `tkt.mock.v1` de `localStorage`.
-
-## 🗺️ Estructura
-
-```
-src/app/
-  core/
-    auth/          AuthService (JWT + signals), guards, interceptor
-    models/        User, EventItem/Zone, TicketOrder, DashboardStats
-    services/      EventService, TicketService, PricingService, DashboardService
-    mock/          semilla y store en memoria (localStorage)
-  shared/          componentes reutilizables (event-card, capacity-bar, bar-chart, ...)
-  layout/          main-layout (toolbar + footer)
-  features/
-    auth/          login, registro
-    events/        catálogo + detalle de evento
-    checkout/      flujo guiado de compra (stepper)
-    account/       mis entradas
-    organizer/     panel analítico, gestión y formulario de eventos
+```powershell
+npm.cmd run start -- --port 4201
 ```
 
-## 🧭 Rutas principales
+Abre [MVP](http://localhost:4200) y [Demo 3](http://localhost:4201). En el login hay botones para completar las credenciales de prueba de cliente, organizador y administrador.
 
-| Ruta                         | Acceso      | Descripción                            |
-| ---------------------------- | ----------- | -------------------------------------- |
-| `/eventos`                   | público     | Catálogo con búsqueda y filtros        |
-| `/eventos/:id`               | público     | Detalle, zonas y aforo en vivo         |
-| `/comprar/:eventId`          | autenticado | Compra guiada (zonas → resumen → pago) |
-| `/mis-entradas`              | autenticado | Órdenes y códigos de acceso            |
-| `/organizador/panel`         | organizador | Ocupación y recaudación                |
-| `/organizador/eventos`       | organizador | Gestión de eventos                     |
-| `/organizador/eventos/nuevo` | organizador | Alta / edición de evento y zonas       |
-| `/ayuda`                     | público     | Centro de ayuda                         |
+## Límites de esta maqueta
 
-## Funciones destacadas del frontend
+- Los usuarios, eventos y tickets de Demo 3 se guardan en `localStorage` de `localhost:4201`. La compra no cobra dinero ni envía números de tarjeta a un servicio.
+- Para probar HU-04, el vencimiento local se configura en minutos mediante `sessionDurationMinutes` en los archivos de `src/enviroments/` (15 minutos en esta maqueta).
+- El QR enlaza a `/validar/:code`; la consulta de compras creadas localmente funciona en el navegador que las registró. Para validar el mismo ticket en otro dispositivo se necesita el backend.
+- El reporte de ventas completo de HU-20, la cola virtual, antiscalping y la aprobación administrativa pertenecen a Demo 4.
+- Seguridad de sesión, inventario concurrente, cola y riesgo de fraude deben ser verificados por backend cuando se integre. Las comprobaciones de esta carpeta son solo de interfaz.
 
-- Catálogo responsive con favoritos locales, comparación, filtros combinados, orden y “AlpaTeck Match” por presupuesto y tamaño de grupo.
-- Planos interactivos distintos para Monumental, Estadio Nacional, San Marcos, teatros, arenas/coliseos y zonas generales. El modal ampliado permite selección múltiple.
-- Precio dinámico visible con motivo, cotización de dos minutos, comisión desglosada, idempotencia y pago aprobado/rechazado de prueba.
-- Panel por evento y por zona, laboratorio de escenarios de precio y exportación CSV protegida contra fórmulas.
-- Entradas con filtros, calendario `.ics`, resumen descargable y QR rotativo.
-- Tema claro/oscuro, navegación móvil, foco visible, reducción de movimiento y centro de ayuda.
-
-Consulta [FRONTEND_HANDOFF.md](./FRONTEND_HANDOFF.md) antes de integrar PHP y Python.
-
-## 🧱 Stack
-
-- Angular 21 (standalone, zoneless, señales, control-flow `@if`/`@for`)
-- Angular Material 3 + SCSS (tema violeta/cian, claro/oscuro)
-- RxJS para los servicios HTTP; gráficos hechos a mano (sin librería de charts)
+Cambiar los datos semilla en `src/app/core/mock/mock-data.ts` restablece automáticamente la base local de prueba al recargar, para evitar mezclar eventos nuevos con una semilla anterior.

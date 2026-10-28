@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { EventItem } from '../models/event.model';
 import { TicketOrder } from '../models/ticket.model';
 import { SEED_EVENTS, SEED_ORDERS, SEED_USERS, SeedUser } from './mock-data';
+import { eventSecondaryImage } from '../../shared/event-image';
 
 interface StoreShape {
   users: SeedUser[];
@@ -79,6 +80,7 @@ export class MockStore {
   /** Migra sin borrar compras ni eventos; las fechas dejan de resetear la semilla. */
   private upgrade(data: StoreShape): StoreShape {
     for (const event of data.events) {
+      event.secondaryBannerUrl ??= eventSecondaryImage(event);
       event.maxPerOrder = Math.min(6, Math.max(1, event.maxPerOrder));
       event.venueCapacity ??= event.zones.reduce((sum, zone) => sum + zone.capacity, 0);
       event.publishedAt ??= new Date(Date.parse(event.startsAt) - 45 * 86400000).toISOString();

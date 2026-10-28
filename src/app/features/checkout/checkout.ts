@@ -60,6 +60,10 @@ export class Checkout {
   readonly secondsLeft = signal(0);
   private expiresAt = 0;
   paymentMethod: 'CARD' | 'WALLET' = 'CARD';
+  cardNumber = '';
+  cardExpiry = '';
+  cardCvv = '';
+  readonly paymentError = signal('');
   readonly paymentGateway = signal(false);
   readonly eventId = input.required<string>();
 
@@ -69,6 +73,10 @@ export class Checkout {
 
   /** zoneId -> cantidad elegida */
   readonly quantities = signal<Record<string, number>>({});
+  readonly hoveredZone = signal<string | null>(null);
+  readonly zonePrices = computed(() => Object.fromEntries(
+    (this.event()?.zones ?? []).map(zone => [zone.id, this.unitPrice(zone)]),
+  ));
 
   readonly reviewing = signal(false);
   readonly quoting = signal(false);
@@ -78,7 +86,7 @@ export class Checkout {
   readonly order = signal<TicketOrder | null>(null);
   readonly mapZoom = signal(false);
   readonly legendHeight = signal(178);
-  readonly legendCollapsed = signal(false);
+  readonly legendCollapsed = signal(true);
   readonly legendPanelHeight = computed(() => this.legendCollapsed() ? 44 : this.legendHeight());
   private resizingLegend = false;
   private legendStartY = 0;
@@ -91,7 +99,7 @@ export class Checkout {
     return e ? matchArt(e.name, e.category) : null;
   });
 
-  readonly venuePlan = computed(() => venueMap(this.event()?.venue));
+  readonly venuePlan = computed(() => venueMap(this.event()?.venue, this.event()?.zones));
   readonly venueSpots = computed(() => {
     const e = this.event();
     return e ? venueHotspots(e.venue, e.zones) : [];
@@ -283,6 +291,21 @@ export class Checkout {
     const ev = this.event();
     const quote = this.quote();
     if (!ev || this.placing() || !quote || this.quoting()) return;
+    if (!/^\d{16}$/.test(this.cardNumber.replace(/\s/g, ''))) {
+      this.paymentError.set('Ingresa un número de tarjeta de 16 dígitos.');
+      return;
+    }
+    const [year, month] = this.cardExpiry.split('-').map(Number);
+    const now = new Date();
+    if (!year || !month || month < 1 || month > 12 || year < now.getFullYear() || (year === now.getFullYear() && month < now.getMonth() + 1)) {
+      this.paymentError.set('Ingresa una fecha de expiración vigente.');
+      return;
+    }
+    if (!/^\d{3,4}$/.test(this.cardCvv)) {
+      this.paymentError.set('Ingresa un CVV de 3 o 4 dígitos.');
+      return;
+    }
+    this.paymentError.set('');
     if (Date.now() >= this.expiresAt) { this.notify.error('La cotización venció. Actualízala antes de pagar.'); return; }
     const items = this.selectedLines().map((l) => ({
       zoneId: l.zone.id,
@@ -291,6 +314,7 @@ export class Checkout {
     this.placing.set(true);
     this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey }).subscribe({
       next: (ord) => {
+        this.cardNumber = this.cardExpiry = this.cardCvv = '';
         this.order.set(ord);
         this.paymentGateway.set(false);
         this.placing.set(false);

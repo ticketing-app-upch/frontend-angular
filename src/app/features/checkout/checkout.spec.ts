@@ -30,6 +30,7 @@ describe('Checkout', () => {
   let notify: NotificationService;
 
   beforeEach(() => {
+    environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     environment.mockLatencyMs = 0;
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
@@ -62,6 +63,13 @@ describe('Checkout', () => {
     await fixture.whenStable();
     await flush(fixture);
     return fixture;
+  }
+
+  function useTestPayment(cmp: Checkout): void {
+    cmp.openPaymentGateway();
+    cmp.cardNumber = '4242424242424242';
+    cmp.cardExpiry = `${new Date().getFullYear() + 1}-12`;
+    cmp.cardCvv = '123';
   }
 
   it('carga el evento y arranca las cantidades en cero', async () => {
@@ -125,6 +133,7 @@ describe('Checkout', () => {
     cmp.change('z1', 1);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     cmp.confirm();
     await flush(fixture);
     expect(cmp.order()).toBeNull();
@@ -138,6 +147,7 @@ describe('Checkout', () => {
     cmp.change('z1', 2);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     cmp.confirm();
     await flush(fixture);
     expect(cmp.order()?.status).toBe('CONFIRMADA');
@@ -152,6 +162,7 @@ describe('Checkout', () => {
     cmp.change('z1', 1);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     // Fuerza el vencimiento sin esperar los 120s reales.
     (cmp as unknown as { expiresAt: number }).expiresAt = Date.now() - 1000;
     cmp.confirm();
@@ -169,6 +180,7 @@ describe('Checkout', () => {
     cmp.change('z1', 1);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     // Otra compra agota la zona justo antes de que este confirme.
     store.upsertEvent({ ...ev, zones: [{ ...ev.zones[0], sold: 100 }] });
     cmp.confirm();

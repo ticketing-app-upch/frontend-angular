@@ -16,11 +16,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   if (!isBackendRequest(req.url)) return next(req);
   const token = auth.token;
+  if (!token && auth.sessionExpired() && !req.url.includes('/auth/')) auth.expireSession();
   return next(token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req).pipe(
     catchError(error => {
       if (error.status === 401 && token && !req.url.includes('/auth/')) {
-        auth.logout();
-        void router.navigate(['/auth/login'], { queryParams: { redirect: router.url } });
+        auth.expireSession();
+      }
+      if (error.status === 403 && token && !req.url.includes('/auth/')) {
+        void router.navigate(['/bienvenida'], {
+          queryParams: { reason: 'forbidden' },
+          replaceUrl: true,
+        });
       }
       return throwError(() => error);
     })

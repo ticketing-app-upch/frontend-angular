@@ -34,6 +34,36 @@ export function eventImage(input: {
   return unsplash(pick(BY_CATEGORY[input.category] ?? BY_CATEGORY.CONCIERTO, input.name));
 }
 
+/** Otra fotografía temática para la sección narrativa; nunca repite la portada. */
+export function eventSecondaryImage(input: {
+  name: string;
+  category: EventCategory;
+  venue?: string;
+  imageUrl: string;
+}): string {
+  const name = input.name.toLowerCase();
+  let candidates: string[];
+  if (matchArt(input.name, input.category)) candidates = FOOTBALL_BG.map(unsplash);
+  else if (/sinf[oó]nic|sinfon[ií]a|orquesta|filarm[oó]nic/.test(name)) {
+    candidates = ['1519683384663-c9b34271669a', '1465847899084-d164df4dedc6'].map(unsplash);
+  } else if (/marat[oó]n|running|42k|21k|10k/.test(name)) {
+    candidates = ['1452626038306-9aae5e071dd3', '1476480862126-209bfaa8edc8'].map(unsplash);
+  } else if (/gastron[oó]mic|sabores|culinari/.test(name)) {
+    candidates = [unsplash('1504674900247-0877df9cc836'), ...BY_CATEGORY.FESTIVAL.map(unsplash)];
+  } else if (/v[oó]ley|volleyball/.test(name)) {
+    candidates = [unsplash('1547347298-4074fc3086f0')];
+  } else if (/jazz|saxof[oó]n/.test(name)) {
+    candidates = [unsplash('1503853585905-d53f628e46ac')];
+  } else if (/electr[oó]nic|dj|rave/.test(name)) {
+    candidates = [unsplash('1768054182948-9c05cecb8ef2')];
+  } else {
+    candidates = (BY_CATEGORY[input.category] ?? BY_CATEGORY.CONCIERTO).map(unsplash);
+  }
+  const start = hashCode(input.name + ':secondary') % candidates.length;
+  return candidates.map((_, index) => candidates[(start + index) % candidates.length])
+    .find(url => url !== input.imageUrl) ?? candidates[start];
+}
+
 // --- Escudos para partidos de fútbol ---------------------------------------
 
 export interface MatchArt {
@@ -243,7 +273,21 @@ const BY_VENUE: { test: RegExp; url: string }[] = [
  * La clave se compara como substring del nombre del recinto (sin tildes).
  */
 const VENUE_MAPS: Record<string, string> = {
-  monumental: '/events/map-monumental.webp',
+  monumental: '/recintos/demo3/estadio-monumental-zonas.png',
+  'estadio nacional': '/recintos/demo3/estadio-nacional-zonas.png',
+  'san marcos': '/recintos/demo3/estadio-san-marcos-zonas.png',
+  'arena 1': '/recintos/demo3/arena-1-costa-verde.png',
+  'centro de convenciones': '/recintos/demo3/centro-de-convenciones-de-lima.png',
+  circuito: '/recintos/demo3/circuito-costa-verde.png',
+  dibos: '/recintos/demo3/coliseo-eduardo-dibos.png',
+  'explanada costa verde': '/recintos/demo3/explanada-costa-verde-costa-21-san-miguel.png',
+  'gran teatro nacional': '/recintos/demo3/gran-teatro-nacional.png',
+  'jazz zone': '/recintos/demo3/jazz-zone-miraflores.png',
+  'parque de la exposicion': '/recintos/demo3/parque-de-la-exposicion.png',
+  'plaza de armas': '/recintos/demo3/plaza-de-armas-de-lima.png',
+  'teatro la plaza': '/recintos/demo3/teatro-la-plaza.png',
+  'teatro municipal': '/recintos/demo3/teatro-municipal.png',
+  westin: '/recintos/demo3/the-westin-lima.png',
 };
 
 /**
@@ -255,6 +299,20 @@ interface HotspotTemplate {
   points: string;
 }
 const VENUE_MAP_HOTSPOTS: Record<string, HotspotTemplate[]> = {
+  nacional: [
+    { match: /tribuna norte|^norte$/, points: '4,47 6,33 13,21 25,13 29,28 22,36 20,64 29,72 17,89 6,70' },
+    { match: /^oriente$/, points: '18,13 28,6 75,6 82,28 70,25 29,25' },
+    { match: /^occidente$/, points: '28,75 70,75 82,72 75,91 28,91 18,86' },
+    { match: /^vip$/, points: '21,39 26,31 37,31 37,70 26,70 21,62' },
+    { match: /platinum/, points: '38,31 62,31 62,70 38,70' },
+  ],
+  'san marcos': [
+    { match: /^norte$/, points: '5,45 8,31 17,16 29,27 20,38 20,64 29,73 17,87 8,69' },
+    { match: /^oriente$/, points: '18,15 29,7 66,7 73,28 28,28' },
+    { match: /^occidente$/, points: '28,73 73,73 66,94 29,94 18,85' },
+    { match: /^vip$/, points: '20,38 28,28 48,28 48,73 28,73 20,62' },
+    { match: /platinum/, points: '49,28 75,28 75,73 49,73' },
+  ],
   monumental: [
     { match: /oriente|este\b/, points: '25,4 75,4 68,24 32,24' },
     { match: /norte|north/, points: '12,26 28,24 28,62 12,56' },
@@ -304,9 +362,12 @@ function venueKey(venue: string): string {
   return venue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-export function venueMap(venue: string | undefined): string | null {
+export function venueMap(venue: string | undefined, zones: { name: string }[] = []): string | null {
   if (!venue) return null;
   const key = venueKey(venue);
+  if (key.includes('explanada costa verde') && zones.some(z => /degustaci[oó]n/i.test(z.name))) {
+    return '/recintos/demo3/explanada-costa-verde-costa-21-san-miguel-feria.png';
+  }
   for (const k of Object.keys(VENUE_MAPS)) {
     if (key.includes(k)) return VENUE_MAPS[k];
   }

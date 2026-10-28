@@ -33,7 +33,7 @@
     </div>
 
     <div class="aside-inner">
-      <a routerLink="/eventos" class="aside-brand">
+      <a routerLink="/auth/login" class="aside-brand">
         <mat-icon>confirmation_number</mat-icon> AlpaTeck
       </a>
 
@@ -62,6 +62,10 @@
         <h1>Ingresar</h1>
         <p class="tkt-muted">Bienvenido de vuelta. Usa tu correo y contraseña.</p>
       </div>
+
+      @if (sessionExpired()) {
+        <p class="session-notice" role="alert">Tu sesión caducó. Inicia sesión nuevamente.</p>
+      }
 
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline">
@@ -98,13 +102,6 @@
           }
         </mat-form-field>
 
-        <div class="form-row">
-          <mat-checkbox formControlName="remember">Recuérdame</mat-checkbox>
-          <a href="#" class="forgot" (click)="forgotPassword($event)">
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
-
         <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
           @if (loading()) { Ingresando… } @else { Ingresar }
         </button>
@@ -119,12 +116,15 @@
           <button mat-stroked-button type="button" (click)="fill('CLIENT')">
             <mat-icon>person</mat-icon> Usuario de prueba
           </button>
+          <button mat-stroked-button type="button" (click)="fill('ADMIN')">
+            <mat-icon>admin_panel_settings</mat-icon> Administrador de prueba
+          </button>
         </div>
       </div>
 
       <p class="alt">
         ¿No tienes cuenta?
-        <a routerLink="/auth/registro">Crear una</a>
+        <a routerLink="/auth/register">Crear una</a>
       </p>
     </mat-card>
   </div>

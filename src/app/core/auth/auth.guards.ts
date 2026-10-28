@@ -10,26 +10,25 @@ export const authGuard: CanActivateFn = (_route, state) => {
     return true;
   }
   return router.createUrlTree(['/auth/login'], {
-    queryParams: { redirect: state.url },
+    queryParams: { redirect: state.url, ...(auth.sessionExpired() ? { reason: 'expired' } : {}) },
   });
 };
 
-/**
- * Restringe una ruta a uno o más roles. El rol `ADMIN` cumple siempre
- * (tiene acceso a todo el sistema).
- */
+/** Restringe una ruta al rol indicado, antes de mostrar su componente. */
 export function roleGuard(...roles: UserRole[]): CanActivateFn {
-  return () => {
+  return (_route, state) => {
     const auth = inject(AuthService);
     const router = inject(Router);
     if (!auth.token || !auth.isAuthenticated()) {
-      return router.createUrlTree(['/auth/login']);
+      return router.createUrlTree(['/auth/login'], {
+        queryParams: { redirect: state.url, ...(auth.sessionExpired() ? { reason: 'expired' } : {}) },
+      });
     }
     const role = auth.user()?.role;
-    if (role === 'ADMIN' || (role && roles.includes(role))) {
+    if (role && roles.includes(role)) {
       return true;
     }
-    return router.createUrlTree(['/eventos']);
+    return router.createUrlTree(['/bienvenida'], { queryParams: { reason: 'forbidden' } });
   };
 }
 
@@ -40,12 +39,12 @@ export function roleGuard(...roles: UserRole[]): CanActivateFn {
 export const clientGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isClient() ? true : router.createUrlTree([auth.isAdmin() ? '/admin' : '/organizador/panel']);
+  return auth.isClient() ? true : router.createUrlTree(['/bienvenida'], { queryParams: { reason: 'forbidden' } });
 };
 
 /** Evita que un usuario ya autenticado vea login/registro. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isAuthenticated() ? router.createUrlTree(['/eventos']) : true;
+  return auth.isAuthenticated() ? router.createUrlTree(['/bienvenida']) : true;
 };

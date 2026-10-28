@@ -1,15 +1,19 @@
 import { eventIssues, purchaseIssue, zonePrice } from './ticketing-rules';
 import { EventItem, Zone } from './event.model';
+import { environment } from '../../../enviroments/enviroment';
 
 const now = Date.now();
 const day = 86400000;
 const zone: Zone = { id: 'z1', name: 'General', price: 100, capacity: 100, sold: 20 };
 const event: EventItem = { id: 'e1', name: 'Evento de prueba', description: 'Una descripción suficientemente extensa.',
-  category: 'CONCIERTO', status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 100,
+  category: 'CONCIERTO', status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 101,
   startsAt: new Date(now + 10 * day).toISOString(), publishedAt: new Date(now - 10 * day).toISOString(),
-  imageUrl: '', organizerId: 'org', maxPerOrder: 6, zones: [zone] };
+  imageUrl: '', organizerId: 'org', maxPerOrder: 6, zones: [zone, { id: 'z2', name: 'VIP', price: 150, capacity: 1, sold: 0 }] };
 
 describe('Reglas de ticketing del proyecto', () => {
+  const originalEpics = environment.enabledEpics;
+  beforeEach(() => { environment.enabledEpics = [1, 2, 3, 4]; });
+  afterEach(() => { environment.enabledEpics = originalEpics; });
   it('conserva precio base', () => expect(zonePrice(event, zone, now).unitPrice).toBe(100));
   it('recarga 20% con menos de 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 86 }, now).unitPrice).toBe(120));
   it('no recarga exactamente al 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 85 }, now).unitPrice).toBe(100));

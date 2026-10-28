@@ -14,8 +14,9 @@ import { EventItem } from '../models/event.model';
 
 const makeEvent = (): EventItem => ({ id: '', organizerId: 'u-org', name: 'Evento contractual', description: 'Descripción de prueba para el contrato.',
   startsAt: new Date(Date.now() + 10 * 86400000).toISOString(), publishedAt: new Date().toISOString(), category: 'CONCIERTO',
-  status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 100, imageUrl: '', maxPerOrder: 6,
-  zones: [{ id: 'z-test', name: 'General', price: 100, capacity: 100, sold: 0 }] });
+  status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 101, imageUrl: '', maxPerOrder: 6,
+  zones: [{ id: 'z-test', name: 'General', price: 100, capacity: 100, sold: 0 },
+    { id: 'z-extra', name: 'VIP', price: 150, capacity: 1, sold: 0 }] });
 
 describe('Contratos HTTP del frontend', () => {
   beforeEach(() => {
@@ -52,7 +53,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   const originalLatency = environment.mockLatencyMs;
   let auth: AuthService, store: MockStore, tickets: TicketService, event: EventItem;
   beforeEach(async () => {
-    localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.mockLatencyMs = 0;
+    localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.useMockAuth = true; environment.mockLatencyMs = 0;
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     auth = TestBed.inject(AuthService); store = TestBed.inject(MockStore); tickets = TestBed.inject(TicketService);
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
@@ -76,7 +77,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   });
   it('dos compras simultáneas no consumen la misma última entrada local', async () => {
     event.zones[0].sold = 99;
-    const request = { ...payload(), expectedTotal: 127.2 };
+    const request = payload();
     const results = await Promise.allSettled([firstValueFrom(tickets.createOrder(request)), firstValueFrom(tickets.createOrder(request))]);
     expect(results.filter(r => r.status === 'fulfilled').length).toBe(1);
     expect(event.zones[0].sold).toBe(100);

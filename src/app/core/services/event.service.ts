@@ -84,8 +84,22 @@ export class EventService {
   }
 
   save(event: EventItem): Observable<EventItem> {
+    if (environment.useMock) {
+      const account = this.store.users.find(user => user.id === this.auth.user()?.id);
+      if (!account || account.active === false) return mockError('Tu cuenta está desactivada. Contacta al administrador.', 403);
+    }
     const previous = this.store.events.find(e => e.id === event.id);
     if (environment.useMock && !this.auth.isAdmin() && !(this.auth.isOrganizer() && event.organizerId === this.auth.user()?.id && (!previous || previous.organizerId === this.auth.user()?.id))) return mockError('No tienes permisos para editar este evento.', 403);
+    if (environment.useMock && event.id) {
+      return mockError('El evento ya fue creado y no puede modificarse.', 403);
+    }
+    if (environment.useMock && this.store.events.some(other =>
+      other.venue === event.venue &&
+      other.status !== 'BORRADOR' &&
+      Math.abs(Date.parse(other.startsAt) - Date.parse(event.startsAt)) < 86_400_000
+    )) {
+      return mockError('El recinto ya tiene un evento con menos de un día de diferencia.', 409);
+    }
     const issues = eventIssues(event, environment.useMock ? previous : undefined);
     if (issues.length) return mockError<EventItem>(issues[0], 422);
     if (environment.useMock) {
@@ -101,7 +115,7 @@ export class EventService {
 
   private publicEvents(): EventItem[] {
     return this.store.events
-      .filter((e) => e.status === 'PUBLICADO' || e.status === 'AGOTADO')
+      .filter((e) => (e.status === 'PUBLICADO' || e.status === 'AGOTADO') && Date.parse(e.startsAt) > Date.now())
       .map((e) => structuredClone(e));
   }
 

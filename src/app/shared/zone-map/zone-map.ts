@@ -8,6 +8,8 @@ import {
 } from '@angular/core';
 import { Zone } from '../../core/models/event.model';
 import { VenueShape, venueShape as resolveVenueShape } from '../event-image';
+import { ZONE_LABEL_AREAS } from './zone-label-areas';
+import { traceFor } from './venue-traces';
 
 
 /** Polígono clicable superpuesto sobre un plano-imagen (coords 0..100). */
@@ -28,7 +30,10 @@ export const ZONE_COLORS = [
   '#14b8a6',
 ];
 
-export function zoneColor(index: number): string {
+export function zoneColor(index: number, venue?: string): string {
+  const key = venue?.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (key?.includes('estadio nacional')) return ['#8950a3', '#5a9937', '#54933e', '#3b87b6', '#d91e28'][index % 5];
+  if (key?.includes('san marcos')) return ['#4059a7', '#9e4c92', '#b679a8', '#db3442', '#6fbbcd'][index % 5];
   return ZONE_COLORS[index % ZONE_COLORS.length];
 }
 
@@ -98,10 +103,82 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
   selector: 'tkt-zone-map',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (image() && !imgFailed()) {
-      <div class="img-map">
+    @if (activeTrace(); as layout) {
+        <div class="traced-map" (pointerleave)="leaveMap($event)">
+          <svg class="traced-svg" [attr.viewBox]="'0 0 1000 ' + layout.height" [attr.aria-label]="'Zonas interactivas de ' + venue()" role="group">
+            @if (layout.clip) {
+              <defs><clipPath [attr.id]="clipId"><path [attr.d]="layout.clip" /></clipPath></defs>
+            }
+            <image
+              [attr.href]="'/recintos/demo3/base/' + layout.image"
+              x="0" y="0" width="1000" [attr.height]="layout.height"
+              preserveAspectRatio="none"
+              [attr.clip-path]="layout.clip ? 'url(#' + clipId + ')' : null"
+              (error)="imgFailed.set(true)"
+            />
+            @for (sector of tracedZones(); track sector.id) {
+              <path
+                class="traced-zone"
+                [class.active]="activeId() === sector.id"
+                [class.selected]="sector.qty > 0"
+                [class.sold]="sector.gone"
+                [attr.d]="sector.path"
+                [attr.fill]="sector.color"
+                [attr.stroke]="sector.color"
+                [attr.tabindex]="sector.gone ? -1 : 0"
+                role="button"
+                [attr.aria-disabled]="sector.gone"
+                [attr.aria-pressed]="sector.qty > 0"
+                [attr.aria-label]="sector.name + ', ' + priceLabel(sector.price) + (sector.gone ? ', agotado' : ', ' + sector.available + ' disponibles')"
+                (pointerenter)="enterZone($event, sector.id)"
+                (pointermove)="moveTooltip($event)"
+                (pointerdown)="pointerType = $event.pointerType"
+                (focus)="focusZone($event, sector.id)"
+                (blur)="clearHover()"
+                (click)="activateZone($event, sector.id, sector.gone)"
+                (keydown.enter)="keyZone($event, sector.id, sector.gone)"
+                (keydown.space)="keyZone($event, sector.id, sector.gone)"
+              />
+            }
+          </svg>
+          @if (tooltipZone(); as tip) {
+            <div class="zone-tooltip" role="status" [style.left.%]="tooltipPosition().x" [style.top.%]="tooltipPosition().y">
+              <strong>{{ tip.name }}</strong>
+              <span>{{ priceLabel(tip.price) }} · {{ tip.gone ? 'Agotado' : tip.available + ' disponibles' }}</span>
+            </div>
+          }
+        </div>
+    } @else if (fallbackOnly()) {
+      <div class="zone-fallback" role="group" [attr.aria-label]="'Zonas disponibles de ' + venue()">
+        <p>Este recinto aún no tiene un plano trazado. Elige tu zona en la lista:</p>
+        @for (zone of zones(); track zone.id) {
+          <button type="button" [disabled]="zone.capacity <= zone.sold" (click)="pick.emit(zone.id)">
+            {{ zone.name }} · {{ priceLabel(prices()[zone.id] || zone.price) }}
+            @if (zone.capacity <= zone.sold) { · Agotado }
+          </button>
+        }
+      </div>
+    } @else if (image() && !imgFailed()) {
+      <div class="img-map" [class.labeled-map]="isLabeledPlan()">
         <img [src]="image()" alt="Plano del recinto" (error)="imgFailed.set(true)" />
-        @if (spotViews().length) {
+        @if (isLabeledPlan()) {
+          @for (label of labelViews(); track label.id) {
+            <button
+              type="button"
+              class="image-zone"
+              [class.selected]="qtyOf(label.id) > 0"
+              [disabled]="label.gone"
+              [style.left.%]="label.x"
+              [style.top.%]="label.y"
+              [style.width.%]="label.w"
+              [style.height.%]="label.h"
+              [attr.aria-label]="'Seleccionar ' + label.name"
+              [attr.title]="label.name"
+              (click)="pick.emit(label.id)"
+            ></button>
+          }
+        }
+        @if (spotViews().length && !isLabeledPlan()) {
           <svg class="hot" viewBox="0 0 100 100" preserveAspectRatio="none">
             @for (h of spotViews(); track h.id) {
               <polygon
@@ -465,9 +542,42 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
     :host-context(.map-modal-body) svg { width: 100%; height: 100%; max-height: 100%; }
     :host-context(.map-modal-body) .img-map,
     :host-context(.map-modal-body) .img-map img { width: 100%; height: 100%; object-fit: contain; }
+    :host-context(.map-modal-body) .img-map.labeled-map { height: auto; aspect-ratio: 16 / 9; }
+    :host-context(.map-modal-body) .img-map.labeled-map img { height: 100%; }
+    .traced-map { position: relative; width: 100%; line-height: 0; background: transparent; }
+    .traced-svg { width: 100%; height: auto; display: block; overflow: visible; background: transparent; }
+    :host-context(.map-modal-body) .traced-map { height: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    :host-context(.map-modal-body) .traced-svg { width: 100%; height: 100%; max-height: 100%; min-height: 0; min-width: 0; flex: 1 1 auto; }
+    .traced-zone { fill-opacity: .045; stroke-opacity: .78; stroke-width: 3; stroke-dasharray: 8 7; vector-effect: non-scaling-stroke; cursor: pointer; transition: fill-opacity .15s ease, stroke-opacity .15s ease; }
+    .traced-zone:hover, .traced-zone.active, .traced-zone:focus-visible { fill-opacity: .3; stroke-opacity: 1; stroke-dasharray: none; outline: none; filter: drop-shadow(0 0 7px currentColor); }
+    .traced-zone.selected { fill-opacity: .48; stroke: #fff; stroke-opacity: 1; stroke-dasharray: none; stroke-width: 4; }
+    .traced-zone.sold { fill: #64748b; stroke: #94a3b8; fill-opacity: .3; stroke-opacity: .6; cursor: not-allowed; }
+    .traced-zone.sold:hover, .traced-zone.sold.active { fill-opacity: .3; stroke: #94a3b8; stroke-opacity: .6; stroke-dasharray: 8 7; filter: none; }
+    .traced-zone:focus-visible { stroke: #fff; stroke-width: 5; }
+    .zone-tooltip { position: absolute; z-index: 3; transform: translate(12px, -115%); display: flex; flex-direction: column; gap: .25rem; min-width: 135px; max-width: min(240px, 50%); padding: .55rem .7rem; color: #fff; background: rgba(12, 8, 30, .96); border: 1px solid rgba(255,255,255,.55); border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.45); pointer-events: none; line-height: 1.25; font-size: .76rem; }
+    .zone-tooltip strong { font-size: .83rem; }
+    .zone-tooltip span { color: #e2e8f0; }
+    .zone-fallback { display: grid; gap: .5rem; padding: .5rem; line-height: 1.3; }
+    .zone-fallback p { margin: 0 0 .3rem; font-size: .8rem; }
+    .zone-fallback button { text-align: left; padding: .65rem .75rem; border-radius: 8px; border: 1px solid currentColor; color: inherit; background: transparent; cursor: pointer; }
+    .zone-fallback button:hover, .zone-fallback button:focus-visible { background: rgba(124,58,237,.2); outline: 2px solid #a78bfa; }
+    .zone-fallback button:disabled { opacity: .45; cursor: not-allowed; }
+    @media (prefers-reduced-motion: reduce) { .traced-zone { transition: none; } }
     g.gone { opacity: 0.4; }
 
     .img-map { position: relative; line-height: 0; }
+    .img-map.labeled-map { aspect-ratio: 16 / 9; }
+    .img-map.labeled-map img { width: 100%; height: 100%; object-fit: contain; }
+    .image-zone {
+      position: absolute;
+      border: 2px solid transparent;
+      border-radius: 15px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .image-zone:hover, .image-zone:focus-visible { border-color: #7c3aed; background: rgba(124,58,237,.1); outline: none; }
+    .image-zone.selected { border-color: #5b21b6; box-shadow: inset 0 0 0 2px #fff; }
+    .image-zone:disabled { cursor: not-allowed; background: rgba(255,255,255,.5); }
     .img-map img {
       width: 100%;
       height: auto;
@@ -484,16 +594,20 @@ interface RouteRegion extends Omit<PlanRegion, 'points'> {
        sólo un tinte muy leve al pasar el cursor para saber que son clicables */
     .img-map .hot .spot {
       fill-opacity: 0;
+      stroke-opacity: 0;
       transition: fill-opacity 0.15s ease;
     }
     .img-map .hot .spot:hover {
       fill-opacity: 0.12;
+      stroke-opacity: 0.9;
     }
-    .img-map .hot .spot.selected { fill-opacity: 0.5; }
+    .img-map .hot .spot.selected { fill-opacity: 0.5; stroke-opacity: 0.9; }
     .img-map .hot .spot.sold { fill-opacity: 0.08; cursor: not-allowed !important; }
   `,
 })
 export class ZoneMap {
+  private static nextId = 0;
+  readonly clipId = `venue-map-clip-${ZoneMap.nextId++}`;
   readonly zones = input.required<Zone[]>();
   /** zoneId -> cantidad seleccionada */
   readonly quantities = input<Record<string, number>>({});
@@ -505,9 +619,92 @@ export class ZoneMap {
   readonly image = input<string | null>(null);
   /** Polígonos clicables sobre el plano-imagen (coords 0..100). */
   readonly hotspots = input<MapHotspot[]>([]);
+  readonly prices = input<Record<string, number>>({});
+  readonly activeZone = input<string | null>(null);
+  readonly fallbackOnly = input(false);
   readonly pick = output<string>();
+  readonly hover = output<string | null>();
+
+  readonly trace = computed(() => traceFor(this.image()));
+  readonly activeTrace = computed(() => this.imgFailed() ? null : this.trace());
+  readonly internalHover = signal<string | null>(null);
+  readonly tooltipPosition = signal({ x: 50, y: 50 });
+  pointerType = 'mouse';
+  private touchArmed: string | null = null;
+  readonly tracedZones = computed(() => {
+    const zones = this.zones();
+    const q = this.quantities();
+    return (this.trace()?.regions ?? []).flatMap((shape, index) => {
+      const zone = zones.find(z => z.name === shape.priceZone);
+      if (!zone) return [];
+      return [{
+        ...shape,
+        id: zone.id,
+        name: zone.name,
+        color: shape.color ?? zoneColor(zones.indexOf(zone), this.venue()),
+        price: this.prices()[zone.id] ?? zone.price,
+        available: Math.max(0, zone.capacity - zone.sold),
+        gone: zone.capacity <= zone.sold,
+        qty: q[zone.id] ?? 0,
+      }];
+    });
+  });
+  readonly activeId = computed(() => this.internalHover() ?? this.activeZone());
+  readonly tooltipZone = computed(() => this.tracedZones().find(z => z.id === this.activeId()) ?? null);
+
+  priceLabel(value: number): string { return `S/ ${value.toFixed(2)}`; }
+  enterZone(event: PointerEvent, id: string): void {
+    this.internalHover.set(id);
+    this.hover.emit(id);
+    this.moveTooltip(event);
+  }
+  moveTooltip(event: PointerEvent): void {
+    const box = (event.currentTarget as SVGElement).closest('svg')?.getBoundingClientRect();
+    if (!box) return;
+    this.tooltipPosition.set({
+      x: Math.max(8, Math.min(74, (event.clientX - box.left) / box.width * 100)),
+      y: Math.max(12, Math.min(93, (event.clientY - box.top) / box.height * 100)),
+    });
+  }
+  focusZone(event: FocusEvent, id: string): void {
+    this.internalHover.set(id);
+    this.hover.emit(id);
+    const node = event.currentTarget as SVGGraphicsElement;
+    const svg = node.ownerSVGElement;
+    const bounds = node.getBBox();
+    if (svg && bounds) {
+      const height = this.trace()?.height ?? 750;
+      this.tooltipPosition.set({ x: Math.max(8, Math.min(74, (bounds.x + bounds.width / 2) / 10)), y: Math.max(12, (bounds.y / height) * 100) });
+    }
+  }
+  clearHover(): void { this.internalHover.set(null); this.hover.emit(null); }
+  leaveMap(event: PointerEvent): void { if (event.pointerType !== 'touch') this.clearHover(); }
+  activateZone(event: MouseEvent, id: string, gone: boolean): void {
+    if (gone) return;
+    if (this.pointerType === 'touch' && this.touchArmed !== id) {
+      this.touchArmed = id;
+      this.internalHover.set(id);
+      this.hover.emit(id);
+      return;
+    }
+    this.touchArmed = null;
+    this.pick.emit(id);
+  }
+  keyZone(event: Event, id: string, gone: boolean): void {
+    event.preventDefault();
+    if (!gone) this.pick.emit(id);
+  }
 
   readonly imgFailed = signal(false);
+  readonly isLabeledPlan = computed(() => this.image()?.startsWith('/recintos/demo3/') ?? false);
+  readonly labelViews = computed(() => {
+    const file = this.image()?.split('/').at(-1) ?? '';
+    const areas = ZONE_LABEL_AREAS[file] ?? {};
+    return this.zones().flatMap(zone => {
+      const area = areas[zone.name];
+      return area ? [{ ...area, id: zone.id, name: zone.name, gone: zone.capacity <= zone.sold }] : [];
+    });
+  });
   readonly shape = computed<VenueShape>(() => resolveVenueShape(this.venue()));
   readonly venueTitle = computed(() => {
     const name = this.venue().trim() || 'Recinto';
@@ -541,7 +738,7 @@ export class ZoneMap {
         id: h.id,
         points: h.points,
         name: zone?.name ?? '',
-        color: zoneColor(Math.max(0, idx)),
+        color: zoneColor(Math.max(0, idx), this.venue()),
         qty: q[h.id] ?? 0,
         gone: zone ? zone.capacity - zone.sold <= 0 : false,
         cx: n ? cx / n : 50,

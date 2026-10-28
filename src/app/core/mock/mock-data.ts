@@ -34,7 +34,7 @@ export const SEED_USERS: SeedUser[] = [
   },
   {
     id: 'u-cli-1',
-    fullName: 'Jesús Morales',
+    fullName: 'Juan Aguilar',
     email: DEMO_CREDENTIALS.CLIENT.email,
     password: DEMO_CREDENTIALS.CLIENT.password,
     role: 'CLIENT',
@@ -146,7 +146,7 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     city: 'Lima',
     startsAt: daysFromNow(45, 14),
     organizerId: 'u-org-1',
-    maxPerOrder: 8,
+    maxPerOrder: 6,
     zones: [
       { id: 'z-5a', name: 'General', price: 160, capacity: 6000, sold: 2380 },
       { id: 'z-5b', name: 'VIP', price: 380, capacity: 800, sold: 410 },
@@ -183,9 +183,11 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     organizerId: 'u-org-1',
     maxPerOrder: 6,
     zones: [
-      { id: 'z-7a', name: 'Cancha', price: 90, capacity: 12000, sold: 8400 },
-      { id: 'z-7b', name: 'Tribuna', price: 140, capacity: 6000, sold: 3900 },
-      { id: 'z-7c', name: 'VIP', price: 320, capacity: 900, sold: 610 },
+      { id: 'z-7a', name: 'Norte', price: 90, capacity: 8000, sold: 5400 },
+      { id: 'z-7b', name: 'Oriente', price: 140, capacity: 8000, sold: 3900 },
+      { id: 'z-7c', name: 'Occidente', price: 160, capacity: 8000, sold: 4100 },
+      { id: 'z-7d', name: 'VIP', price: 320, capacity: 2500, sold: 610 },
+      { id: 'z-7e', name: 'Platinum', price: 420, capacity: 2500, sold: 330 },
     ],
   },
   {
@@ -251,7 +253,7 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     city: 'Lima',
     startsAt: daysFromNow(52, 12),
     organizerId: 'u-org-1',
-    maxPerOrder: 10,
+    maxPerOrder: 6,
     zones: [
       { id: 'z-11a', name: 'Entrada general', price: 45, capacity: 8000, sold: 2600 },
       { id: 'z-11b', name: 'Pase degustación', price: 130, capacity: 1500, sold: 720 },
@@ -321,7 +323,7 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     city: 'Lima',
     startsAt: daysFromNow(40, 19),
     organizerId: 'u-org-1',
-    maxPerOrder: 8,
+    maxPerOrder: 6,
     zones: [
       { id: 'z-15a', name: 'Platea', price: 120, capacity: 450, sold: 180 },
       { id: 'z-15b', name: 'General', price: 70, capacity: 700, sold: 210 },
@@ -331,18 +333,20 @@ const RAW_EVENTS: (Omit<EventItem, 'imageUrl'> & { imageUrl?: string })[] = [
     id: 'ev-16',
     name: 'Cienciano vs Melgar',
     description:
-      'Evento de prueba para verificar que los escudos aparecen sin escribir "fútbol" en el nombre (ambos equipos tienen escudo registrado).',
+      'Vive una tarde de fútbol con Cienciano y Melgar desde las tribunas del Estadio Nacional. Elige tu zona en el plano y asegura tus entradas.',
     category: 'DEPORTE',
     status: 'PUBLICADO',
     venue: 'Estadio Nacional',
     city: 'Lima',
     startsAt: daysFromNow(9, 15),
     organizerId: 'u-org-1',
-    maxPerOrder: 4,
+    maxPerOrder: 6,
     zones: [
-      { id: 'z-16a', name: 'Occidente', price: 120, capacity: 8000, sold: 5200 },
+      { id: 'z-16a', name: 'Tribuna Norte', price: 45, capacity: 10000, sold: 5200 },
       { id: 'z-16b', name: 'Oriente', price: 80, capacity: 12000, sold: 7400 },
-      { id: 'z-16c', name: 'Norte', price: 45, capacity: 15000, sold: 9100 },
+      { id: 'z-16c', name: 'Occidente', price: 120, capacity: 12000, sold: 9100 },
+      { id: 'z-16d', name: 'VIP', price: 240, capacity: 3000, sold: 900 },
+      { id: 'z-16e', name: 'Platinum', price: 320, capacity: 3000, sold: 600 },
     ],
   },
 ];
@@ -356,13 +360,13 @@ export const SEED_EVENTS: EventItem[] = RAW_EVENTS.map((e) => ({
 export const SEED_ORDERS: TicketOrder[] = [
   {
     id: 'ord-seed-1',
-    code: 'TKT-4F9A2C',
+    code: 'TICK-2026-4F9A2',
     eventId: 'ev-1',
     eventName: 'Sinfonía bajo las estrellas',
     eventStartsAt: SEED_EVENTS[0].startsAt,
     eventVenue: 'Parque de la Exposición',
     buyerId: 'u-cli-1',
-    buyerName: 'Jesús Morales',
+    buyerName: 'Juan Aguilar',
     createdAt: daysFromNow(-3, 11),
     status: 'CONFIRMADA',
     lines: [{ zoneId: 'z-1a', zoneName: 'Platea', unitPrice: 180, quantity: 2 }],

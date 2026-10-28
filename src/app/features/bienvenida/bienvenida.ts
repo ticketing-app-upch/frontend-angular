@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/auth/auth.service';
@@ -18,19 +20,28 @@ import { epicEnabled } from '../../core/demo-scope';
   template: `
     <div class="tkt-page center">
       <div class="card">
+        @if (accessDenied()) {
+          <p class="access-notice" role="alert">No tienes permiso para abrir esa sección.</p>
+        }
         <mat-icon class="brand-icon">confirmation_number</mat-icon>
         @if (auth.isAuthenticated()) {
           <h1>¡Sesión iniciada!</h1>
           <p>
-            Hola <strong>{{ auth.user()!.fullName }}</strong>, entraste como
-            <strong>{{ roleLabel() }}</strong>. El token quedó guardado y expira solo;
-            probá recargar la página para ver que la sesión persiste.
+            Hola <strong>{{ auth.user()!.fullName }}</strong>, bienvenido a AlpaTeck.
+            Tu sesión está activa como <strong>{{ roleLabel() }}</strong>.
           </p>
           <p class="muted">
-            El resto de la plataforma (catálogo, compra, paneles) se habilita en las
-            próximas demos, a medida que el backend las respalde.
+            Demo 1 mantiene visibles las rutas principales en la URL, mientras la
+            experiencia visual se concentra en el login y esta confirmación.
           </p>
-          <button mat-stroked-button (click)="auth.logout()">
+          @if (routesForRole().length) {
+            <div class="route-actions" aria-label="Accesos disponibles">
+              @for (route of routesForRole(); track route.url) {
+                <a mat-stroked-button [routerLink]="route.url">{{ route.label }}</a>
+              }
+            </div>
+          }
+          <button mat-stroked-button (click)="logout()">
             <mat-icon>logout</mat-icon> Cerrar sesión
           </button>
         } @else {
@@ -40,7 +51,7 @@ import { epicEnabled } from '../../core/demo-scope';
             un token distinto según seas Cliente, Organizador o Administrador.
           </p>
           <div class="actions">
-            <a mat-flat-button class="tkt-cta" routerLink="/auth/registro">Crear cuenta</a>
+            <a mat-flat-button class="tkt-cta" routerLink="/auth/register">Crear cuenta</a>
             <a mat-stroked-button routerLink="/auth/login">Ya tengo cuenta</a>
           </div>
         }
@@ -58,19 +69,58 @@ import { epicEnabled } from '../../core/demo-scope';
       background: var(--mat-sys-surface);
       box-shadow: var(--tkt-shadow);
     }
+    .access-notice { padding: 0.75rem; border-radius: 10px; background: color-mix(in srgb, var(--mat-sys-error) 10%, transparent); color: var(--mat-sys-error); }
     .brand-icon { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: var(--mat-sys-primary); margin-bottom: 0.5rem; }
     h1 { margin: 0.25rem 0 0.75rem; font-size: 1.5rem; }
     p { margin: 0 0 0.75rem; line-height: 1.5; }
     .muted { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
     .actions { display: flex; gap: 0.75rem; justify-content: center; margin-top: 1.25rem; flex-wrap: wrap; }
+    .route-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin: 1.25rem 0;
+    }
+    .route-actions a { font-size: 0.78rem; }
   `,
 })
 export class Bienvenida {
   readonly auth = inject(AuthService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  readonly accessDenied = toSignal(
+    this.route.queryParamMap.pipe(map(params => params.get('reason') === 'forbidden')),
+    { initialValue: this.route.snapshot.queryParamMap.get('reason') === 'forbidden' },
+  );
+
+  logout(): void {
+    this.auth.logout();
+    void this.router.navigateByUrl('/auth/login', { replaceUrl: true });
+  }
   readonly epicEnabled = epicEnabled;
 
   roleLabel(): string {
     const role = this.auth.user()?.role;
     return role === 'ADMIN' ? 'Administrador' : role === 'ORGANIZER' ? 'Organizador' : 'Cliente';
+  }
+
+  routesForRole(): { url: string; label: string }[] {
+    switch (this.auth.user()?.role) {
+      case 'ORGANIZER':
+        return [
+          { url: '/organizer/create-event', label: 'Crear evento' },
+          { url: '/organizer/dashboard', label: 'Dashboard de ventas' },
+        ];
+      case 'ADMIN':
+        return [];
+      default:
+        return [
+          { url: '/attendee/catalog', label: 'Catálogo de eventos' },
+          { url: '/attendee/event/1', label: 'Detalle del evento' },
+          { url: '/attendee/checkout/1', label: 'Compra de entradas' },
+          { url: '/attendee/tickets', label: 'Mis tickets' },
+        ];
+    }
   }
 }
