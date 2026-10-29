@@ -145,14 +145,14 @@ export class TicketService {
 
             const tickets: IssuedTicket[] = quote.items.flatMap(qi =>
               Array.from({ length: qi.quantity }, () => {
-                const serviceFee = Math.round(qi.unitPrice * 6) / 100;
+                const serviceFee = 0;
                 return {
                   code: `TICK-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
                   zoneId: qi.zoneId,
                   zoneName: qi.zoneName,
                   unitPrice: qi.unitPrice,
                   serviceFee,
-                  total: Math.round((qi.unitPrice + serviceFee) * 100) / 100,
+                  total: qi.unitPrice,
                 };
               }),
             );

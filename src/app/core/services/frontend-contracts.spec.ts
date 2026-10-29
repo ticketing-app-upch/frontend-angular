@@ -19,11 +19,12 @@ const makeEvent = (): EventItem => ({ id: '', organizerId: 'u-org', name: 'Event
     { id: 'z-extra', name: 'VIP', price: 150, capacity: 1, sold: 0 }] });
 
 describe('Contratos HTTP del frontend', () => {
+  const originalEpics = environment.enabledEpics;
   beforeEach(() => {
     environment.useMock = false;
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
   });
-  afterEach(() => { TestBed.inject(HttpTestingController).verify(); environment.useMock = true; });
+  afterEach(() => { TestBed.inject(HttpTestingController).verify(); environment.useMock = true; environment.enabledEpics = originalEpics; });
   it('usa POST para evento nuevo y PUT para existente', async () => {
     const service = TestBed.inject(EventService), http = TestBed.inject(HttpTestingController);
     const event = makeEvent(), pending = firstValueFrom(service.save(event));
@@ -33,15 +34,23 @@ describe('Contratos HTTP del frontend', () => {
     const put = http.expectOne(environment.apiBackendUrl + '/events/new'); expect(put.request.method).toBe('PUT');
     put.flush({ ...event, id: 'new' }); await updating;
   });
-  it('consulta endpoint Python y calcula comisión una sola vez', async () => {
+  it('Demo 3 usa el precio publicado sin consultar pricing ni cobrar comisión', async () => {
+    environment.enabledEpics = [1, 2, 3];
+    const quote = await firstValueFrom(TestBed.inject(PricingService).quote(makeEvent(), [{ zoneId: 'z-test', quantity: 2 }]));
+    expect(quote).toMatchObject({ subtotal: 200, fee: 0, total: 200 });
+    TestBed.inject(HttpTestingController).expectNone(environment.apiPricingUrl + '/v1/dynamic-price');
+  });
+  it('la integración futura de pricing mantiene el total sin comisión', async () => {
+    environment.enabledEpics = [1, 2, 3, 4];
     const pending = firstValueFrom(TestBed.inject(PricingService).quote(makeEvent(), [{ zoneId: 'z-test', quantity: 2 }]));
     const request = TestBed.inject(HttpTestingController).expectOne(environment.apiPricingUrl + '/v1/dynamic-price');
     expect(request.request.body.aforo_disponible).toBe(100);
     expect(request.request.body.fecha_publicacion).toBeTruthy();
     request.flush({ precio_ajustado: 120, motivo: 'Demanda' });
-    expect(await pending).toMatchObject({ subtotal: 240, fee: 14.4, total: 254.4 });
+    expect(await pending).toMatchObject({ subtotal: 240, fee: 0, total: 240 });
   });
   it('rechaza respuesta inválida de precios', async () => {
+    environment.enabledEpics = [1, 2, 3, 4];
     const pending = firstValueFrom(TestBed.inject(PricingService).quote(makeEvent(), [{ zoneId: 'z-test', quantity: 1 }]));
     const assertion = expect(pending).rejects.toThrow('Respuesta de precios inválida');
     TestBed.inject(HttpTestingController).expectOne(environment.apiPricingUrl + '/v1/dynamic-price').flush({ precio_ajustado: -1 });
@@ -60,7 +69,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
     event = { ...makeEvent(), id: 'test-event', organizerId: 'u-org-1' }; store.upsertEvent(event);
   });
   afterEach(() => { environment.mockLatencyMs = originalLatency; localStorage.clear(); sessionStorage.clear(); });
-  const payload = () => ({ eventId: 'test-event', items: [{ zoneId: 'z-test', quantity: 1 }], expectedTotal: 106 });
+  const payload = () => ({ eventId: 'test-event', items: [{ zoneId: 'z-test', quantity: 1 }], expectedTotal: 100 });
   it('rechazo no descuenta aforo ni crea orden', async () => {
     const count = store.orders.length;
     await expect(firstValueFrom(tickets.createOrder({ ...payload(), paymentResult: 'DECLINED' }))).rejects.toMatchObject({ status: 402 });
@@ -82,8 +91,9 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
     expect(results.filter(r => r.status === 'fulfilled').length).toBe(1);
     expect(event.zones[0].sold).toBe(100);
   });
-  it('el ticket conserva precio después de editar precio base', async () => {
+  it('el ticket conserva el precio pagado después de editar el precio publicado', async () => {
     const order = await firstValueFrom(tickets.createOrder(payload()));
+    expect(order.tickets?.[0]).toMatchObject({ unitPrice: 100, serviceFee: 0, total: 100 });
     event.zones[0].price = 300; store.upsertEvent(event);
     expect(store.orders.find(o => o.id === order.id)?.lines[0].unitPrice).toBe(100);
   });
@@ -93,7 +103,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
     await firstValueFrom(tickets.setStatus(order.id, 'CANCELADA'));
     expect(event.zones[0].sold).toBe(0);
     await expect(firstValueFrom(tickets.setStatus(order.id, 'CANCELADA'))).rejects.toMatchObject({ status: 409 });
-    expect(store.orders.find(o => o.id === order.id)?.total).toBe(106);
+    expect(store.orders.find(o => o.id === order.id)?.total).toBe(100);
   });
   it('un cliente no puede publicar', async () => {
     await expect(firstValueFrom(TestBed.inject(EventService).save(makeEvent()))).rejects.toMatchObject({ status: 403 });

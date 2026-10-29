@@ -2,14 +2,13 @@ import { EventItem, Zone } from './event.model';
 import { environment } from '../../../enviroments/enviroment';
 
 export const MAX_TICKETS = 6;
-export const SERVICE_FEE_RATE = 0.06;
 export const roundMoney = (value: number): number => Math.round((value + Number.EPSILON) * 100) / 100;
 const DAY = 86_400_000;
 
 /** Simulación académica. El servidor debe recalcular y autorizar el precio final. */
 export function zonePrice(event: Pick<EventItem, 'startsAt' | 'publishedAt'>, zone: Zone, now = Date.now()) {
   const available = Math.max(0, zone.capacity - zone.sold);
-  if (!environment.enabledEpics.includes(4)) return { unitPrice: zone.price, multiplier: 1, note: 'Precio base', available };
+  if (!environment.enabledEpics.includes(4)) return { unitPrice: zone.price, multiplier: 1, note: '', available };
   const days = (Date.parse(event.startsAt) - now) / DAY;
   const age = event.publishedAt ? (now - Date.parse(event.publishedAt)) / DAY : 0;
   const scarce = zone.capacity > 0 && available / zone.capacity < 0.15;

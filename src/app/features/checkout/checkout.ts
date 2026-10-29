@@ -13,7 +13,7 @@ import {
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
+import { zonePrice } from '../../core/models/ticketing-rules';
 import { Zone } from '../../core/models/event.model';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -170,8 +170,8 @@ export class Checkout {
       (a, l) => a + this.unitPrice(l.zone) * l.qty,
       0,
     );
-    const fee = round2(subtotal * SERVICE_FEE_RATE);
-    return { subtotal: round2(subtotal), fee, total: round2(subtotal + fee) };
+    const total = round2(subtotal);
+    return { subtotal: total, fee: 0, total };
   });
 
   constructor() {

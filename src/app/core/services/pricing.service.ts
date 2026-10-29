@@ -4,7 +4,7 @@ import { Observable, forkJoin, map, throwError, timeout } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import { mockResponse } from '../mock/mock-latency';
 import { EventItem, Zone } from '../models/event.model';
-import { SERVICE_FEE_RATE, zonePrice } from '../models/ticketing-rules';
+import { zonePrice } from '../models/ticketing-rules';
 
 export interface PriceQuoteItem {
   zoneId: string;
@@ -22,7 +22,7 @@ export interface PriceQuote {
   currency: 'PEN';
   items: PriceQuoteItem[];
   subtotal: number;
-  /** Comisión de servicio (6%). */
+  /** Compatibilidad del contrato de orden; en Demo 3 siempre es cero. */
   fee: number;
   total: number;
 }
@@ -41,7 +41,7 @@ export class PricingService {
     event: EventItem,
     items: { zoneId: string; quantity: number }[],
   ): Observable<PriceQuote> {
-    if (environment.useMock) {
+    if (environment.useMock || !environment.enabledEpics.includes(4)) {
       return mockResponse(this.buildLocalQuote(event, items));
     }
     if (!items.length) return throwError(() => new Error('Selecciona al menos una zona.'));
@@ -58,8 +58,7 @@ export class PricingService {
       }));
     })).pipe(timeout(10000), map(lines => {
       const subtotal = round2(lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0));
-      const fee = round2(subtotal * SERVICE_FEE_RATE);
-      return { eventId: event.id, currency: 'PEN' as const, items: lines, subtotal, fee, total: round2(subtotal + fee) };
+      return { eventId: event.id, currency: 'PEN' as const, items: lines, subtotal, fee: 0, total: subtotal };
     }));
   }
 
@@ -76,14 +75,14 @@ export class PricingService {
       .filter((l): l is PriceQuoteItem => l !== null);
 
     const subtotal = lines.reduce((acc, l) => acc + l.unitPrice * l.quantity, 0);
-    const fee = round2(subtotal * SERVICE_FEE_RATE);
+    const total = round2(subtotal);
     return {
       eventId: event.id,
       currency: 'PEN',
       items: lines,
-      subtotal: round2(subtotal),
-      fee,
-      total: round2(subtotal + fee),
+      subtotal: total,
+      fee: 0,
+      total,
     };
   }
 

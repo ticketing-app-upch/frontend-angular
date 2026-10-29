@@ -10,7 +10,7 @@ export type EventStatus = 'BORRADOR' | 'PUBLICADO' | 'AGOTADO' | 'FINALIZADO';
 export interface Zone {
   id: string;
   name: string;
-  /** Precio base en soles (PEN). El servicio de pricing puede ajustarlo. */
+  /** Precio publicado por entrada en soles (PEN); fijo durante Demo 3. */
   price: number;
   capacity: number;
   sold: number;

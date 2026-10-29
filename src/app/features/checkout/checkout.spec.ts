@@ -113,16 +113,20 @@ describe('Checkout', () => {
     expect(cmp.currentQty('z1')).toBe(2);
   });
 
-  it('la cotización calcula subtotal, comisión del 6% y total, y arranca el contador en 120s', async () => {
-    const ev = seedEvent(store);
+  it('suma dos zonas al precio publicado sin recargo y arranca el contador en 120s', async () => {
+    const ev = seedEvent(store, { zones: [
+      { id: 'z1', name: 'General', price: 100, capacity: 100, sold: 0 },
+      { id: 'z2', name: 'VIP', price: 150, capacity: 100, sold: 0 },
+    ] });
     const fixture = await open(ev.id);
     const cmp = fixture.componentInstance;
     cmp.change('z1', 1);
+    cmp.change('z2', 1);
     cmp.startReview();
     await flush(fixture);
-    expect(cmp.quote()?.subtotal).toBe(100);
-    expect(cmp.quote()?.fee).toBe(6);
-    expect(cmp.quote()?.total).toBe(106);
+    expect(cmp.quote()?.subtotal).toBe(250);
+    expect(cmp.quote()?.fee).toBe(0);
+    expect(cmp.quote()?.total).toBe(250);
     expect(cmp.secondsLeft()).toBe(120);
   });
 

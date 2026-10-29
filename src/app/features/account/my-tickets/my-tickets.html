@@ -85,10 +85,9 @@
                     <span>{{ line.unitPrice * line.quantity | currency: 'PEN' : 'symbol-narrow' }}</span>
                   </li>
                 }
-                <li class="sub">
-                  <span>Comisión</span>
-                  <span>{{ order.fee | currency: 'PEN' : 'symbol-narrow' }}</span>
-                </li>
+                @if (order.fee > 0) {
+                  <li class="sub"><span>Recargo de compra anterior</span><span>{{ order.fee | currency: 'PEN' : 'symbol-narrow' }}</span></li>
+                }
               </ul>
             </mat-expansion-panel>
           </div>

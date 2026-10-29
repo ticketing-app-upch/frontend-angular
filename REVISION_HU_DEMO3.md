@@ -13,6 +13,8 @@ Fuente de alcance: [Backlog Demo 3](https://docs.google.com/spreadsheets/d/1OVCK
 | 15 | Una entrada, código y QR distintos por boleto comprado, con datos de zona, fecha y precio. |
 | 16 | Ruta pública de validación por código y descarga local de PDF por entrada. |
 
+El precio de cada zona permanece fijo durante Demo 3. La compra no agrega el 6 % de servicio y el total equivale a la suma de las entradas seleccionadas, tanto en el resumen como en la confirmación y el ticket. El pricing dinámico queda reservado para una épica posterior.
+
 ## Validación de banners
 
 El banner principal y el secundario son obligatorios y diferentes. Para ambos se comprueban extensión `.jpg`/`.jpeg`, tipo MIME JPEG, firma real del archivo, máximo 2 MiB, ancho mínimo 1920 px, alto mínimo 480 px y proporción exacta 4:1. Se compara la huella del contenido para rechazar la misma foto aunque se cambie el nombre. La portada encabeza el detalle; la foto secundaria aparece al final, después del plano referencial y las zonas.
@@ -21,4 +23,4 @@ El banner principal y el secundario son obligatorios y diferentes. Para ambos se
 
 La persistencia usa `localStorage`. La validación QR entre dispositivos, autorización real, inventario concurrente y cobros requieren backend. La cola, antiscalping, aprobación administrativa y reporte de ventas completo pertenecen al alcance de Demo 4. Los planos y aforos de los 15 recintos son referenciales para esta maqueta.
 
-Verificación técnica: compilación Angular y `npm.cmd test -- --watch=false` satisfactorios (136 pruebas, 16 archivos).
+Verificación técnica: compilación Angular y `npm.cmd test -- --watch=false` satisfactorios (139 pruebas, 16 archivos).

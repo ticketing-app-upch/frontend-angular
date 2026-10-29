@@ -14,6 +14,10 @@ describe('Reglas de ticketing del proyecto', () => {
   const originalEpics = environment.enabledEpics;
   beforeEach(() => { environment.enabledEpics = [1, 2, 3, 4]; });
   afterEach(() => { environment.enabledEpics = originalEpics; });
+  it('en Demo 3 conserva el precio publicado incluso con pocos cupos y sin etiqueta de precio base', () => {
+    environment.enabledEpics = [1, 2, 3];
+    expect(zonePrice(event, { ...zone, sold: 99 }, now)).toMatchObject({ unitPrice: 100, note: '' });
+  });
   it('conserva precio base', () => expect(zonePrice(event, zone, now).unitPrice).toBe(100));
   it('recarga 20% con menos de 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 86 }, now).unitPrice).toBe(120));
   it('no recarga exactamente al 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 85 }, now).unitPrice).toBe(100));

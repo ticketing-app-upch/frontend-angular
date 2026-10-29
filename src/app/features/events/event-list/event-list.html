@@ -82,7 +82,7 @@
             <div class="event-title"><h3>{{ e.name }}</h3></div><p class="place"><mat-icon>location_on</mat-icon>{{ e.venue }}</p>
             <div class="capacity-track" aria-hidden="true"><span [style.width.%]="capacity(e).ratio * 100"></span></div>
             <p class="capacity-text">{{ capacity(e).available ? (capacity(e).available | number) + ' entradas disponibles' : 'Entradas agotadas' }}</p>
-            <div class="card-bottom"><div>@if(capacity(e).available){<small>Desde · +6% de servicio</small><strong>{{ price(e) | currency:'PEN':'symbol-narrow':'1.0-2' }}</strong>} @else {<strong>Agotado</strong>}</div></div>
+            <div class="card-bottom"><div>@if(capacity(e).available){<small>Desde</small><strong>{{ price(e) | currency:'PEN':'symbol-narrow':'1.0-2' }}</strong>} @else {<strong>Agotado</strong>}</div></div>
           </div>
           <a class="event-card-link" [routerLink]="['/eventos', e.id]" [attr.aria-label]="'Ver detalle y zonas de ' + e.name"><span>Ver zonas <mat-icon>arrow_forward</mat-icon></span></a>
         </article>

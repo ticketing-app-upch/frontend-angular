@@ -24,6 +24,8 @@ Esta rama presenta las épicas 2 y 3 con datos de prueba locales. Parte de la ba
 
 Los recintos nuevos se pueden elegir al crear un evento y ya tienen eventos de ejemplo para probar la compra: `ev-16` (Estadio Nacional), `ev-7` (Estadio San Marcos) y `ev-2` (Estadio Monumental). Los aforos y zonas son **valores de maqueta**, no capacidades oficiales certificadas.
 
+En Demo 3, el precio que publica el organizador es el precio final por entrada. El catálogo, detalle, selección, resumen y pago muestran el mismo importe, sin comisión de servicio ni ajuste dinámico. La estructura de órdenes conserva el campo `fee` con valor cero por compatibilidad; compras locales antiguas mantienen el importe que ya registraron.
+
 ## Banners del organizador
 
 Los dos archivos son obligatorios y deben ser distintos. El navegador valida para ambos: extensión `.jpg` o `.jpeg`, tipo y contenido JPEG, tamaño máximo de 2 MiB, dimensiones mínimas 1920 × 480 px y proporción exacta 4:1. El formulario muestra el motivo del rechazo y no permite publicar sin las dos imágenes válidas. La portada aparece arriba del detalle; la imagen secundaria cierra la ficha después del plano y los precios.
