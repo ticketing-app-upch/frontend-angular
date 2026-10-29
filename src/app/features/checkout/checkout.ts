@@ -291,8 +291,8 @@ export class Checkout {
     const ev = this.event();
     const quote = this.quote();
     if (!ev || this.placing() || !quote || this.quoting()) return;
-    if (!/^\d{16}$/.test(this.cardNumber.replace(/\s/g, ''))) {
-      this.paymentError.set('Ingresa un número de tarjeta de 16 dígitos.');
+    if (!/^\d{13,19}$/.test(this.cardNumber.replace(/\s/g, ''))) {
+      this.paymentError.set('Ingresa un número de tarjeta de 13 a 19 dígitos.');
       return;
     }
     const [year, month] = this.cardExpiry.split('-').map(Number);

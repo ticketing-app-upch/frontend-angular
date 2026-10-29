@@ -51,7 +51,8 @@ export function purchaseIssue(event: EventItem, items: {zoneId: string; quantity
   if (new Set(items.map(item => item.zoneId)).size !== items.length) return 'La selección contiene zonas duplicadas.';
   for (const item of items) {
     const zone = event.zones.find(zone => zone.id === item.zoneId);
-    if (!zone || item.quantity > zone.capacity - zone.sold) return 'La disponibilidad cambió. Actualiza tu selección.';
+    if (!zone) return 'Zona no disponible.';
+    if (item.quantity > zone.capacity - zone.sold) return 'Aforo insuficiente para la cantidad solicitada';
   }
   return null;
 }

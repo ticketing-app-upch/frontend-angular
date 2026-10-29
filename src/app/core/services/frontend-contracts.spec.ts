@@ -25,14 +25,13 @@ describe('Contratos HTTP del frontend', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
   });
   afterEach(() => { TestBed.inject(HttpTestingController).verify(); environment.useMock = true; environment.enabledEpics = originalEpics; });
-  it('usa POST para evento nuevo y PUT para existente', async () => {
+  it('usa POST para evento nuevo e impide editar uno existente en Demo 3', async () => {
     const service = TestBed.inject(EventService), http = TestBed.inject(HttpTestingController);
     const event = makeEvent(), pending = firstValueFrom(service.save(event));
     const request = http.expectOne(environment.apiBackendUrl + '/events');
     expect(request.request.method).toBe('POST'); request.flush({ ...event, id: 'new' }); await pending;
-    const updating = firstValueFrom(service.save({ ...event, id: 'new' }));
-    const put = http.expectOne(environment.apiBackendUrl + '/events/new'); expect(put.request.method).toBe('PUT');
-    put.flush({ ...event, id: 'new' }); await updating;
+    await expect(firstValueFrom(service.save({ ...event, id: 'new' }))).rejects.toMatchObject({ status: 403 });
+    http.expectNone(environment.apiBackendUrl + '/events/new');
   });
   it('Demo 3 usa el precio publicado sin consultar pricing ni cobrar comisión', async () => {
     environment.enabledEpics = [1, 2, 3];

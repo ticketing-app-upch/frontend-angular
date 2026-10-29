@@ -5,7 +5,7 @@ export type EventCategory =
   | 'CONFERENCIA'
   | 'FESTIVAL';
 
-export type EventStatus = 'BORRADOR' | 'PUBLICADO' | 'AGOTADO' | 'FINALIZADO';
+export type EventStatus = 'BORRADOR' | 'PENDIENTE' | 'RECHAZADO' | 'PUBLICADO' | 'AGOTADO' | 'FINALIZADO';
 
 export interface Zone {
   id: string;

@@ -41,6 +41,6 @@ describe('Reglas de ticketing del proyecto', () => {
     expect(purchaseIssue({ ...event, startsAt: new Date(now - day).toISOString() }, [{ zoneId: 'z1', quantity: 1 }])).not.toBeNull();
     expect(purchaseIssue({ ...event, status: 'BORRADOR' }, [{ zoneId: 'z1', quantity: 1 }])).not.toBeNull();
   });
-  it('rechaza stock insuficiente', () => expect(purchaseIssue({ ...event, zones: [{ ...zone, sold: 99 }] }, [{ zoneId: 'z1', quantity: 2 }])).not.toBeNull());
+  it('informa aforo insuficiente con el mensaje de la HU-14', () => expect(purchaseIssue({ ...event, zones: [{ ...zone, sold: 99 }] }, [{ zoneId: 'z1', quantity: 2 }])).toBe('Aforo insuficiente para la cantidad solicitada'));
 });
 

@@ -175,6 +175,22 @@ describe('Checkout', () => {
     expect(store.events.find(e => e.id === ev.id)?.zones[0].sold).toBe(2);
   });
 
+  it('acepta tarjeta de prueba de 15 dígitos y CVV de cuatro dígitos', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
+    const ev = seedEvent(store);
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.change('z1', 1);
+    cmp.startReview();
+    await flush(fixture);
+    useTestPayment(cmp);
+    cmp.cardNumber = '378282246310005';
+    cmp.cardCvv = '1234';
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()?.status).toBe('CONFIRMADA');
+  });
+
   it('una cotización vencida bloquea la confirmación con un aviso, sin descontar aforo', async () => {
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
     const ev = seedEvent(store);
