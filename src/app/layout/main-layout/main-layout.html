@@ -1,7 +1,7 @@
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <header class="bar">
   <div class="bar-inner">
-    <a class="brand" [routerLink]="isAdmin() ? '/admin/usuarios' : homeLink">
+    <a class="brand" [routerLink]="homeLink()">
       <mat-icon>confirmation_number</mat-icon>
       <span class="brand-name">AlpaTeck</span>
     </a>
@@ -89,8 +89,8 @@
     <a routerLink="/attendee/favorites" routerLinkActive="active"
       ><mat-icon>favorite_border</mat-icon>Mis favoritos</a
     >
-  } @else {
-    <a [routerLink]="homeLink" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
+  } @else if (!isAuthenticated()) {
+    <a [routerLink]="homeLink()" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
   }
   @if (isOrganizer()) {
     <a routerLink="/organizador/eventos" routerLinkActive="active"

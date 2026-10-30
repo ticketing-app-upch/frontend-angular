@@ -30,7 +30,7 @@ describe('demo-scope', () => {
           provideHttpClient(),
           provideRouter([
             { path: 'catalogo', canActivate: [epicGuard(2)], children: [] },
-            { path: 'bienvenida', children: [] },
+            { path: 'eventos', children: [] },
           ]),
         ],
       });
@@ -38,10 +38,10 @@ describe('demo-scope', () => {
       harness = await RouterTestingHarness.create();
     });
 
-    it('bloquea y manda a /bienvenida cuando la épica está apagada', async () => {
+    it('bloquea y vuelve al catálogo cuando la épica está apagada', async () => {
       environment.enabledEpics = [1];
       await harness.navigateByUrl('/catalogo');
-      expect(router.url).toBe('/bienvenida');
+      expect(router.url).toBe('/eventos');
     });
 
     it('deja pasar cuando la épica está prendida', async () => {

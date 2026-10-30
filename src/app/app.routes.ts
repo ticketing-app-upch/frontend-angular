@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, clientGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
+import { authGuard, clientGuard, guestGuard, publicCatalogGuard, roleGuard } from './core/auth/auth.guards';
 import { epicGuard } from './core/demo-scope';
 
 const catalog = () => import('./features/events/event-list/event-list').then(m => m.EventList);
@@ -12,9 +12,9 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/main-layout/main-layout').then(m => m.MainLayout),
     children: [
       { path: '', redirectTo: 'eventos', pathMatch: 'full' },
-      { path: 'bienvenida', loadComponent: () => import('./features/bienvenida/bienvenida').then(m => m.Bienvenida) },
-      { path: 'eventos', loadComponent: catalog, title: 'Eventos · AlpaTeck' },
-      { path: 'eventos/:id', loadComponent: detail, title: 'Detalle del evento · AlpaTeck' },
+      { path: 'bienvenida', redirectTo: 'eventos', pathMatch: 'full' },
+      { path: 'eventos', canActivate: [publicCatalogGuard], loadComponent: catalog, title: 'Eventos · AlpaTeck' },
+      { path: 'eventos/:id', canActivate: [publicCatalogGuard], loadComponent: detail, title: 'Detalle del evento · AlpaTeck' },
       { path: 'attendee/event/:id', canActivate: [authGuard, clientGuard], loadComponent: detail, title: 'Detalle del evento · AlpaTeck' },
       { path: 'attendee/catalog', canActivate: [authGuard, clientGuard], loadComponent: catalog },
       { path: 'attendee/favorites', canActivate: [authGuard, clientGuard], loadComponent: catalog, data: { favorites: true } },

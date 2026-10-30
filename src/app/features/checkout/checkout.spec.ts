@@ -226,6 +226,27 @@ describe('Checkout', () => {
     expect(cmp.reviewing()).toBe(false);
   });
 
+  it('si el precio cambió, conserva la zona y presenta una cotización nueva antes de reintentar', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
+    const ev = seedEvent(store);
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.change('z1', 1);
+    cmp.startReview();
+    await flush(fixture);
+    useTestPayment(cmp);
+    store.upsertEvent({ ...ev, zones: [{ ...ev.zones[0], price: 120 }] });
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()).toBeNull();
+    expect(cmp.currentQty('z1')).toBe(1);
+    expect(cmp.quote()?.total).toBe(120);
+    cmp.openPaymentGateway();
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()?.total).toBe(120);
+  });
+
   it('no se puede abrir la pasarela de pago sin cotización vigente', async () => {
     const ev = seedEvent(store);
     const fixture = await open(ev.id);

@@ -15,9 +15,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { UserRole } from '../../../core/models/user.model';
+import { roleHome } from '../../../core/auth/role-home';
 import { PASSWORD_PATTERN } from '../../../core/auth/password-policy';
 import { DEMO_CREDENTIALS } from '../../../core/mock/mock-data';
+import { environment } from '../../../../enviroments/enviroment';
 
 @Component({
   selector: 'tkt-login',
@@ -48,6 +49,7 @@ export class Login {
   );
   readonly loading = signal(false);
   readonly hide = signal(true);
+  readonly showDemoAccess = environment.useMockAuth;
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -56,10 +58,6 @@ export class Login {
 
   fill(kind: 'ORGANIZER' | 'CLIENT' | 'ADMIN'): void {
     this.form.patchValue(DEMO_CREDENTIALS[kind]);
-  }
-
-  private homeFor(role: UserRole): string {
-    return role === 'ADMIN' ? '/admin/usuarios' : role === 'ORGANIZER' ? '/organizador/eventos' : '/attendee/catalog';
   }
 
   submit(): void {
@@ -72,7 +70,7 @@ export class Login {
       next: (res) => {
         this.notify.success('Inicio de sesión correcto.');
         const redirect = this.route.snapshot.queryParamMap.get('redirect');
-        this.router.navigateByUrl(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : this.homeFor(res.user.role));
+        this.router.navigateByUrl(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : roleHome(res.user.role));
       },
       error: (err) => {
         this.loading.set(false);

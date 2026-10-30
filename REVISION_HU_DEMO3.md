@@ -39,3 +39,12 @@ El banner principal y el secundario son obligatorios y diferentes. Para ambos se
 La persistencia usa `localStorage`. La validación QR entre dispositivos, autorización real, inventario concurrente, unicidad global, transacción de compra y cobros requieren backend. HU-17 a HU-19 (riesgo y cola), HU-20 (reporte), HU-22 (habilitar compras), HU-23 a HU-25 (aprobación y reenvío) y HU-26 (correo) pertenecen al alcance de Demo 4 según el backlog específico. Los planos y aforos de los 15 recintos son referenciales para esta maqueta.
 
 Verificación técnica (29 de octubre de 2026): `npm.cmd test -- --watch=false` satisfactorio (142 pruebas, 16 archivos), `npm.cmd run build` satisfactorio y `git diff --check` sin errores.
+
+## Corrección del flujo del 30 de octubre de 2026
+
+- El registro entra directamente al catálogo del asistente o al listado del organizador. Se retiró el componente antiguo «¡Sesión iniciada!»; su URL anterior redirige al destino del rol. Un usuario autenticado que intenta abrir login, otra sección de rol o el catálogo público vuelve a su panel. El logo y la navegación móvil respetan ese destino. Los accesos con credenciales de prueba solo se muestran cuando la autenticación mock está activa.
+- La compra mock ya no hace una cotización adicional antes de comparar el total. Ante un 409 conserva las cantidades disponibles; cuando el motivo es cambio de precio, muestra una nueva cotización antes de permitir reintentar. No se elimina `expectedTotal`, porque protege al asistente de pagar un importe distinto del mostrado.
+- La producción de esta rama todavía tiene `useMock: true`. El texto «El precio cambió. Solicita una nueva cotización antes de confirmar» proviene también de `TicketService` en modo mock; el código HTTP 409 por sí solo no identifica si lo emitió el navegador o el servidor en otro despliegue.
+- **Contrato pendiente para una integración real:** el frontend de Demo 3 envía `POST /api/orders` con varias zonas, `expectedTotal` e `idempotencyKey`, y consulta `GET /api/orders/me`. El `backend-php` principal publicado el 30 de octubre ofrece `POST /api/events/{id}/tickets` con una sola zona y no expone esos endpoints de órdenes. Para cumplir HU-14 a HU-16 entre dispositivos, backend y frontend deben acordar un contrato de compra atómica de varias zonas, tickets individuales y consulta pública por código. No se debe omitir la validación de precio para ocultar un 409 persistente.
+
+Verificación de esta corrección: `npm.cmd test -- --watch=false` (145 pruebas, 16 archivos) y `npm.cmd run build`, ambos satisfactorios.

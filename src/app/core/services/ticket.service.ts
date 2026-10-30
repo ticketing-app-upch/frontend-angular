@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import { mockError, mockResponse } from '../mock/mock-latency';
 import { MockStore } from '../mock/mock-store';
@@ -82,9 +82,7 @@ export class TicketService {
     const key = `${this.auth.user()?.id}:${payload.idempotencyKey ?? ''}`;
     if (payload.idempotencyKey && this.auth.isClient() && this.completed.has(key)) return mockResponse(structuredClone(this.completed.get(key)!));
     return this.events.getById(payload.eventId).pipe(
-      switchMap((event) =>
-        this.pricing.quote(event, payload.items).pipe(
-          map(() => {
+      map((event) => {
             const user = this.auth.user();
             if (!user || !this.auth.isClient()) {
               throw { status: 401, message: 'Debes iniciar sesión.' };
@@ -177,9 +175,7 @@ export class TicketService {
             this.store.addOrder(order);
             if (payload.idempotencyKey) this.completed.set(key, structuredClone(order));
             return order;
-          }),
-        ),
-      ),
+      }),
     );
   }
 

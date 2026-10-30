@@ -322,10 +322,21 @@ export class Checkout {
       },
       error: (err) => {
         this.placing.set(false);
-        this.notify.error(err?.error?.message ?? err?.message ?? 'No se pudo completar la compra.');
+        const message = err?.error?.message ?? err?.message ?? 'No se pudo completar la compra.';
+        this.notify.error(message);
         if (err?.status === 409) {
+          const previousQuantities = this.quantities();
           this.backToSelection();
-          this.events.getById(ev.id).subscribe({ next: fresh => { this.event.set(fresh); this.quantities.set({}); }, error: () => this.notFound.set(true) });
+          this.events.getById(ev.id).subscribe({
+            next: fresh => {
+              this.event.set(fresh);
+              this.quantities.set(Object.fromEntries(fresh.zones.map(zone => [
+                zone.id, Math.min(previousQuantities[zone.id] ?? 0, Math.max(0, zone.capacity - zone.sold)),
+              ])));
+              if (/precio cambi/i.test(message) && this.hasSelection()) this.startReview();
+            },
+            error: () => this.notFound.set(true),
+          });
         }
       },
     });
