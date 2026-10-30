@@ -6,13 +6,13 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="form">
     <mat-card class="block">
       <h2><mat-icon>info</mat-icon> Información del evento</h2>
-      <mat-form-field appearance="outline"><mat-label>Título</mat-label><input matInput formControlName="name" /></mat-form-field>
-      <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><textarea matInput rows="4" formControlName="description"></textarea></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Título</mat-label><input matInput formControlName="name" /><mat-error>Escribe al menos 4 caracteres.</mat-error></mat-form-field>
+      <mat-form-field appearance="outline"><mat-label>Descripción</mat-label><textarea matInput rows="4" formControlName="description"></textarea><mat-error>Escribe al menos 20 caracteres.</mat-error></mat-form-field>
       <div class="two">
         <mat-form-field appearance="outline"><mat-label>Categoría</mat-label><mat-select formControlName="category">
           @for (category of categories; track category) { <mat-option [value]="category">{{ category | titlecase }}</mat-option> }
         </mat-select></mat-form-field>
-        <mat-form-field appearance="outline"><mat-label>Fecha y hora</mat-label><input matInput type="datetime-local" formControlName="startsAt" /></mat-form-field>
+        <mat-form-field appearance="outline"><mat-label>Fecha y hora</mat-label><input matInput type="datetime-local" formControlName="startsAt" /><mat-error>Selecciona la fecha y hora.</mat-error></mat-form-field>
       </div>
       <div class="banner-field">
         <label for="event-banner"><strong>Banner principal</strong><span>JPG · mínimo 1920 × 480 px · proporción 4:1 · máximo 2 MB</span></label>
@@ -30,7 +30,7 @@
       </div>
       <mat-form-field appearance="outline"><mat-label>Recinto predefinido</mat-label><mat-select formControlName="venueId" (selectionChange)="chooseVenue($event.value)">
         @for (item of venues; track item.id) { <mat-option [value]="item.id">{{ item.name }}</mat-option> }
-      </mat-select></mat-form-field>
+      </mat-select><mat-error>Selecciona un recinto.</mat-error></mat-form-field>
       @if (venue(); as selected) {
         <div class="venue-facts"><span><b>Ubicación:</b> {{ selected.address }}</span><span><b>Aforo:</b> {{ capacity() }}</span><span><b>Zonas:</b> {{ selected.zones.length }}</span></div>
       }
@@ -45,7 +45,7 @@
           @for (zone of selected.zones; track zone.name; let index = $index) {
             <div class="venue-price" [class.chosen]="selectedZoneId() === zoneId(index)">
               <div><strong>{{ zone.name }}</strong><small>Aforo de demo: {{ zone.capacity }}</small></div>
-              <mat-form-field appearance="outline"><mat-label>Precio por entrada (S/)</mat-label><input matInput type="number" min="0.01" step="0.01" [id]="'price-' + zoneId(index)" [formControlName]="index" /></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Precio por entrada (S/)</mat-label><input matInput type="number" min="0.01" step="0.01" [id]="'price-' + zoneId(index)" [formControlName]="index" /><mat-error>El precio debe ser mayor a cero.</mat-error></mat-form-field>
             </div>
           }
         </div>

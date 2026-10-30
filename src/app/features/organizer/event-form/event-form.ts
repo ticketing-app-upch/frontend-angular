@@ -65,6 +65,7 @@ export class EventForm {
 
   chooseVenue(id: string): void {
     const venue = this.venues.find(item => item.id === id) ?? null;
+    this.form.controls.venueId.setValue(venue?.id ?? '');
     this.venue.set(venue);
     this.selectedZoneId.set(null);
     this.prices.clear();
@@ -175,9 +176,11 @@ export class EventForm {
 
   submit(): void {
     const venue = this.venue();
-    if (!venue || this.form.invalid || !this.bannerUrl() || !this.secondaryBannerUrl() || this.saving()) {
+    if (this.saving()) return;
+    const error = this.validationMessage();
+    if (error) {
       this.form.markAllAsTouched();
-      this.notify.error(!this.bannerUrl() ? 'Selecciona una portada JPG válida antes de publicar.' : !this.secondaryBannerUrl() ? 'Selecciona una imagen secundaria válida.' : 'Completa los datos y asigna un precio mayor a cero a cada zona.');
+      this.notify.error(error);
       return;
     }
     const raw = this.form.getRawValue();
@@ -188,13 +191,13 @@ export class EventForm {
     }
     const event: EventItem = {
       id: '', name: raw.name.trim(), description: raw.description.trim(), category: raw.category,
-      status: 'PUBLICADO', venue: venue.name, city: venue.city,
+      status: 'PUBLICADO', venue: venue!.name, city: venue!.city,
       startsAt: startsAt.toISOString(), publishedAt: new Date().toISOString(),
-      venueCapacity: venueCapacity(venue), organizerId: this.auth.user()?.id ?? '', maxPerOrder: 6,
-      imageUrl: eventImage({ name: raw.name.trim(), category: raw.category, venue: venue.name }),
+      venueCapacity: venueCapacity(venue!), organizerId: this.auth.user()?.id ?? '', maxPerOrder: 6,
+      imageUrl: eventImage({ name: raw.name.trim(), category: raw.category, venue: venue!.name }),
       bannerUrl: this.bannerUrl()!,
       secondaryBannerUrl: this.secondaryBannerUrl()!,
-      zones: venue.zones.map((zone, index) => ({
+      zones: venue!.zones.map((zone, index) => ({
         id: this.zoneId(index), name: zone.name, capacity: zone.capacity, sold: 0,
         price: Number(raw.prices[index]),
       })),
@@ -204,6 +207,23 @@ export class EventForm {
       next: () => { this.notify.success('Evento publicado.'); void this.router.navigate(['/organizador/eventos']); },
       error: error => { this.saving.set(false); this.notify.error(error?.message ?? 'No se pudo publicar el evento.'); },
     });
+  }
+
+  validationMessage(): string | null {
+    const { name, description, category, startsAt, venueId } = this.form.controls;
+    if (name.invalid || name.value.trim().length < 4) return 'Escribe un título de al menos 4 caracteres.';
+    if (description.invalid || description.value.trim().length < 20) return 'Escribe una descripción de al menos 20 caracteres.';
+    if (category.invalid) return 'Selecciona una categoría.';
+    if (startsAt.invalid) return 'Selecciona la fecha y hora del evento.';
+    if (venueId.invalid || !this.venue()) return 'Selecciona un recinto.';
+    const invalidPrice = this.venue()!.zones.findIndex((_, index) => {
+      const value = Number(this.prices.at(index)?.value);
+      return !Number.isFinite(value) || value <= 0 || this.prices.at(index)?.invalid;
+    });
+    if (invalidPrice >= 0) return `Asigna un precio mayor a cero a la zona ${this.venue()!.zones[invalidPrice].name}.`;
+    if (!this.bannerUrl()) return 'Selecciona una portada JPG válida antes de publicar.';
+    if (!this.secondaryBannerUrl()) return 'Selecciona una imagen secundaria válida.';
+    return null;
   }
 }
 

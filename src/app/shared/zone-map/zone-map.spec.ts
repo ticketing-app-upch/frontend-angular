@@ -9,6 +9,23 @@ const zones = [
   { id: 'z2', name: 'VIP', price: 200, capacity: 20, sold: 20 },
 ];
 
+function polygons(path: string): [number, number][][] {
+  return path.match(/M[^M]*Z/g)?.map(part =>
+    [...part.matchAll(/(-?\d+(?:\.\d+)?)\s+(-?\d+(?:\.\d+)?)/g)]
+      .map(([, x, y]) => [Number(x), Number(y)] as [number, number])
+  ) ?? [];
+}
+
+function contains(polygon: [number, number][], x: number, y: number): boolean {
+  let inside = false;
+  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+    const [xi, yi] = polygon[i];
+    const [xj, yj] = polygon[j];
+    if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
 describe('Planos interactivos por recinto', () => {
   it('tiene un trazado interactivo para cada plano del catálogo', () => {
     expect(Object.keys(VENUE_TRACES)).toHaveLength(16);
@@ -22,6 +39,30 @@ describe('Planos interactivos por recinto', () => {
       expect(layout.image).toMatch(/-realista\.png$/);
       expect(layout.regions.length).toBeGreaterThan(0);
       expect(layout.regions.every(region => region.path.length > 12)).toBe(true);
+    }
+  });
+
+  it('mantiene todas las zonas dentro de la imagen y sin áreas clicables superpuestas', () => {
+    for (const [image, layout] of Object.entries(VENUE_TRACES)) {
+      const shapes = layout.regions.map(region => ({ name: region.name, parts: polygons(region.path) }));
+      for (const shape of shapes) {
+        expect(shape.parts.length, `${image}: ${shape.name}`).toBeGreaterThan(0);
+        for (const part of shape.parts) {
+          expect(part.length, `${image}: ${shape.name}`).toBeGreaterThanOrEqual(3);
+          for (const [x, y] of part) {
+            expect(x, `${image}: ${shape.name}`).toBeGreaterThanOrEqual(0);
+            expect(x, `${image}: ${shape.name}`).toBeLessThanOrEqual(1000);
+            expect(y, `${image}: ${shape.name}`).toBeGreaterThanOrEqual(0);
+            expect(y, `${image}: ${shape.name}`).toBeLessThanOrEqual(layout.height);
+          }
+        }
+      }
+      for (let y = 3; y < layout.height; y += 6) {
+        for (let x = 3; x < 1000; x += 6) {
+          const hits = shapes.filter(shape => shape.parts.some(part => contains(part, x, y)));
+          expect(hits.length, `${image} en ${x},${y}: ${hits.map(hit => hit.name).join(' / ')}`).toBeLessThanOrEqual(1);
+        }
+      }
     }
   });
 
