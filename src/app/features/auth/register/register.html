@@ -104,7 +104,7 @@
           }
         </div>
 
-        <button mat-flat-button type="submit" class="submit" [disabled]="loading()">
+        <button mat-flat-button type="submit" class="submit" [disabled]="loading() || !form.controls.acceptedTerms.value">
           @if (loading()) { Creando cuenta… } @else { Crear cuenta }
         </button>
       </form>

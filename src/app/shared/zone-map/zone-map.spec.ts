@@ -3,6 +3,7 @@ import { DEMO_VENUES } from '../../core/models/venue-catalog';
 import { venueShape } from '../event-image';
 import { ZoneMap } from './zone-map';
 import { traceFor, VENUE_TRACES } from './venue-traces';
+import { ZONE_LABEL_AREAS } from './zone-label-areas';
 
 const zones = [
   { id: 'z1', name: 'General', price: 100, capacity: 100, sold: 10 },
@@ -27,10 +28,11 @@ function contains(polygon: [number, number][], x: number, y: number): boolean {
 }
 
 describe('Planos interactivos por recinto', () => {
-  it('tiene un trazado interactivo para cada plano del catálogo', () => {
+  it('tiene un trazado interactivo para cada recinto ilustrado y una zona para el recinto de prueba', () => {
     expect(Object.keys(VENUE_TRACES)).toHaveLength(16);
-    expect(DEMO_VENUES).toHaveLength(15);
-    for (const venue of DEMO_VENUES) {
+    expect(DEMO_VENUES).toHaveLength(16);
+    expect(ZONE_LABEL_AREAS['recinto-prueba.svg']['General']).toBeDefined();
+    for (const venue of DEMO_VENUES.filter(venue => venue.id !== 'recinto-prueba')) {
       const layout = traceFor(venue.map);
       expect(layout, venue.name).not.toBeNull();
       expect(layout!.regions.map(region => region.priceZone).sort()).toEqual(venue.zones.map(zone => zone.name).sort());
