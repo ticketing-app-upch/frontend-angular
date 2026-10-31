@@ -1,0 +1,37 @@
+<div class="tkt-page">
+  <h1 class="tkt-section-title">Mis entradas</h1>
+  <p class="tkt-section-sub">Cada entrada tiene un código y un QR propios.</p>
+  <div class="tkt-cluster ticket-filters">
+    <label>Buscar <input type="search" placeholder="Evento, zona o código" [ngModel]="search()" (ngModelChange)="search.set($event)" /></label>
+    <label>Mostrar <select [ngModel]="filter()" (ngModelChange)="filter.set($event)"><option value="all">Todas</option><option value="upcoming">Próximas</option><option value="past">Pasadas</option><option value="cancelled">Canceladas</option></select></label>
+  </div>
+  @if (error()) { <p role="alert">No pudimos cargar tus compras.</p><button mat-stroked-button (click)="load()">Reintentar</button> }
+  @if (loading()) { <div class="loading"><mat-progress-spinner mode="indeterminate" diameter="42" /></div> }
+  @else if (entries().length === 0) { <tkt-empty-state icon="local_activity" title="Aún no tienes entradas" message="Cuando compres, cada entrada aparecerá aquí con su propio QR."><a mat-flat-button routerLink="/eventos">Explorar eventos</a></tkt-empty-state> }
+  @else {
+    @if (!filtered().length) { <p role="status">No hay entradas que coincidan con estos filtros.</p> }
+    <div class="tickets">
+      @for (entry of filtered(); track entry.ticket.code) {
+        @let order = entry.order;
+        @let ticket = entry.ticket;
+        <article class="ticket" [class.past]="isPast(order.eventStartsAt)">
+          <div class="stub"><tkt-qr [ticket]="ticket" [status]="order.status" [size]="168" /><span class="code">{{ ticket.code }}</span></div>
+          <div class="info">
+            <div class="top"><span class="status" [class.past]="isPast(order.eventStartsAt)"><span class="dot" aria-hidden="true"></span>{{ order.status === 'CANCELADA' ? 'CANCELADA' : isPast(order.eventStartsAt) ? 'Fecha de inicio pasada' : 'CONFIRMADA' }}</span><span class="bought">Comprado el {{ order.createdAt | date: 'd MMM y' }}</span></div>
+            <h2>{{ order.eventName }}</h2>
+            <p class="meta"><mat-icon inline>event</mat-icon>{{ order.eventStartsAt | date: "EEE d 'de' MMM, y · HH:mm" }}</p>
+            <p class="meta"><mat-icon inline>place</mat-icon>{{ order.eventVenue }}</p>
+            <p class="meta"><mat-icon inline>confirmation_number</mat-icon>{{ ticket.zoneName }}</p>
+            <p class="amount">{{ ticket.total | currency: 'PEN' : 'symbol-narrow' }}</p>
+            @if (order.status === 'CONFIRMADA') {
+              <div class="ticket-actions">
+                <a mat-button [routerLink]="['/validar', ticket.code]" target="_blank" rel="noopener"><mat-icon inline>open_in_new</mat-icon> Ver confirmación del QR</a>
+                <button mat-button (click)="download(order, ticket)"><mat-icon inline>download</mat-icon> Descargar entrada PDF</button>
+              </div>
+            }
+          </div>
+        </article>
+      }
+    </div>
+  }
+</div>

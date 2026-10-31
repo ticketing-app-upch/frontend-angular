@@ -8,7 +8,7 @@ const order: TicketOrder = {
   id: 'ord-1', code: 'TKT-ABC123', eventId: 'ev-1', eventName: 'Evento de prueba',
   eventVenue: 'Arena', eventStartsAt: new Date(Date.now() + 3 * 86400000).toISOString(),
   buyerId: 'u-cli-1', buyerName: 'Jesús Morales', status: 'CONFIRMADA',
-  createdAt: new Date().toISOString(), subtotal: 100, fee: 6, total: 106,
+  createdAt: new Date().toISOString(), subtotal: 100, fee: 0, total: 100,
   lines: [{ zoneId: 'z1', zoneName: 'General', quantity: 2, unitPrice: 50 }],
 };
 

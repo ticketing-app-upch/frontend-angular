@@ -14,7 +14,7 @@ import {
 
 const TOKEN_KEY = 'tkt.token';
 const USER_KEY = 'tkt.user';
-const SESSION_DURATION_MS = 8 * 60 * 60 * 1000;
+const SESSION_DURATION_MS = environment.sessionDurationMinutes * 60 * 1000;
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -162,7 +162,7 @@ export class AuthService {
       return mockError<AuthResponse>('Credenciales inválidas.', 401);
     }
     if (found.active === false) {
-      return mockError<AuthResponse>('Esta cuenta fue inhabilitada. Contacta a soporte.', 403);
+      return mockError<AuthResponse>('Tu cuenta está desactivada. Contacta al administrador.', 403);
     }
     return mockResponse(this.toAuthResponse(found));
   }

@@ -1,0 +1,28 @@
+<div class="tkt-page sales-page">
+  <a routerLink="/organizador/eventos" class="back"><mat-icon>arrow_back</mat-icon> Mis eventos</a>
+  @if (loading()) {
+    <p>Cargando ventas…</p>
+  } @else if (event(); as ev) {
+    <h1 class="tkt-section-title">Ventas de {{ ev.name }}</h1>
+    <p class="tkt-section-sub">{{ ev.startsAt | date: "d 'de' MMMM, y · HH:mm" }} · {{ ev.venue }}</p>
+    <p class="mock-note">Vista de maqueta: importes estimados con el precio publicado y ventas guardadas en este navegador.</p>
+    <div class="summary">
+      <div><span>Entradas vendidas</span><strong>{{ sold() | number }}</strong></div>
+      <div><span>Aforo total</span><strong>{{ capacity() | number }}</strong></div>
+      <div><span>Ingresos base estimados</span><strong>{{ revenue() | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+    </div>
+    <h2>Ventas por zona</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Zona</th><th>Vendidas</th><th>Disponibles</th><th>Precio por entrada</th></tr></thead>
+      <tbody>
+        @for (zone of ev.zones; track zone.id) {
+          <tr><td>{{ zone.name }}</td><td>{{ zone.sold | number }}</td><td>{{ zone.capacity - zone.sold | number }}</td><td>{{ zone.price | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</td></tr>
+        }
+      </tbody>
+    </table></div>
+  } @else {
+    <h1 class="tkt-section-title">Evento no disponible</h1>
+    <p>Solo puedes consultar las ventas de tus propios eventos.</p>
+    <a mat-flat-button routerLink="/organizador/eventos">Volver a mis eventos</a>
+  }
+</div>

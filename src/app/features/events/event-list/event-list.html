@@ -27,6 +27,7 @@
           <div class="feature-copy"><span>{{ event.startsAt | date:'dd MMM · HH:mm' }}</span><h2>{{ event.name }}</h2><p>{{ event.venue }}</p>
             <div class="feature-bottom"><span>Desde <strong>{{ price(event) | currency:'PEN':'symbol-narrow':'1.0-2' }}</strong></span></div>
           </div>
+          <a class="feature-link" [routerLink]="['/eventos', event.id]" [attr.aria-label]="'Ver detalle y entradas de ' + event.name"><span>Ver evento <mat-icon>arrow_forward</mat-icon></span></a>
         </div>
         <button class="feature-next" aria-label="Siguiente evento destacado" (click)="nextFeatured($event)"><mat-icon>navigate_next</mat-icon></button>
         <div class="feature-dots">
@@ -73,15 +74,17 @@
               </div>
             }
             <span class="category-tag">{{ e.category }}</span>
-            <button class="save" [class.saved]="discovery.favorites().includes(e.id)" [attr.aria-label]="(discovery.favorites().includes(e.id) ? 'Quitar de mis favoritos: ' : 'Agregar a mis favoritos: ') + e.name" [attr.aria-pressed]="discovery.favorites().includes(e.id)" (click)="discovery.toggle(e.id)"><mat-icon>{{ discovery.favorites().includes(e.id) ? 'favorite' : 'favorite_border' }}</mat-icon></button>
+            <button class="save" [class.saved]="discovery.favorites().includes(e.id)" [attr.aria-label]="(discovery.favorites().includes(e.id) ? 'Quitar de mis favoritos: ' : 'Agregar a mis favoritos: ') + e.name" [attr.aria-pressed]="discovery.favorites().includes(e.id)" (click)="toggleFavorite(e.id)"><mat-icon>{{ discovery.favorites().includes(e.id) ? 'favorite' : 'favorite_border' }}</mat-icon></button>
+            <button class="share-card" type="button" [attr.aria-label]="'Copiar enlace de ' + e.name" (click)="shareEvent(e.id)"><mat-icon>link</mat-icon></button>
             <span class="date-tag"><b>{{ e.startsAt | date:'dd' }}</b>{{ e.startsAt | date:'MMM' }}</span>
           </div>
           <div class="card-body"><div class="card-meta"><span>{{ e.startsAt | date:'EEE · HH:mm' }}</span><span>{{ e.city }}</span></div>
             <div class="event-title"><h3>{{ e.name }}</h3></div><p class="place"><mat-icon>location_on</mat-icon>{{ e.venue }}</p>
             <div class="capacity-track" aria-hidden="true"><span [style.width.%]="capacity(e).ratio * 100"></span></div>
             <p class="capacity-text">{{ capacity(e).available ? (capacity(e).available | number) + ' entradas disponibles' : 'Entradas agotadas' }}</p>
-            <div class="card-bottom"><div>@if(capacity(e).available){<small>Desde · +6% de servicio</small><strong>{{ price(e) | currency:'PEN':'symbol-narrow':'1.0-2' }}</strong>} @else {<strong>Agotado</strong>}</div></div>
+            <div class="card-bottom"><div>@if(capacity(e).available){<small>Desde</small><strong>{{ price(e) | currency:'PEN':'symbol-narrow':'1.0-2' }}</strong>} @else {<strong>Agotado</strong>}</div></div>
           </div>
+          <a class="event-card-link" [routerLink]="['/eventos', e.id]" [attr.aria-label]="'Ver detalle y zonas de ' + e.name"><span>Ver zonas <mat-icon>arrow_forward</mat-icon></span></a>
         </article>
       }
     </div>
