@@ -52,13 +52,38 @@ const settings = [
   ['useMockAuth', env.USE_MOCK_AUTH, (v) => String(v.toLowerCase() === 'true')],
 ];
 
+// Ancla a la línea de la propiedad (`   useMock: ...`) para no tocar menciones
+// dentro de comentarios: en enviroment.prod.ts la doc menciona `useMock: false`
+// antes del campo real y un regex libre reescribía el comentario y dejaba el
+// campo en true.
+const propertyLine = (key) => new RegExp(`^([ \\t]*${key}:\\s*)([^,\\n]+)`, 'm');
+
+const failures = [];
+
 for (const file of ENV_FILES) {
   let source = readFileSync(file, 'utf8');
   for (const [key, value, format] of settings) {
     if (value === undefined || value === '') continue;
-    source = source.replace(new RegExp(`(\\b${key}:\\s*)[^,\\n]+`), `$1${format(value)}`);
+    const pattern = propertyLine(key);
+    const match = source.match(pattern);
+    if (!match) {
+      failures.push(`${file}: no existe la propiedad "${key}"`);
+      continue;
+    }
+    const expected = format(value);
+    source = source.replace(pattern, (_line, prefix) => prefix + expected);
+    const applied = source.match(pattern)?.[2]?.trim();
+    if (applied !== expected) {
+      failures.push(`${file}: "${key}" quedó en ${applied} y se esperaba ${expected}`);
+    }
   }
   writeFileSync(file, source);
 }
+
+if (failures.length > 0) {
+  console.error('[set-env] Configuración no aplicada:\n  - ' + failures.join('\n  - '));
+  process.exit(1);
+}
+
 console.log('[set-env] aplicado a', ENV_FILES.join(', '));
 console.log('[set-env]', sources.join(' | '));
