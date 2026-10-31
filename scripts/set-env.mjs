@@ -31,8 +31,17 @@ const sources = KEYS.filter((key) => hasValue(env[key])).map(
 );
 
 if (sources.length === 0) {
-  console.log('[set-env] Sin .env ni variables de entorno: se usan los valores del repo (mock).');
+  console.log('[set-env] Sin .env ni variables de entorno: se usan los valores del repo (dev: mock, prod: backend real).');
   process.exit(0);
+}
+
+const missing = ['USE_MOCK', 'USE_MOCK_AUTH', 'API_PRICING_URL'].filter((key) => !hasValue(env[key]));
+if (hasValue(env.API_BACKEND_URL) && missing.length > 0) {
+  console.warn(
+    `[set-env] AVISO: falta(n) ${missing.join(', ')} junto a API_BACKEND_URL. ` +
+      'Se conservan los valores del archivo (producción: useMock=false). ' +
+      'Si el panel define USE_MOCK como vacío o "true", la app seguirá en maqueta: decláralo como "false".',
+  );
 }
 
 const useMock = String(env.USE_MOCK ?? '').toLowerCase() === 'true';

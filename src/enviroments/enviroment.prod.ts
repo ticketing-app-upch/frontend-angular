@@ -1,16 +1,17 @@
 export const environment = {
   production: true,
-  apiBackendUrl: '/api',
-  apiPricingUrl: '/pricing/api',
+  /** Backend publicado. API_BACKEND_URL (.env o env var) lo sobrescribe en cada build. */
+  apiBackendUrl: 'https://alpateck-backend.onrender.com/api',
+  /** Mismo backend; API_PRICING_URL lo sobrescribe. */
+  apiPricingUrl: 'https://alpateck-backend.onrender.com/api',
   /**
-   * El backend todavía no existe: el build desplegado corre con datos en
-   * memoria (semilla en `core/mock`), igual que en desarrollo. Cuando el
-   * backend esté listo, poner `useMock: false` y los servicios pegarán a
-   * `apiBackendUrl` / `apiPricingUrl`.
+   * Producción habla con el backend real por defecto: un build sin `.env` ni
+   * variables de entorno (Vercel, Docker, Netlify) no debe caer en la semilla
+   * local y dejar la app muda. Solo `USE_MOCK=true` explícito reactiva la maqueta.
    */
-  useMock: true,
-  /** Producción conserva auth mock hasta configurar el proxy de Full stack. */
-  useMockAuth: true,
+  useMock: false,
+  /** Login contra el backend por defecto; `USE_MOCK_AUTH=true` solo para demos sin back. */
+  useMockAuth: false,
   mockLatencyMs: 200,
   /** HU-04: ajustar junto con el vencimiento real que emita el backend. */
   sessionDurationMinutes: 15,
