@@ -50,6 +50,14 @@ describe('Crear evento por recinto', () => {
     expect(eventIssues(saved[0])).toEqual([]);
   });
 
+  it('publica el recinto de prueba con una sola entrada disponible', () => {
+    const form = formFor('recinto-prueba');
+    form.submit();
+    expect(errors).toEqual([]);
+    expect(saved[0].venueCapacity).toBe(1);
+    expect(saved[0].zones).toEqual([expect.objectContaining({ name: 'General', capacity: 1, sold: 0 })]);
+  });
+
   it('identifica la fecha faltante aunque todos los precios sean válidos', () => {
     const form = formFor('arena-1');
     form.form.controls.startsAt.setValue('');

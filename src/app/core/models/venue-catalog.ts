@@ -12,6 +12,12 @@ export interface DemoVenue {
 /** Aforos de maqueta para Demo 3; el backend deberá entregar los aforos aprobados. */
 export const DEMO_VENUES: readonly DemoVenue[] = [
   {
+    id: 'recinto-prueba', name: 'Recinto de prueba',
+    address: 'Lima, Perú', city: 'Lima',
+    map: '/recintos/demo3/recinto-prueba.svg',
+    zones: [{ name: 'General', capacity: 1 }],
+  },
+  {
     id: 'monumental', name: 'Estadio Monumental',
     address: 'Av. Javier Prado Este 7596, Ate, Lima', city: 'Lima',
     map: '/recintos/demo3/estadio-monumental-zonas.png',

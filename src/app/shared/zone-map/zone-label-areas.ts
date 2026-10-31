@@ -1,5 +1,8 @@
 export interface ZoneLabelArea { x: number; y: number; w: number; h: number; }
 export const ZONE_LABEL_AREAS: Record<string, Record<string, ZoneLabelArea>> = {
+  'recinto-prueba.svg': {
+    'General': { x: 35, y: 45, w: 30, h: 12 },
+  },
   'arena-1-costa-verde.png': {
     'General': { x: 50.5, y: 42.111, w: 14.375, h: 5.889 },
     'VIP': { x: 30.625, y: 35.222, w: 11.875, h: 5.889 },

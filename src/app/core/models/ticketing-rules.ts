@@ -26,7 +26,7 @@ export function eventIssues(event: EventItem, previous?: EventItem): string[] {
   if (!Number.isInteger(event.maxPerOrder) || event.maxPerOrder < 1 || event.maxPerOrder > MAX_TICKETS) issues.push('El límite por compra debe ser de 1 a 6 entradas.');
   if (!event.venue.trim() || !event.city.trim()) issues.push('Indica el recinto y la ciudad.');
   if (!Number.isInteger(event.venueCapacity) || (event.venueCapacity ?? 0) < 1) issues.push('Declara la capacidad física del recinto.');
-  if (event.zones.length < 2) issues.push('El recinto debe tener al menos dos zonas.');
+  if (event.zones.length < 1) issues.push('El recinto debe tener al menos una zona.');
   if (event.zones.reduce((sum, zone) => sum + zone.capacity, 0) > (event.venueCapacity ?? 0)) issues.push('Las zonas superan la capacidad física del recinto.');
   const names = new Set<string>();
   for (const zone of event.zones) {
