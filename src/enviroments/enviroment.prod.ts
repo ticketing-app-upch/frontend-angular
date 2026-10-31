@@ -1,16 +1,16 @@
 export const environment = {
   production: true,
-  apiBackendUrl: '/api',
-  apiPricingUrl: '/pricing/api',
+  apiBackendUrl: 'https://alpateck-backend.onrender.com/api',
+  apiPricingUrl: 'https://alpateck-backend.onrender.com/api',
   /**
    * El backend todavía no existe: el build desplegado corre con datos en
    * memoria (semilla en `core/mock`), igual que en desarrollo. Cuando el
-   * backend esté listo, poner `useMock: false` y los servicios pegarán a
+   * backend esté listo, poner `useMock: false
    * `apiBackendUrl` / `apiPricingUrl`.
    */
   useMock: true,
   /** Producción conserva auth mock hasta configurar el proxy de Full stack. */
-  useMockAuth: true,
+  useMockAuth: false,
   mockLatencyMs: 200,
   /** HU-04: ajustar junto con el vencimiento real que emita el backend. */
   sessionDurationMinutes: 15,

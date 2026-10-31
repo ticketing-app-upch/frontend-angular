@@ -1,13 +1,13 @@
 export const environment = {
   production: false,
   /** API de autenticación y eventos para integrar el backend. */
-  apiBackendUrl: 'http://localhost:8080/api',
+  apiBackendUrl: 'https://alpateck-backend.onrender.com/api',
   /** Servicio de precios, previsto para una demo posterior. */
-  apiPricingUrl: 'http://localhost:8000/api',
+  apiPricingUrl: 'https://alpateck-backend.onrender.com/api',
   /** Mock local activo hasta conectar y validar el backend de esta demo. */
-  useMock: true,
+  useMock: false,
   /** Autenticación mock para la revisión frontend de Demo 3. */
-  useMockAuth: true,
+  useMockAuth: false,
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
   /** HU-04: plazo breve y configurable para probar la caducidad de sesión. */

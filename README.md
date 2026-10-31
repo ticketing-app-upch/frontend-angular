@@ -34,6 +34,17 @@ Los dos archivos son obligatorios y deben ser distintos. El navegador valida par
 
 Copia `.env.example` a `.env` (no se sube al repo) y ajusta `API_BACKEND_URL`, `API_PRICING_URL`, `USE_MOCK` y `USE_MOCK_AUTH`. `npm start` y `npm run build` ejecutan `scripts/set-env.mjs`, que escribe esos valores en `src/enviroments/enviroment*.ts`; cada llamada es `API_BACKEND_URL` + endpoint (por ejemplo `http://localhost:8080/api` + `/events`). Sin `.env` el proyecto sigue en modo mock. No subas al repo los `enviroment*.ts` modificados por el script.
 
+**Despliegue en Vercel/Netlify:** el `.env` no viaja al build (está en `.gitignore`), así que define las mismas variables en el panel del proveedor (Environment Variables, entorno **Production** y **Preview**; Vercel las inyecta como `process.env` durante el build):
+
+| Variable | Ejemplo (producción) |
+| --- | --- |
+| `API_BACKEND_URL` | `https://alpateck-backend.onrender.com/api` |
+| `API_PRICING_URL` | `https://alpateck-backend.onrender.com/api` |
+| `USE_MOCK` | `false` |
+| `USE_MOCK_AUTH` | `false` |
+
+`scripts/set-env.mjs` prioridad: variables del proceso > `.env` > valores del repo (mock). Si `USE_MOCK=false` sin `API_BACKEND_URL`, el build falla con un mensaje en claro en lugar de desplegar la app en modo mock.
+
 ## Ejecutar junto con el MVP
 
 En `C:\Users\jessz\OneDrive\Escritorio\Ticketing-frontend`, con las dependencias ya instaladas, levanta el MVP:
