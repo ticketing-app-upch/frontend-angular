@@ -1,55 +1,61 @@
-# Demo 2 · Frontend de AlpaTeck
+# Demo 3 · AlpaTeck (solo frontend)
 
-Frontend Angular de la Demo 2 para autenticación, control de sesión y navegación inicial del catálogo de eventos.
+Esta rama presenta las épicas 2 y 3 con datos de prueba locales. Parte de la base de autenticación y administración de Demo 2. El alcance está contrastado con el backlog específico de Demo 3.
 
-## Alcance implementado
+[Revisión de cobertura HU y límites del frontend](REVISION_HU_DEMO3.md).
 
-- Inicio de sesión y registro para asistentes y organizadores; el formulario exige aceptar los términos y condiciones.
-- Cierre de sesión que elimina el token y el usuario del almacenamiento del navegador.
-- Expiración de sesión a las 8 horas, alineada con el JWT del backend. Las respuestas `401` en rutas protegidas cierran la sesión y llevan al login; `403` conserva la sesión y muestra una página segura.
-- Guards de autenticación y rol para impedir la navegación a rutas de otro perfil desde el frontend. El backend debe repetir estas autorizaciones.
-- Catálogo de eventos para asistentes, con favoritos guardados localmente. El corazón permite añadir y quitar cada evento de “Mis favoritos”. La pantalla de detalle y compra siguen fuera del alcance de esta demo.
+## Fuentes de alcance
 
-## Rutas principales
+- [Backlog específico de Demo 3](https://docs.google.com/spreadsheets/d/1OVCKw5iUykEIbMcC_lXoJPvdsiNQK0slApaCRojbNAk/edit): HU-09 a HU-16 y HU-21.
+- [Documento del proyecto](https://docs.google.com/document/d/1aYndYjXIGhOfS65gEhUG8tgTSAvvXf6YjlAaRVTzvl4/edit): Demo 2 corresponde a la épica 1; Demo 3, a las épicas 2 y 3.
+- [Recintos compartidos del grupo](https://drive.google.com/drive/folders/1aXdDs-vaDtalNcmsiOck67E8RABK8fCK): los originales de Monumental, Nacional y San Marcos se conservan junto con los nuevos planos en `public/recintos/`.
 
-| Ruta | Acceso | Uso |
-| --- | --- | --- |
-| `/auth/login` | Público | Inicio de sesión |
-| `/auth/register` | Público | Registro y aceptación de términos |
-| `/attendee/catalog` | Cliente autenticado | Catálogo de eventos |
-| `/attendee/favorites` | Cliente autenticado | Eventos favoritos |
-| `/attendee/tickets` | Cliente autenticado | Pendiente de implementación |
-| `/attendee/event/:id` | Cliente autenticado | Detalle pendiente; no se abre desde las tarjetas |
+## Funciones listas para revisar
 
-## Ejecutar localmente
+| HU | Pantalla o comportamiento |
+| --- | --- |
+| 07–08 | `/admin/usuarios`: asistentes y organizadores, filtros de rol/estado, confirmación antes de desactivar, reactivación inmediata y bloqueo de login de cuentas inactivas. El administrador no puede desactivar a otro administrador. |
+| 09 | `/eventos`: catálogo de eventos publicados y futuros, filtros por categoría, fecha y recinto. |
+| 10–11 | `/organizador/eventos` y `/organizador/eventos/nuevo`: eventos propios, creación con uno de 15 recintos predefinidos, aforos fijos, mapa y precios positivos por zona. |
+| 12–13 | Corazones y `/attendee/favorites`: favoritos persistidos por cuenta en este navegador. |
+| 21 | Copiar enlace desde catálogo o detalle; la ruta compartida conserva el destino tras iniciar sesión. |
+| 14 | `/comprar/:id`: zonas seleccionables directamente sobre el plano, límite de seis entradas, resumen, disponibilidad y pasarela **simulada** con datos ficticios. |
+| 15–16 | `/mis-entradas` y `/validar/:code`: una tarjeta, código y QR estático por cada entrada; vista pública y PDF local. |
 
-Requisitos: Node.js 22 y npm 11.
+Los recintos nuevos se pueden elegir al crear un evento y ya tienen eventos de ejemplo para probar la compra: `ev-16` (Estadio Nacional), `ev-7` (Estadio San Marcos) y `ev-2` (Estadio Monumental). Los aforos y zonas son **valores de maqueta**, no capacidades oficiales certificadas.
 
-```bash
-npm ci
-npm start
+En Demo 3, el precio que publica el organizador es el precio final por entrada. El catálogo, detalle, selección, resumen y pago muestran el mismo importe, sin comisión de servicio ni ajuste dinámico. La estructura de órdenes conserva el campo `fee` con valor cero por compatibilidad; compras locales antiguas mantienen el importe que ya registraron.
+
+## Banners del organizador
+
+Los dos archivos son obligatorios y deben ser distintos. El navegador valida para ambos: extensión `.jpg` o `.jpeg`, tipo y contenido JPEG, tamaño máximo de 2 MiB, dimensiones mínimas 1920 × 480 px y proporción exacta 4:1. El formulario muestra el motivo del rechazo y no permite publicar sin las dos imágenes válidas. La portada aparece arriba del detalle; la imagen secundaria cierra la ficha después del plano y los precios.
+
+## Conectar con el backend
+
+Copia `.env.example` a `.env` (no se sube al repo) y ajusta `API_BACKEND_URL`, `API_PRICING_URL`, `USE_MOCK` y `USE_MOCK_AUTH`. `npm start` y `npm run build` ejecutan `scripts/set-env.mjs`, que escribe esos valores en `src/enviroments/enviroment*.ts`; cada llamada es `API_BACKEND_URL` + endpoint (por ejemplo `http://localhost:8080/api` + `/events`). Sin `.env` el proyecto sigue en modo mock. No subas al repo los `enviroment*.ts` modificados por el script.
+
+## Ejecutar junto con el MVP
+
+En `C:\Users\jessz\OneDrive\Escritorio\Ticketing-frontend`, con las dependencias ya instaladas, levanta el MVP:
+
+```powershell
+npm.cmd run start -- --port 4200
 ```
 
-La aplicación queda en [http://localhost:4200](http://localhost:4200). Para comprobar cambios:
+En otra terminal, desde esta carpeta `Plataforma de Ticketing\Demo 3`, levanta Demo 3:
 
-```bash
-npm test -- --watch=false
-npm run build
+```powershell
+npm.cmd run start -- --port 4201
 ```
 
-Para presentar este frontend sin backend, también puedes iniciarlo con `docker compose up -d --build` y abrir [http://localhost:8082](http://localhost:8082). Usa autenticación y catálogo simulados, por lo que funciona aunque Laravel no esté disponible. Para detenerlo: `docker compose down`.
+Abre [MVP](http://localhost:4200) y [Demo 3](http://localhost:4201). En el login hay botones para completar las credenciales de prueba de cliente, organizador y administrador.
 
-## Integración con backend
+## Límites de esta maqueta
 
-La Demo 2 standalone usa autenticación mock (`useMockAuth: true`) y el resto de módulos conserva datos mock (`useMock: true`). La integración con el backend está en la rama `integracion-back-front` de este repositorio y construye el repositorio independiente `backend-php`.
+- Los usuarios, eventos y tickets de Demo 3 se guardan en `localStorage` de `localhost:4201`. La compra no cobra dinero ni envía números de tarjeta a un servicio.
+- Para probar HU-04, el vencimiento local se configura en minutos mediante `sessionDurationMinutes` en los archivos de `src/enviroments/` (15 minutos en esta maqueta).
+- El QR enlaza a `/validar/:code`; la consulta de compras creadas localmente funciona en el navegador que las registró. Para validar el mismo ticket en otro dispositivo se necesita el backend.
+- El reporte de ventas completo de HU-20, la cola virtual, antiscalping y la aprobación administrativa pertenecen a Demo 4.
+- Seguridad de sesión, inventario concurrente, cola y riesgo de fraude deben ser verificados por backend cuando se integre. Las comprobaciones de esta carpeta son solo de interfaz.
 
-Contratos que el frontend espera al conectar el backend:
-
-- `POST /auth/login`: `{ email, password }` → `{ token, user }`.
-- `POST /auth/register`: `{ fullName, email, password, role, acceptedTerms, ...profile }` → `{ token, user }`. `role` es `CLIENT` u `ORGANIZER`; el formulario no permite autorregistro de `ADMIN`.
-- `GET /events`: arreglo de eventos (`id`, `name`, `category`, `status`, `venue`, `city`, `startsAt`, `imageUrl`, `zones`, entre otros). Acepta `search`, `category` y `available=true`.
-- Las llamadas a la API incluyen `Authorization: Bearer <token>` cuando hay sesión. Un `401` fuera de `/auth/*` expira la sesión; un `403` redirige a `/bienvenida?reason=forbidden`.
-
-El backend debe validar token, vencimiento, rol, permisos y datos de registro en el servidor. Los guards del navegador solo controlan la experiencia de usuario. Los favoritos se guardan en `localStorage` bajo `aforo.favorites.v1`; no requieren endpoint y por ahora son propios del navegador.
-
-`FRONTEND_HANDOFF.md` conserva la guía de contratos extendidos para las próximas épicas. Los flujos de compra, detalle del evento y paneles no forman parte de la pantalla actual de esta demo.
+Cambiar los datos semilla en `src/app/core/mock/mock-data.ts` restablece automáticamente la base local de prueba al recargar, para evitar mezclar eventos nuevos con una semilla anterior.

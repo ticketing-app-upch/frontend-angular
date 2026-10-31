@@ -5,9 +5,10 @@ export const environment = {
   useMock: true,
   useMockAuth: true,
   mockLatencyMs: 450,
+  sessionDurationMinutes: 15,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
-  enabledEpics: [1, 2, 3, 4, 5],
-  /** Clave HMAC para firmar y verificar los QR durante el desarrollo local. */
+  enabledEpics: [1, 2, 3],
+  /** Reservada para el prototipo previo de QR. */
   ticketSecret: 'cambia-esta-clave-en-tu-entorno-local',
   /** Base absoluta para el QR; vacío = origen actual. IP LAN o túnel para escanear con el móvil. */
   publicBaseUrl: '',

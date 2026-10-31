@@ -1,6 +1,8 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { environment } from '../../enviroments/enviroment';
+import { AuthService } from './auth/auth.service';
+import { roleHome } from './auth/role-home';
 
 /**
  * Controla qué épicas del proyecto están "encendidas" en este build, para
@@ -21,9 +23,8 @@ export function epicEnabled(epic: number): boolean {
 
 /**
  * Bloquea una ruta si su épica todavía no está habilitada en este build y
- * manda a `/bienvenida`, la landing "segura" que solo muestra lo que ya
- * corresponde mostrar en la demo actual.
+ * devuelve al usuario a la pantalla que corresponde a su rol.
  */
 export function epicGuard(epic: number): CanActivateFn {
-  return () => (epicEnabled(epic) ? true : inject(Router).parseUrl('/bienvenida'));
+  return () => (epicEnabled(epic) ? true : inject(Router).parseUrl(roleHome(inject(AuthService).user()?.role)));
 }

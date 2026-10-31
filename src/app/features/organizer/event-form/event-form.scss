@@ -1,4 +1,21 @@
 /* Fondo degradado suave detrás del formulario (violeta + coral). */
+.venue-facts { display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; padding: .8rem 1rem; border-radius: 10px; background: color-mix(in srgb, var(--mat-sys-primary) 8%, transparent); }
+.banner-field { display: grid; gap: .55rem; }
+.banner-field label { display: grid; gap: .2rem; }
+.banner-field label span, .banner-field small { color: var(--mat-sys-on-surface-variant); font-size: .8rem; }
+.banner-field input { width: 100%; padding: .8rem; border: 1px dashed var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface-container-low); }
+.banner-error { margin: 0; color: var(--mat-sys-error); font-weight: 700; }
+.banner-preview { margin: .3rem 0 0; }
+.banner-preview img { display: block; width: 100%; aspect-ratio: 4 / 1; object-fit: cover; border-radius: 14px; }
+.banner-preview figcaption { margin-top: .4rem; color: var(--mat-sys-on-surface-variant); font-size: .78rem; }
+.secondary-banner-field { margin-top: 1rem; }
+.venue-prices { display: grid; gap: .7rem; margin-top: 1rem; }
+.venue-price { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .7rem 1rem; border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent); border-radius: 12px; }
+.venue-price.chosen { outline: 2px solid var(--mat-sys-primary); }
+.venue-price div { display: grid; gap: .2rem; }
+.venue-price small { color: var(--mat-sys-on-surface-variant); }
+.venue-price mat-form-field { width: 170px; }
+@media (max-width: 600px) { .venue-price { align-items: stretch; flex-direction: column; } .venue-price mat-form-field { width: 100%; } }
 :host {
   display: block;
   background:

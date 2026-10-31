@@ -6,13 +6,15 @@ export const environment = {
   apiPricingUrl: 'http://localhost:8000/api',
   /** Mock local activo hasta conectar y validar el backend de esta demo. */
   useMock: true,
-  /** La demo standalone usa cuentas de prueba locales para los tres roles. */
+  /** Autenticación mock para la revisión frontend de Demo 3. */
   useMockAuth: true,
   /** Latencia local (ms) para que la UI se sienta realista. */
   mockLatencyMs: 450,
-  /** Épica 1 de autenticación; el catálogo de Demo 2 usa datos mock. */
-  enabledEpics: [1],
-  /** Clave local de QR para funciones fuera del alcance de Demo 2. */
+  /** HU-04: plazo breve y configurable para probar la caducidad de sesión. */
+  sessionDurationMinutes: 15,
+  /** Demo 3: autenticación y épicas 2 y 3. */
+  enabledEpics: [1, 2, 3],
+  /** Reservada para el prototipo previo de QR. */
   ticketSecret: 'aforo-clave-local-de-firma-2026-no-usar-en-produccion',
   /** Origen público para QR; vacío usa el origen actual de la aplicación. */
   publicBaseUrl: '',

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/auth/auth.service';
 import { epicEnabled } from '../../core/demo-scope';
+import { roleHome } from '../../core/auth/role-home';
 
 @Component({
   selector: 'tkt-main-layout',
@@ -26,8 +27,8 @@ import { epicEnabled } from '../../core/demo-scope';
 })
 export class MainLayout {
   readonly epicEnabled = epicEnabled;
-  /** En Demo 1 el logo y el cierre de sesión regresan al acceso. */
-  readonly homeLink = '/auth/login';
+  private auth = inject(AuthService);
+  readonly homeLink = computed(() => roleHome(this.auth.user()?.role));
   readonly dark = signal(false);
   private router = inject(Router);
   constructor() {
@@ -40,8 +41,6 @@ export class MainLayout {
     const theme = this.dark() ? 'dark' : 'light'; document.documentElement.style.colorScheme = theme;
     try { localStorage.setItem('aforo.theme', theme); } catch { /* solo sesión */ }
   }
-  private auth = inject(AuthService);
-
   readonly user = this.auth.user;
   readonly isAuthenticated = this.auth.isAuthenticated;
   readonly isOrganizer = this.auth.isOrganizer;
@@ -51,7 +50,7 @@ export class MainLayout {
 
   logout(): void {
     this.auth.logout();
-    void this.router.navigateByUrl(this.homeLink, { replaceUrl: true });
+    void this.router.navigateByUrl('/eventos', { replaceUrl: true });
   }
 
   initials(name: string): string {

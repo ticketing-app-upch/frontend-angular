@@ -1,15 +1,23 @@
 import { eventIssues, purchaseIssue, zonePrice } from './ticketing-rules';
 import { EventItem, Zone } from './event.model';
+import { environment } from '../../../enviroments/enviroment';
 
 const now = Date.now();
 const day = 86400000;
 const zone: Zone = { id: 'z1', name: 'General', price: 100, capacity: 100, sold: 20 };
 const event: EventItem = { id: 'e1', name: 'Evento de prueba', description: 'Una descripción suficientemente extensa.',
-  category: 'CONCIERTO', status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 100,
+  category: 'CONCIERTO', status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 101,
   startsAt: new Date(now + 10 * day).toISOString(), publishedAt: new Date(now - 10 * day).toISOString(),
-  imageUrl: '', organizerId: 'org', maxPerOrder: 6, zones: [zone] };
+  imageUrl: '', organizerId: 'org', maxPerOrder: 6, zones: [zone, { id: 'z2', name: 'VIP', price: 150, capacity: 1, sold: 0 }] };
 
 describe('Reglas de ticketing del proyecto', () => {
+  const originalEpics = environment.enabledEpics;
+  beforeEach(() => { environment.enabledEpics = [1, 2, 3, 4]; });
+  afterEach(() => { environment.enabledEpics = originalEpics; });
+  it('en Demo 3 conserva el precio publicado incluso con pocos cupos y sin etiqueta de precio base', () => {
+    environment.enabledEpics = [1, 2, 3];
+    expect(zonePrice(event, { ...zone, sold: 99 }, now)).toMatchObject({ unitPrice: 100, note: '' });
+  });
   it('conserva precio base', () => expect(zonePrice(event, zone, now).unitPrice).toBe(100));
   it('recarga 20% con menos de 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 86 }, now).unitPrice).toBe(120));
   it('no recarga exactamente al 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 85 }, now).unitPrice).toBe(100));
@@ -33,6 +41,6 @@ describe('Reglas de ticketing del proyecto', () => {
     expect(purchaseIssue({ ...event, startsAt: new Date(now - day).toISOString() }, [{ zoneId: 'z1', quantity: 1 }])).not.toBeNull();
     expect(purchaseIssue({ ...event, status: 'BORRADOR' }, [{ zoneId: 'z1', quantity: 1 }])).not.toBeNull();
   });
-  it('rechaza stock insuficiente', () => expect(purchaseIssue({ ...event, zones: [{ ...zone, sold: 99 }] }, [{ zoneId: 'z1', quantity: 2 }])).not.toBeNull());
+  it('informa aforo insuficiente con el mensaje de la HU-14', () => expect(purchaseIssue({ ...event, zones: [{ ...zone, sold: 99 }] }, [{ zoneId: 'z1', quantity: 2 }])).toBe('Aforo insuficiente para la cantidad solicitada'));
 });
 

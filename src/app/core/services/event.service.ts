@@ -31,17 +31,22 @@ export class EventService {
       params = params.set('category', filter.category);
     }
     if (filter.onlyAvailable) params = params.set('available', 'true');
-    return this.http.get<EventItem[]>(`${this.base}/events`, { params });
+    return this.http.get<EventItem[]>(`${this.base}/events`, { params }).pipe(
+      map(events => this.filterLocally(events.filter(event => this.isPublic(event) && Date.parse(event.startsAt) > Date.now()), filter)),
+    );
   }
 
   getById(id: string): Observable<EventItem> {
     if (environment.useMock) {
-      const found = this.store.events.find((e) => e.id === id && (e.status !== 'BORRADOR' || this.auth.isAdmin() || e.organizerId === this.auth.user()?.id));
+      const found = this.store.events.find(e => e.id === id && this.canView(e));
       return found
         ? mockResponse(structuredClone(found))
         : mockError<EventItem>('Evento no encontrado.', 404);
     }
-    return this.http.get<EventItem>(`${this.base}/events/${id}`);
+    return this.http.get<EventItem>(`${this.base}/events/${id}`).pipe(map(event => {
+      if (!this.canView(event)) throw { status: 404, message: 'Evento no disponible.' };
+      return event;
+    }));
   }
 
   /** Todos los eventos de la plataforma (cualquier organizador, cualquier estado). Solo admin. */
@@ -84,24 +89,42 @@ export class EventService {
   }
 
   save(event: EventItem): Observable<EventItem> {
-    const previous = this.store.events.find(e => e.id === event.id);
-    if (environment.useMock && !this.auth.isAdmin() && !(this.auth.isOrganizer() && event.organizerId === this.auth.user()?.id && (!previous || previous.organizerId === this.auth.user()?.id))) return mockError('No tienes permisos para editar este evento.', 403);
-    const issues = eventIssues(event, environment.useMock ? previous : undefined);
+    if (environment.useMock) {
+      const account = this.store.users.find(user => user.id === this.auth.user()?.id);
+      if (!account || account.active === false) return mockError('Tu cuenta está desactivada. Contacta al administrador.', 403);
+    }
+    if (environment.useMock && (!this.auth.isOrganizer() || event.organizerId !== this.auth.user()?.id)) return mockError('Solo un organizador activo puede crear eventos.', 403);
+    if (event.id) {
+      return mockError('El evento ya fue creado y no puede modificarse.', 403);
+    }
+    if (environment.useMock && this.store.events.some(other =>
+      other.venue === event.venue &&
+      other.status !== 'BORRADOR' &&
+      Math.abs(Date.parse(other.startsAt) - Date.parse(event.startsAt)) < 86_400_000
+    )) {
+      return mockError('El recinto ya tiene un evento con menos de un día de diferencia.', 409);
+    }
+    const issues = eventIssues(event);
     if (issues.length) return mockError<EventItem>(issues[0], 422);
     if (environment.useMock) {
       const saved = { ...structuredClone(event), id: event.id || `ev-${crypto.randomUUID()}` };
       this.store.upsertEvent(saved);
       return mockResponse(saved);
     }
-    const isNew = !event.id;
-    return isNew
-      ? this.http.post<EventItem>(`${this.base}/events`, event)
-      : this.http.put<EventItem>(`${this.base}/events/${event.id}`, event);
+    return this.http.post<EventItem>(`${this.base}/events`, event);
+  }
+
+  private isPublic(event: EventItem): boolean {
+    return event.status === 'PUBLICADO' || event.status === 'AGOTADO';
+  }
+
+  private canView(event: EventItem): boolean {
+    return this.isPublic(event) || this.auth.isAdmin() || (this.auth.isOrganizer() && event.organizerId === this.auth.user()?.id);
   }
 
   private publicEvents(): EventItem[] {
     return this.store.events
-      .filter((e) => e.status === 'PUBLICADO' || e.status === 'AGOTADO')
+      .filter(e => this.isPublic(e) && Date.parse(e.startsAt) > Date.now())
       .map((e) => structuredClone(e));
   }
 

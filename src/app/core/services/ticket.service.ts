@@ -1,12 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map, switchMap } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../enviroments/enviroment';
 import { mockError, mockResponse } from '../mock/mock-latency';
 import { MockStore } from '../mock/mock-store';
 import { computeCapacity } from '../models/event.model';
 import {
   CreateOrderPayload,
+  IssuedTicket,
   OrderLine,
   OrderStatus,
   TicketOrder,
@@ -81,12 +82,13 @@ export class TicketService {
     const key = `${this.auth.user()?.id}:${payload.idempotencyKey ?? ''}`;
     if (payload.idempotencyKey && this.auth.isClient() && this.completed.has(key)) return mockResponse(structuredClone(this.completed.get(key)!));
     return this.events.getById(payload.eventId).pipe(
-      switchMap((event) =>
-        this.pricing.quote(event, payload.items).pipe(
-          map(() => {
+      map((event) => {
             const user = this.auth.user();
             if (!user || !this.auth.isClient()) {
               throw { status: 401, message: 'Debes iniciar sesión.' };
+            }
+            if (this.store.users.find(account => account.id === user.id)?.active === false) {
+              throw { status: 403, message: 'Tu cuenta está desactivada. Contacta al administrador.' };
             }
             // Validaciones de negocio contra la data mock.
             const fresh = this.store.events.find(e => e.id === event.id);
@@ -100,10 +102,10 @@ export class TicketService {
             if (totalQty <= 0) {
               throw { status: 400, message: 'Selecciona al menos una entrada.' };
             }
-            if (totalQty > event.maxPerOrder) {
+            if (totalQty > Math.min(6, event.maxPerOrder)) {
               throw {
                 status: 400,
-                message: `Máximo ${event.maxPerOrder} entradas por compra.`,
+                message: `Máximo ${Math.min(6, event.maxPerOrder)} entradas por compra.`,
               };
             }
             for (const item of payload.items) {
@@ -114,7 +116,7 @@ export class TicketService {
               if (zone.sold + item.quantity > zone.capacity) {
                 throw {
                   status: 409,
-                  message: `No hay cupos suficientes en "${zone.name}".`,
+                  message: 'Aforo insuficiente para la cantidad solicitada',
                 };
               }
             }
@@ -139,9 +141,23 @@ export class TicketService {
               quantity: qi.quantity,
             }));
 
+            const tickets: IssuedTicket[] = quote.items.flatMap(qi =>
+              Array.from({ length: qi.quantity }, () => {
+                const serviceFee = 0;
+                return {
+                  code: `TICK-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+                  zoneId: qi.zoneId,
+                  zoneName: qi.zoneName,
+                  unitPrice: qi.unitPrice,
+                  serviceFee,
+                  total: qi.unitPrice,
+                };
+              }),
+            );
+
             const order: TicketOrder = {
               id: `ord-${Math.random().toString(36).slice(2, 10)}`,
-              code: `TKT-${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
+              code: `TICK-${new Date().getFullYear()}-${crypto.randomUUID().slice(0, 5).toUpperCase()}`,
               eventId: event.id,
               eventName: event.name,
               eventStartsAt: event.startsAt,
@@ -151,6 +167,7 @@ export class TicketService {
               createdAt: new Date().toISOString(),
               status: 'CONFIRMADA',
               lines,
+              tickets,
               subtotal: quote.subtotal,
               fee: quote.fee,
               total: quote.total,
@@ -158,9 +175,7 @@ export class TicketService {
             this.store.addOrder(order);
             if (payload.idempotencyKey) this.completed.set(key, structuredClone(order));
             return order;
-          }),
-        ),
-      ),
+      }),
     );
   }
 

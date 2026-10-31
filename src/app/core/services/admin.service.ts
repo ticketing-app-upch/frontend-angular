@@ -88,7 +88,7 @@ export class AdminService {
       if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
       const found = this.store.users.find((u) => u.id === id);
       if (!found) return mockError<User>('Usuario no encontrado.', 404);
-      if (id === this.auth.user()?.id) return mockError('No puedes inhabilitar tu propia cuenta.', 409);
+      if (found.role === 'ADMIN') return mockError('Las cuentas administradoras no se pueden desactivar.', 409);
       this.store.updateUser(id, { active });
       const { password: _pw, ...u } = { ...found, active };
       return mockResponse(structuredClone(u) as User);

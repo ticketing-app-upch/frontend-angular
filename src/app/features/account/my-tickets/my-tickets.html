@@ -30,8 +30,8 @@
         >
           <div class="stub">
             @if (order.status === 'CONFIRMADA' && !redeemedAt(order)) { <tkt-qr
-              [order]="order"
-              [rotating]="!isPast(order.eventStartsAt)"
+              [ticket]="ticketsForOrder(order)[0]"
+              [status]="order.status"
               [size]="168"
             />
             } @else { <mat-icon aria-label="Pase no habilitado">qr_code_2</mat-icon><p>Pase no habilitado</p> }
@@ -85,10 +85,9 @@
                     <span>{{ line.unitPrice * line.quantity | currency: 'PEN' : 'symbol-narrow' }}</span>
                   </li>
                 }
-                <li class="sub">
-                  <span>Comisión</span>
-                  <span>{{ order.fee | currency: 'PEN' : 'symbol-narrow' }}</span>
-                </li>
+                @if (order.fee > 0) {
+                  <li class="sub"><span>Recargo de compra anterior</span><span>{{ order.fee | currency: 'PEN' : 'symbol-narrow' }}</span></li>
+                }
               </ul>
             </mat-expansion-panel>
           </div>

@@ -2,23 +2,28 @@ export const environment = {
   production: true,
   apiBackendUrl: '/api',
   apiPricingUrl: '/pricing/api',
-  /** El catálogo continúa con datos mock durante la presentación de Épica 1. */
+  /**
+   * El backend todavía no existe: el build desplegado corre con datos en
+   * memoria (semilla en `core/mock`), igual que en desarrollo. Cuando el
+   * backend esté listo, poner `useMock: false` y los servicios pegarán a
+   * `apiBackendUrl` / `apiPricingUrl`.
+   */
   useMock: true,
-  /** La demo standalone usa cuentas de prueba locales para los tres roles. */
+  /** Producción conserva auth mock hasta configurar el proxy de Full stack. */
   useMockAuth: true,
   mockLatencyMs: 200,
+  /** HU-04: ajustar junto con el vencimiento real que emita el backend. */
+  sessionDurationMinutes: 15,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
-  enabledEpics: [1],
+  enabledEpics: [1, 2, 3],
   /**
-   * Clave HMAC con la que la puerta `/validar` firma y verifica los QR
-   * en el propio navegador. En un sistema real esto vive en el backend del
-   * escáner y nunca llega al cliente.
+   * Reservada para el prototipo previo de QR. La Demo 3 enlaza al código
+   * estático de `/validar/:code`; su verificación real requiere backend.
    */
   ticketSecret: 'aforo-clave-local-de-firma-2026-no-usar-en-produccion',
   /**
-   * Base absoluta que se incrusta en el QR. Vacío = usa el origen público
-   * desde el que se sirvió la app (la URL de Pages/Netlify), que es lo que
-   * queremos: un enlace fijo que funciona para cualquiera.
+   * Base absoluta que se incrusta en el QR. Vacío = origen actual de la app.
+   * La consulta de compras entre dispositivos necesita integración backend.
    */
   publicBaseUrl: '',
 };

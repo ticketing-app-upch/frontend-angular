@@ -45,15 +45,12 @@ describe('authInterceptor', () => {
     expect(auth.expireSession).not.toHaveBeenCalled();
   });
 
-  it('ante 403 conserva la sesión y redirige a una pantalla segura', () => {
+  it('ante 403 conserva la sesión y deja que la pantalla muestre el error', () => {
     const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     http.get(`${environment.apiBackendUrl}/organizers/private`).subscribe({ error: () => undefined });
     controller.expectOne(`${environment.apiBackendUrl}/organizers/private`)
       .flush({}, { status: 403, statusText: 'Forbidden' });
     expect(auth.expireSession).not.toHaveBeenCalled();
-    expect(navigate).toHaveBeenCalledWith(['/bienvenida'], {
-      queryParams: { reason: 'forbidden' },
-      replaceUrl: true,
-    });
+    expect(navigate).not.toHaveBeenCalled();
   });
 });

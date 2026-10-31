@@ -5,9 +5,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { EventService } from '../../../core/services/event.service';
 import { DiscoveryService } from '../../../core/services/discovery.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { EventItem, computeCapacity } from '../../../core/models/event.model';
 import { zonePrice } from '../../../core/models/ticketing-rules';
 import { matchArt } from '../../../shared/event-image';
+import { copyEventLink } from '../../../shared/event-share';
+import { NotificationService } from '../../../core/services/notification.service';
 
 export function lowestPrice(event: EventItem): number {
   const zones = event.zones.filter(z => z.capacity > z.sold);
@@ -25,6 +28,19 @@ export class EventList {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   readonly discovery = inject(DiscoveryService);
+  private readonly auth = inject(AuthService);
+  private readonly notify = inject(NotificationService);
+  async shareEvent(id: string): Promise<void> {
+    try { await copyEventLink(id); this.notify.success('Enlace copiado'); }
+    catch { this.notify.error('No se pudo copiar el enlace.'); }
+  }
+  toggleFavorite(id: string): void {
+    if (!this.auth.isClient()) {
+      void this.router.navigate(['/auth/login'], { queryParams: { redirect: this.router.url } });
+      return;
+    }
+    this.discovery.toggle(id);
+  }
   readonly loading = signal(true);
   readonly error = signal('');
   readonly allEvents = signal<EventItem[]>([]);

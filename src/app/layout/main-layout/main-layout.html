@@ -1,7 +1,7 @@
 <a class="skip-link" href="#main-content">Saltar al contenido</a>
 <header class="bar">
   <div class="bar-inner">
-    <a class="brand" [routerLink]="homeLink">
+    <a class="brand" [routerLink]="homeLink()">
       <mat-icon>confirmation_number</mat-icon>
       <span class="brand-name">AlpaTeck</span>
     </a>
@@ -15,23 +15,23 @@
         <a routerLink="/attendee/tickets" routerLinkActive="active">Mis tickets</a>
       }
       @if (isOrganizer()) {
-        @if (epicEnabled(5)) {
-          <a routerLink="/organizer/dashboard" routerLinkActive="active">Dashboard</a>
-        }
         @if (epicEnabled(2)) {
-          <a routerLink="/organizer/create-event" routerLinkActive="active">Crear evento</a>
+          <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
+          <a routerLink="/organizador/eventos/nuevo" routerLinkActive="active">Crear evento</a>
         }
       }
     </nav>
 
     <span class="tkt-spacer"></span>
-    <button
-      mat-icon-button
-      (click)="toggleTheme()"
-      [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"
-    >
-      <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
-    </button>
+    @if (!isAdmin()) {
+      <button
+        mat-icon-button
+        (click)="toggleTheme()"
+        [attr.aria-label]="dark() ? 'Activar tema claro' : 'Activar tema oscuro'"
+      >
+        <mat-icon>{{ dark() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+    }
 
     @if (isAuthenticated()) {
       <button mat-button [matMenuTriggerFor]="menu" class="account">
@@ -63,9 +63,9 @@
             <mat-icon>local_activity</mat-icon> Mis entradas
           </a>
         }
-        @if (isOrganizer() && epicEnabled(5)) {
-          <a mat-menu-item routerLink="/organizer/dashboard">
-            <mat-icon>insights</mat-icon> Dashboard de ventas
+        @if (isOrganizer()) {
+          <a mat-menu-item routerLink="/organizador/eventos">
+            <mat-icon>event</mat-icon> Mis eventos
           </a>
         }
         <mat-divider />
@@ -82,18 +82,19 @@
   <router-outlet />
 </main>
 
+@if (!isAdmin()) {
 <nav class="mobile-nav" aria-label="Navegación móvil">
   @if (isClient()) {
     <a routerLink="/attendee/catalog" routerLinkActive="active"><mat-icon>explore</mat-icon>Eventos</a>
     <a routerLink="/attendee/favorites" routerLinkActive="active"
       ><mat-icon>favorite_border</mat-icon>Mis favoritos</a
     >
-  } @else {
-    <a [routerLink]="homeLink" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
+  } @else if (!isAuthenticated()) {
+    <a [routerLink]="homeLink()" routerLinkActive="active"><mat-icon>explore</mat-icon>Inicio</a>
   }
-  @if (isOrganizer() && epicEnabled(5)) {
-    <a routerLink="/organizer/dashboard" routerLinkActive="active"
-      ><mat-icon>insights</mat-icon>Dashboard</a
+  @if (isOrganizer()) {
+    <a routerLink="/organizador/eventos" routerLinkActive="active"
+      ><mat-icon>event</mat-icon>Mis eventos</a
     >
   } @else if (isClient()) {
     <a routerLink="/attendee/tickets" routerLinkActive="active"
@@ -101,6 +102,7 @@
     >
   }
 </nav>
+}
 <footer class="foot">
   <div class="foot-inner">
     <span>© {{ year }} AlpaTeck · Tu próxima experiencia</span>

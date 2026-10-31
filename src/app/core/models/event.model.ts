@@ -5,12 +5,12 @@ export type EventCategory =
   | 'CONFERENCIA'
   | 'FESTIVAL';
 
-export type EventStatus = 'BORRADOR' | 'PUBLICADO' | 'AGOTADO' | 'FINALIZADO';
+export type EventStatus = 'BORRADOR' | 'PENDIENTE' | 'RECHAZADO' | 'PUBLICADO' | 'AGOTADO' | 'FINALIZADO';
 
 export interface Zone {
   id: string;
   name: string;
-  /** Precio base en soles (PEN). El servicio de pricing puede ajustarlo. */
+  /** Precio publicado por entrada en soles (PEN); fijo durante Demo 3. */
   price: number;
   capacity: number;
   sold: number;
@@ -33,6 +33,10 @@ export interface EventItem {
   /** Capacidad física declarada del recinto. */
   venueCapacity?: number;
   imageUrl: string;
+  /** Portada panorámica JPG cargada por el organizador para el detalle. */
+  bannerUrl?: string;
+  /** Fotografía distinta para la sección «La experiencia» del detalle. */
+  secondaryBannerUrl?: string;
   organizerId: string;
   /** Máximo de entradas por transacción. */
   maxPerOrder: number;

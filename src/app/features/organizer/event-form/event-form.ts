@@ -1,19 +1,5 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
-import {
-  FormArray,
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TitleCasePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -22,256 +8,239 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
 import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import {
-  EventCategory,
-  EventItem,
-  EventStatus,
-  Zone,
-} from '../../../core/models/event.model';
-import { eventImage } from '../../../shared/event-image';
-import { eventIssues } from '../../../core/models/ticketing-rules';
+import { EventCategory, EventItem, Zone } from '../../../core/models/event.model';
+import { DEMO_VENUES, DemoVenue, venueCapacity } from '../../../core/models/venue-catalog';
+import { eventImage, venueHotspots } from '../../../shared/event-image';
+import { inspectJpegBanner, validBannerDimensions } from '../../../shared/banner-validation';
+import { ZoneMap } from '../../../shared/zone-map/zone-map';
 
 @Component({
   selector: 'tkt-event-form',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-    TitleCasePipe,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDividerModule,
-  ],
+  imports: [ReactiveFormsModule, RouterLink, TitleCasePipe, MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatButtonModule, MatIconModule, ZoneMap],
   templateUrl: './event-form.html',
   styleUrl: './event-form.scss',
 })
 export class EventForm {
-  private fb = inject(FormBuilder);
-  private events = inject(EventService);
-  private auth = inject(AuthService);
-  private notify = inject(NotificationService);
-  private router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly events = inject(EventService);
+  private readonly auth = inject(AuthService);
+  private readonly notify = inject(NotificationService);
+  private readonly router = inject(Router);
 
-  /** Presente sólo en modo edición (ruta `eventos/:id/editar`). */
-  readonly id = input<string>();
-
+  readonly venues = DEMO_VENUES;
+  readonly categories: EventCategory[] = ['CONCIERTO', 'FESTIVAL', 'TEATRO', 'DEPORTE', 'CONFERENCIA'];
   readonly saving = signal(false);
-  readonly loading = signal(false);
-  private editing = signal<EventItem | null>(null);
-
-  readonly isEdit = computed(() => !!this.id());
-  readonly title = computed(() => (this.isEdit() ? 'Editar evento' : 'Nuevo evento'));
-
-  readonly categories: EventCategory[] = [
-    'CONCIERTO',
-    'FESTIVAL',
-    'TEATRO',
-    'DEPORTE',
-    'CONFERENCIA',
-  ];
-  readonly statuses: EventStatus[] = ['BORRADOR', 'PUBLICADO'];
+  readonly venue = signal<DemoVenue | null>(null);
+  readonly selectedZoneId = signal<string | null>(null);
+  readonly bannerUrl = signal<string | null>(null);
+  readonly bannerError = signal('');
+  readonly bannerName = signal('');
+  private bannerSource: string | null = null;
+  readonly secondaryBannerUrl = signal<string | null>(null);
+  readonly secondaryBannerError = signal('');
+  readonly secondaryBannerName = signal('');
+  private secondaryBannerSource: string | null = null;
+  readonly capacity = computed(() => this.venue() ? venueCapacity(this.venue()!) : 0);
+  readonly mapZones = computed<Zone[]>(() => this.venue()?.zones.map((zone, index) => ({
+    id: this.zoneId(index), name: zone.name, capacity: zone.capacity, sold: 0,
+    price: Number(this.prices.at(index)?.value ?? 0),
+  })) ?? []);
+  readonly hotspots = computed(() => venueHotspots(this.venue()?.name, this.mapZones()));
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(4)]],
     description: ['', [Validators.required, Validators.minLength(20)]],
     category: ['CONCIERTO' as EventCategory, Validators.required],
-    status: ['BORRADOR' as EventStatus, Validators.required],
-    venue: ['', Validators.required],
-    city: ['Lima', Validators.required],
     startsAt: ['', Validators.required],
-    venueCapacity: [1000, [Validators.required, Validators.min(1)]],
-    imageUrl: [''],
-    maxPerOrder: [
-      6,
-      [Validators.required, Validators.min(1), Validators.max(6)],
-    ],
-    zones: this.fb.array([this.newZone()]),
+    venueId: ['', Validators.required],
+    prices: this.fb.array([] as ReturnType<typeof this.fb.nonNullable.control<number>>[]),
   });
 
-  get zones(): FormArray {
-    return this.form.controls.zones;
+  get prices(): FormArray { return this.form.controls.prices; }
+  zoneId(index: number): string { return `venue-${this.venue()?.id ?? 'none'}-${index}`; }
+
+  chooseVenue(id: string): void {
+    const venue = this.venues.find(item => item.id === id) ?? null;
+    this.form.controls.venueId.setValue(venue?.id ?? '');
+    this.venue.set(venue);
+    this.selectedZoneId.set(null);
+    this.prices.clear();
+    for (const _zone of venue?.zones ?? []) {
+      this.prices.push(this.fb.nonNullable.control(0, [Validators.required, Validators.min(0.01)]));
+    }
   }
 
-  /** Estadios de Lima habilitados para partidos de fútbol. */
-  readonly footballVenues = [
-    'Estadio Monumental',
-    'Estadio Nacional',
-    'Estadio San Marcos',
-    'Estadio Alejandro Villanueva',
-    'Estadio Iván Elías Moreno',
-    'Estadio Alberto Gallardo',
-    'Estadio Miguel Grau',
-  ];
+  focusZone(id: string): void {
+    this.selectedZoneId.set(id);
+    queueMicrotask(() => document.getElementById(`price-${id}`)?.focus());
+  }
 
-  /**
-   * Recintos de Lima aptos para conciertos. Se excluye la Explanada del Jockey
-   * Club: la Municipalidad de Surco mantiene la restricción a conciertos masivos
-   * desde 2023 y a 2026 no se ha levantado.
-   */
-  readonly concertVenues = [
-    'Estadio Nacional',
-    'Estadio San Marcos',
-    'Estadio Monumental',
-    'Estadio Alejandro Villanueva',
-    'Arena 1 - Costa Verde',
-    'Multiespacio Costa 21',
-    'Coliseo Eduardo Dibós',
-    'Explanada Costa Verde',
-    'Anfiteatro del Parque de la Exposición',
-    'Gran Teatro Nacional',
-    'Teatro Municipal de Lima',
-    'Teatro Peruano Japonés',
-  ];
-
-  private categoryValue = toSignal(this.form.controls.category.valueChanges, {
-    initialValue: this.form.controls.category.value,
-  });
-  /**
-   * Lista cerrada de recintos según la categoría (DEPORTE / CONCIERTO).
-   * `null` = el recinto es texto libre.
-   */
-  readonly venueOptions = computed<readonly string[] | null>(() => {
-    switch (this.categoryValue()) {
-      case 'DEPORTE':
-        return this.footballVenues;
-      case 'CONCIERTO':
-        return this.concertVenues;
-      default:
-        return null;
+  async onBannerChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.bannerUrl.set(null);
+    this.bannerName.set('');
+    this.bannerError.set('');
+    this.bannerSource = null;
+    if (!file) return;
+    const invalid = (message: string) => {
+      this.bannerError.set(message);
+      input.value = '';
+    };
+    const inspection = await inspectJpegBanner(file);
+    if (!inspection.ok) {
+      invalid(inspection.issue === 'format' ? 'La portada debe ser un archivo JPG o JPEG.'
+        : inspection.issue === 'size' ? 'La portada no puede superar 2 MB.'
+        : inspection.issue === 'signature' ? 'El contenido de la portada no es un JPEG válido.'
+        : 'No se pudo leer la portada. Selecciona otro JPG.');
+      return;
     }
-  });
-
-  constructor() {
-    effect(() => {
-      const id = this.id();
-      if (!id) {
-        if (this.zones.length === 0) this.addZone();
+    const source = inspection.fingerprint;
+    if (source === this.secondaryBannerSource) {
+      invalid('La portada y la imagen secundaria deben ser fotografías diferentes.');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('No se pudo leer la imagen.'));
+        image.src = objectUrl;
+      });
+      if (!validBannerDimensions(image.naturalWidth, image.naturalHeight)) {
+        invalid('La portada necesita al menos 1920 × 480 px y proporción 4:1.');
         return;
       }
-      this.loading.set(true);
-      this.events.getById(id).subscribe({
-        next: (ev) => {
-          this.editing.set(ev);
-          this.patch(ev);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.notify.error('No se pudo cargar el evento.');
-          this.router.navigate(['/organizador/eventos']);
-        },
+      const dataUrl = encodeForDemo(image, 1920, 480);
+      this.bannerUrl.set(dataUrl);
+      this.bannerName.set(`${file.name} · ${image.naturalWidth} × ${image.naturalHeight} px`);
+      this.bannerSource = source;
+    } catch {
+      invalid('No se pudo leer la imagen. Selecciona otro JPG.');
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
+  }
+
+  async onSecondaryBannerChange(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    this.secondaryBannerUrl.set(null);
+    this.secondaryBannerName.set('');
+    this.secondaryBannerError.set('');
+    this.secondaryBannerSource = null;
+    if (!file) return;
+    const invalid = (message: string) => {
+      this.secondaryBannerError.set(message);
+      input.value = '';
+    };
+    const inspection = await inspectJpegBanner(file);
+    if (!inspection.ok) {
+      invalid(inspection.issue === 'format' ? 'La imagen secundaria debe ser un archivo JPG o JPEG.'
+        : inspection.issue === 'size' ? 'La imagen secundaria no puede superar 2 MB.'
+        : inspection.issue === 'signature' ? 'El contenido de la imagen secundaria no es un JPEG válido.'
+        : 'No se pudo leer la imagen secundaria. Selecciona otro JPG.');
+      return;
+    }
+    const source = inspection.fingerprint;
+    if (source === this.bannerSource) {
+      invalid('La imagen secundaria debe ser distinta de la portada.');
+      return;
+    }
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error('Imagen ilegible.'));
+        image.src = objectUrl;
       });
-    });
-  }
-
-  newZone(zone?: Partial<Zone>) {
-    return this.fb.nonNullable.group({
-      id: [zone?.id ?? ''],
-      name: [zone?.name ?? '', Validators.required],
-      price: [zone?.price ?? 0, [Validators.required, Validators.min(0)]],
-      capacity: [
-        zone?.capacity ?? 100,
-        [Validators.required, Validators.min(1)],
-      ],
-      sold: [zone?.sold ?? 0],
-    });
-  }
-
-  addZone(): void {
-    this.zones.push(this.newZone());
-  }
-
-  removeZone(index: number): void {
-    if (this.zones.length <= 1) return;
-    if (this.zones.at(index).get('sold')?.value > 0) { this.notify.error('Esta zona ya tiene ventas y no se puede eliminar.'); return; }
-    this.zones.removeAt(index);
-  }
-
-  private patch(ev: EventItem): void {
-    this.form.patchValue({
-      name: ev.name,
-      description: ev.description,
-      category: ev.category,
-      status: ev.status === 'AGOTADO' || ev.status === 'FINALIZADO'
-        ? 'PUBLICADO'
-        : ev.status,
-      venue: ev.venue,
-      city: ev.city,
-      venueCapacity: ev.venueCapacity ?? ev.zones.reduce((s, z) => s + z.capacity, 0),
-      startsAt: toLocalInput(ev.startsAt),
-      imageUrl: ev.imageUrl,
-      maxPerOrder: ev.maxPerOrder,
-    });
-    this.zones.clear();
-    ev.zones.forEach((z) => this.zones.push(this.newZone(z)));
+      if (!validBannerDimensions(image.naturalWidth, image.naturalHeight)) {
+        invalid('La imagen secundaria necesita al menos 1920 × 480 px y proporción 4:1.');
+        return;
+      }
+      this.secondaryBannerUrl.set(encodeForDemo(image, 1920, 480));
+      this.secondaryBannerName.set(`${file.name} · ${image.naturalWidth} × ${image.naturalHeight} px`);
+      this.secondaryBannerSource = source;
+    } catch {
+      invalid('No se pudo leer o guardar la imagen secundaria.');
+    } finally {
+      URL.revokeObjectURL(objectUrl);
+    }
   }
 
   submit(): void {
-    if (this.form.invalid || this.saving()) {
+    const venue = this.venue();
+    if (this.saving()) return;
+    const error = this.validationMessage();
+    if (error) {
       this.form.markAllAsTouched();
-      this.notify.error('Revisa los campos marcados.');
+      this.notify.error(error);
       return;
     }
     const raw = this.form.getRawValue();
-    const existing = this.editing();
-    if (!Number.isFinite(new Date(raw.startsAt).getTime())) { this.notify.error('Ingresa una fecha válida.'); return; }
-
-    const payload: EventItem = {
-      id: existing?.id ?? '',
-      name: raw.name.trim(),
-      description: raw.description.trim(),
-      category: raw.category,
-      status: raw.status,
-      venue: raw.venue.trim(),
-      city: raw.city.trim(),
-      venueCapacity: raw.venueCapacity,
-      publishedAt: existing?.publishedAt ?? (raw.status === 'PUBLICADO' ? new Date().toISOString() : undefined),
-      startsAt: new Date(raw.startsAt).toISOString(),
-      imageUrl:
-        raw.imageUrl.trim() ||
-        eventImage({ name: raw.name.trim(), category: raw.category }),
-      organizerId: existing?.organizerId ?? this.auth.user()?.id ?? '',
-      maxPerOrder: raw.maxPerOrder,
-      zones: raw.zones.map((z, i) => ({
-        ...existing?.zones.find(old => old.id === z.id),
-        id: z.id || `z-${crypto.randomUUID().slice(0, 6)}-${i}`,
-        name: z.name.trim(),
-        price: z.price,
-        capacity: z.capacity,
-        sold: existing?.zones.find(old => old.id === z.id)?.sold ?? 0,
+    const startsAt = new Date(raw.startsAt);
+    if (!Number.isFinite(startsAt.getTime()) || startsAt.getTime() <= Date.now()) {
+      this.notify.error('La fecha y hora deben ser futuras.');
+      return;
+    }
+    const event: EventItem = {
+      id: '', name: raw.name.trim(), description: raw.description.trim(), category: raw.category,
+      status: 'PUBLICADO', venue: venue!.name, city: venue!.city,
+      startsAt: startsAt.toISOString(), publishedAt: new Date().toISOString(),
+      venueCapacity: venueCapacity(venue!), organizerId: this.auth.user()?.id ?? '', maxPerOrder: 6,
+      imageUrl: eventImage({ name: raw.name.trim(), category: raw.category, venue: venue!.name }),
+      bannerUrl: this.bannerUrl()!,
+      secondaryBannerUrl: this.secondaryBannerUrl()!,
+      zones: venue!.zones.map((zone, index) => ({
+        id: this.zoneId(index), name: zone.name, capacity: zone.capacity, sold: 0,
+        price: Number(raw.prices[index]),
       })),
     };
-
-    const issues = eventIssues(payload, existing ?? undefined);
-    if (issues.length) { this.notify.error(issues[0]); return; }
     this.saving.set(true);
-    this.events.save(payload).subscribe({
-      next: () => {
-        this.notify.success(
-          this.isEdit() ? 'Evento actualizado.' : 'Evento creado.',
-        );
-        this.router.navigate(['/organizador/eventos']);
-      },
-      error: () => {
-        this.saving.set(false);
-        this.notify.error('No se pudo guardar. Comprueba tus permisos y la conexión.');
-      },
+    this.events.save(event).subscribe({
+      next: () => { this.notify.success('Evento publicado.'); void this.router.navigate(['/organizador/eventos']); },
+      error: error => { this.saving.set(false); this.notify.error(error?.message ?? 'No se pudo publicar el evento.'); },
     });
+  }
+
+  validationMessage(): string | null {
+    const { name, description, category, startsAt, venueId } = this.form.controls;
+    if (name.invalid || name.value.trim().length < 4) return 'Escribe un título de al menos 4 caracteres.';
+    if (description.invalid || description.value.trim().length < 20) return 'Escribe una descripción de al menos 20 caracteres.';
+    if (category.invalid) return 'Selecciona una categoría.';
+    if (startsAt.invalid) return 'Selecciona la fecha y hora del evento.';
+    if (venueId.invalid || !this.venue()) return 'Selecciona un recinto.';
+    const invalidPrice = this.venue()!.zones.findIndex((_, index) => {
+      const value = Number(this.prices.at(index)?.value);
+      return !Number.isFinite(value) || value <= 0 || this.prices.at(index)?.invalid;
+    });
+    if (invalidPrice >= 0) return `Asigna un precio mayor a cero a la zona ${this.venue()!.zones[invalidPrice].name}.`;
+    if (!this.bannerUrl()) return 'Selecciona una portada JPG válida antes de publicar.';
+    if (!this.secondaryBannerUrl()) return 'Selecciona una imagen secundaria válida.';
+    return null;
   }
 }
 
-/** ISO -> valor para <input type="datetime-local"> en hora local. */
-function toLocalInput(iso: string): string {
-  const d = new Date(iso);
-  const pad = (n: number) => `${n}`.padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
-    d.getHours(),
-  )}:${pad(d.getMinutes())}`;
+/** Reduce el peso de las dos imágenes para que la maqueta pueda persistirlas localmente. */
+function encodeForDemo(image: HTMLImageElement, maxWidth: number, maxHeight: number): string {
+  const scale = Math.min(1, maxWidth / image.naturalWidth, maxHeight / image.naturalHeight);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(image.naturalWidth * scale);
+  canvas.height = Math.round(image.naturalHeight * scale);
+  const context = canvas.getContext('2d');
+  if (!context) throw new Error('No se pudo procesar la imagen.');
+  context.fillStyle = '#ffffff';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
+  for (const quality of [.84, .72, .58]) {
+    const encoded = canvas.toDataURL('image/jpeg', quality);
+    if (encoded.length <= 1_250_000) return encoded;
+  }
+  throw new Error('La imagen es demasiado compleja para guardar en la demo.');
 }

@@ -1,11 +1,10 @@
-name: ticketing-demo2-frontend
-
 services:
   web:
     build:
       context: .
       dockerfile: Dockerfile
-    image: ticketing-demo2-frontend:latest
+    image: ticketing-frontend:latest
+    container_name: ticketing-frontend-web
     ports:
-      - "${FRONTEND_PORT:-8082}:80"
+      - "8081:80"
     restart: unless-stopped

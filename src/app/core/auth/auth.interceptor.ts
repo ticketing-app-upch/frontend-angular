@@ -1,7 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
-import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { environment } from '../../../enviroments/enviroment';
 
@@ -13,7 +12,6 @@ export function isBackendRequest(url: string, base = environment.apiBackendUrl):
 /** No enviar credenciales a imágenes, servicios externos ni al motor de pricing. */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
-  const router = inject(Router);
   if (!isBackendRequest(req.url)) return next(req);
   const token = auth.token;
   if (!token && auth.sessionExpired() && !req.url.includes('/auth/')) auth.expireSession();
@@ -22,12 +20,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 401 && token && !req.url.includes('/auth/')) {
         auth.expireSession();
       }
-      if (error.status === 403 && token && !req.url.includes('/auth/')) {
-        void router.navigate(['/bienvenida'], {
-          queryParams: { reason: 'forbidden' },
-          replaceUrl: true,
-        });
-      }
+      // El componente que hizo la petición muestra el motivo del 403.
+      // Un 403 por cuenta inactiva no debe ocultarse tras una pantalla de bienvenida.
       return throwError(() => error);
     })
   );
