@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, clientGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
-import { epicGuard } from './core/demo-scope';
+import { epicGuard, queueGuard } from './core/demo-scope';
 
 const catalog = () => import('./features/events/event-list/event-list').then(m => m.EventList);
 const detail = () => import('./features/events/event-detail/event-detail').then(m => m.EventDetail);
@@ -20,7 +20,8 @@ export const routes: Routes = [
       { path: 'attendee/favorites', canActivate: [authGuard, clientGuard], loadComponent: catalog, data: { favorites: true } },
       { path: 'attendee/tickets', canActivate: [authGuard, clientGuard], loadComponent: tickets },
       { path: 'mis-entradas', canActivate: [authGuard, clientGuard], loadComponent: tickets },
-      { path: 'comprar/:eventId', canActivate: [authGuard, clientGuard], loadComponent: () => import('./features/checkout/checkout').then(m => m.Checkout) },
+      { path: 'cola/:eventId', canActivate: [authGuard, clientGuard, epicGuard(4)], loadComponent: () => import('./features/queue/queue-page').then(m => m.QueuePage), title: 'Cola virtual · AlpaTeck' },
+      { path: 'comprar/:eventId', canActivate: [authGuard, clientGuard, queueGuard], loadComponent: () => import('./features/checkout/checkout').then(m => m.Checkout) },
       {
         path: 'organizador',
         canActivate: [roleGuard('ORGANIZER')],
@@ -29,6 +30,7 @@ export const routes: Routes = [
           { path: '', redirectTo: 'eventos', pathMatch: 'full' },
           { path: 'eventos', loadComponent: () => import('./features/organizer/event-manage/event-manage').then(m => m.EventManage), title: 'Mis eventos · AlpaTeck' },
           { path: 'eventos/nuevo', loadComponent: () => import('./features/organizer/event-form/event-form').then(m => m.EventForm), title: 'Publicar evento · AlpaTeck' },
+          { path: 'dashboard', canActivate: [epicGuard(5)], loadComponent: () => import('./features/organizer/dashboard/dashboard').then(m => m.OrganizerDashboard), title: 'Dashboard · AlpaTeck' },
           { path: 'eventos/:id/ventas', canActivate: [epicGuard(5)], loadComponent: () => import('./features/organizer/event-sales/event-sales').then(m => m.EventSales), title: 'Ventas por evento · AlpaTeck' },
         ],
       },

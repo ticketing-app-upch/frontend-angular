@@ -1,0 +1,61 @@
+<section class="queue" aria-live="polite">
+  @if (loading()) {
+    <div class="center"><mat-spinner diameter="40" /><p>Validando tu ingreso a la cola…</p></div>
+  } @else if (error()) {
+    <tkt-empty-state icon="error_outline" title="No pudimos abrir la cola" [message]="error()">
+      <a mat-stroked-button routerLink="/eventos">Volver a eventos</a>
+    </tkt-empty-state>
+  } @else if (state(); as s) {
+    <header class="head">
+      <mat-icon>confirmation_number</mat-icon>
+      <div>
+        <h1>{{ event()?.name ?? 'Cola virtual' }}</h1>
+        @if (event(); as ev) {
+          <p class="meta">{{ ev.startsAt | date: "d 'de' MMMM, y · HH:mm" }} · {{ ev.venue }}, {{ ev.city }}</p>
+        }
+      </div>
+    </header>
+
+    @switch (s.status) {
+      @case ('WAITING') {
+        <div class="card">
+          <p class="label">Tu posición en la fila</p>
+          <p class="position">{{ s.position }}</p>
+          <mat-progress-bar mode="determinate" [value]="progress()" aria-label="Avance en la cola" />
+          <p class="eta"><mat-icon>schedule</mat-icon> Tiempo estimado: {{ eta() }}</p>
+          <p class="hint">No cierres ni recargues esta página: perderías tu lugar. Te avisaremos apenas sea tu turno.</p>
+          <button mat-stroked-button type="button" (click)="leave()">Salir de la cola</button>
+        </div>
+      }
+      @case ('READY') {
+        <div class="card ready">
+          <mat-icon class="big">check_circle</mat-icon>
+          <h2>¡Es tu turno!</h2>
+          <p>Tienes <strong>{{ passLeft() }} s</strong> para elegir tus zonas y pagar antes de que el turno pase al siguiente.</p>
+          <button mat-flat-button type="button" (click)="buy()">Comprar entradas</button>
+        </div>
+      }
+      @case ('EXPIRED') {
+        <div class="card">
+          <mat-icon class="big warn">timer_off</mat-icon>
+          <h2>Tu turno venció</h2>
+          <p>No completaste la compra a tiempo. Puedes volver a entrar a la fila.</p>
+          <button mat-flat-button type="button" (click)="rejoin()">Volver a la cola</button>
+        </div>
+      }
+      @case ('BLOCKED') {
+        <div class="card blocked">
+          <mat-icon class="big warn">gpp_bad</mat-icon>
+          <h2>No pudimos darte un turno</h2>
+          <p>Nuestra validación anti-reventa detectó lo siguiente:</p>
+          <ul>
+            @for (reason of s.risk.reasons; track reason) {
+              <li>{{ reason }}</li>
+            }
+          </ul>
+          <a mat-stroked-button [routerLink]="['/eventos', eventId()]">Volver al evento</a>
+        </div>
+      }
+    }
+  }
+</section>

@@ -51,15 +51,18 @@ describe('Contratos HTTP del frontend', () => {
 
 describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   const originalLatency = environment.mockLatencyMs;
+  const originalEpics = environment.enabledEpics;
   let auth: AuthService, store: MockStore, tickets: TicketService, event: EventItem;
   beforeEach(async () => {
     localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.useMockAuth = true; environment.mockLatencyMs = 0;
+    // Estas pruebas cubren la mecánica de compra; la cola (Épica 4) se prueba en queue.service.spec.ts.
+    environment.enabledEpics = [1, 2, 3];
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     auth = TestBed.inject(AuthService); store = TestBed.inject(MockStore); tickets = TestBed.inject(TicketService);
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
     event = { ...makeEvent(), id: 'test-event', organizerId: 'u-org-1' }; store.upsertEvent(event);
   });
-  afterEach(() => { environment.mockLatencyMs = originalLatency; localStorage.clear(); sessionStorage.clear(); });
+  afterEach(() => { environment.mockLatencyMs = originalLatency; environment.enabledEpics = originalEpics; localStorage.clear(); sessionStorage.clear(); });
   const payload = () => ({ eventId: 'test-event', items: [{ zoneId: 'z-test', quantity: 1 }], expectedTotal: 106 });
   it('rechazo no descuenta aforo ni crea orden', async () => {
     const count = store.orders.length;

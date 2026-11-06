@@ -17,6 +17,8 @@ import { EventService } from './event.service';
 import { PricingService } from './pricing.service';
 import { purchaseIssue } from '../models/ticketing-rules';
 import { RedemptionService } from './redemption.service';
+import { QueueService } from './queue.service';
+import { epicEnabled } from '../demo-scope';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -27,6 +29,7 @@ export class TicketService {
   private pricing = inject(PricingService);
   private base = environment.apiBackendUrl;
   private redemptions = inject(RedemptionService);
+  private queue = inject(QueueService);
   private completed = new Map<string, TicketOrder>();
 
   myOrders(): Observable<TicketOrder[]> {
@@ -91,6 +94,16 @@ export class TicketService {
             }
             if (this.store.users.find(account => account.id === user.id)?.active === false) {
               throw { status: 403, message: 'Tu cuenta está desactivada. Contacta al administrador.' };
+            }
+            if (epicEnabled(4)) {
+              const passIssue = this.queue.validatePass(payload.eventId, payload.queuePass);
+              if (passIssue) throw { status: 403, message: passIssue };
+              const limit = Math.min(6, event.maxPerOrder);
+              const owned = this.store.orders
+                .filter(o => o.buyerId === user.id && o.eventId === event.id && o.status !== 'CANCELADA')
+                .reduce((sum, o) => sum + o.lines.reduce((n, l) => n + l.quantity, 0), 0);
+              const requested = payload.items.reduce((sum, item) => sum + item.quantity, 0);
+              if (owned + requested > limit) throw { status: 409, message: `Límite de ${limit} entradas por persona para este evento (ya tienes ${owned}).` };
             }
             // Validaciones de negocio contra la data mock.
             const fresh = this.store.events.find(e => e.id === event.id);
@@ -175,6 +188,7 @@ export class TicketService {
               total: quote.total,
             };
             this.store.addOrder(order);
+            if (epicEnabled(4)) this.queue.consume(event.id);
             if (payload.idempotencyKey) this.completed.set(key, structuredClone(order));
             return order;
           }),

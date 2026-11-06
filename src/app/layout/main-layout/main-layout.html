@@ -19,6 +19,9 @@
           <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
           <a routerLink="/organizador/eventos/nuevo" routerLinkActive="active">Crear evento</a>
         }
+        @if (epicEnabled(5)) {
+          <a routerLink="/organizador/dashboard" routerLinkActive="active">Dashboard</a>
+        }
       }
     </nav>
 

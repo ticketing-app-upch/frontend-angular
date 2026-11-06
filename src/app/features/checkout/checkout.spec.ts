@@ -29,7 +29,9 @@ describe('Checkout', () => {
   let store: MockStore;
   let notify: NotificationService;
 
+  const originalEpics = environment.enabledEpics;
   beforeEach(() => {
+    environment.enabledEpics = [1, 2, 3];
     environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     environment.mockLatencyMs = 0;
@@ -38,7 +40,7 @@ describe('Checkout', () => {
     store = TestBed.inject(MockStore);
     notify = TestBed.inject(NotificationService);
   });
-  afterEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  afterEach(() => { environment.enabledEpics = originalEpics; localStorage.clear(); sessionStorage.clear(); });
 
   /**
    * `mockResponse`/`mockError` usan `delay()`/`timer()` de RxJS, que agendan

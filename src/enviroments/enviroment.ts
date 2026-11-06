@@ -12,8 +12,12 @@ export const environment = {
   mockLatencyMs: 450,
   /** HU-04: plazo breve y configurable para probar la caducidad de sesión. */
   sessionDurationMinutes: 15,
-  /** Demo 3: autenticación y épicas 2 y 3. */
-  enabledEpics: [1, 2, 3],
+  /** Demo 4: autenticación, eventos, compra y cola virtual (épicas 1 a 4). */
+  enabledEpics: [1, 2, 3, 4],
+  /** Precio dinámico: fuera del cronograma de épicas, apagado hasta que exista el servicio. */
+  dynamicPricing: false,
+  /** Cola virtual: minutos que dura el turno para completar la compra. */
+  queuePassMinutes: 10,
   /** Reservada para el prototipo previo de QR. */
   ticketSecret: 'aforo-clave-local-de-firma-2026-no-usar-en-produccion',
   /** Origen público para QR; vacío usa el origen actual de la aplicación. */

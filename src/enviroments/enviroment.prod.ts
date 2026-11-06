@@ -15,7 +15,11 @@ export const environment = {
   /** HU-04: ajustar junto con el vencimiento real que emita el backend. */
   sessionDurationMinutes: 15,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
-  enabledEpics: [1, 2, 3],
+  enabledEpics: [1, 2, 3, 4],
+  /** Precio dinámico: fuera del cronograma de épicas, apagado hasta que exista el servicio. */
+  dynamicPricing: false,
+  /** Cola virtual: minutos que dura el turno para completar la compra. */
+  queuePassMinutes: 10,
   /**
    * Reservada para el prototipo previo de QR. La Demo 3 enlaza al código
    * estático de `/validar/:code`; su verificación real requiere backend.

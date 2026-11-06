@@ -110,7 +110,7 @@ export class Bienvenida {
       case 'ORGANIZER':
         return [
           { url: '/organizer/create-event', label: 'Crear evento' },
-          { url: '/organizer/dashboard', label: 'Dashboard de ventas' },
+          ...(epicEnabled(5) ? [{ url: '/organizador/dashboard', label: 'Dashboard de ventas' }] : []),
         ];
       case 'ADMIN':
         return [];

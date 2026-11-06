@@ -11,9 +11,9 @@ const event: EventItem = { id: 'e1', name: 'Evento de prueba', description: 'Una
   imageUrl: '', organizerId: 'org', maxPerOrder: 6, zones: [zone, { id: 'z2', name: 'VIP', price: 150, capacity: 1, sold: 0 }] };
 
 describe('Reglas de ticketing del proyecto', () => {
-  const originalEpics = environment.enabledEpics;
-  beforeEach(() => { environment.enabledEpics = [1, 2, 3, 4]; });
-  afterEach(() => { environment.enabledEpics = originalEpics; });
+  const originalPricing = environment.dynamicPricing;
+  beforeEach(() => { environment.dynamicPricing = true; });
+  afterEach(() => { environment.dynamicPricing = originalPricing; });
   it('conserva precio base', () => expect(zonePrice(event, zone, now).unitPrice).toBe(100));
   it('recarga 20% con menos de 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 86 }, now).unitPrice).toBe(120));
   it('no recarga exactamente al 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 85 }, now).unitPrice).toBe(100));

@@ -21,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EventService } from '../../core/services/event.service';
 import { PriceQuote, PricingService } from '../../core/services/pricing.service';
+import { QueueService } from '../../core/services/queue.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { EventItem } from '../../core/models/event.model';
@@ -52,6 +53,7 @@ export class Checkout {
   private events = inject(EventService);
   private pricing = inject(PricingService);
   private tickets = inject(TicketService);
+  private queue = inject(QueueService);
   private notify = inject(NotificationService);
   private router = inject(Router);
 
@@ -312,7 +314,7 @@ export class Checkout {
       quantity: l.qty,
     }));
     this.placing.set(true);
-    this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey }).subscribe({
+    this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey, queuePass: this.queue.passToken(ev.id) }).subscribe({
       next: (ord) => {
         this.cardNumber = this.cardExpiry = this.cardCvv = '';
         this.order.set(ord);

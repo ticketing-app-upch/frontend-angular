@@ -9,6 +9,7 @@ import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { EventItem } from '../../../core/models/event.model';
+import { epicEnabled } from '../../../core/demo-scope';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
 
 @Component({
@@ -27,6 +28,7 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
   styleUrl: './event-manage.scss',
 })
 export class EventManage {
+  readonly epicEnabled = epicEnabled;
   private events = inject(EventService);
   private auth = inject(AuthService);
   private notify = inject(NotificationService);

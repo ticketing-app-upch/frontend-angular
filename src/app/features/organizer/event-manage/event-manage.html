@@ -35,6 +35,9 @@
           </div>
           <div class="actions">
             <a mat-button [routerLink]="['/eventos', ev.id]">Ver ficha</a>
+            @if (epicEnabled(5)) {
+              <a mat-button [routerLink]="['/organizador/eventos', ev.id, 'ventas']">Ventas</a>
+            }
           </div>
         </article>
       }
