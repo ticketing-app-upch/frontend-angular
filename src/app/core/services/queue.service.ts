@@ -36,6 +36,7 @@ export const QUEUE_TICK_SECONDS = 2;
 /** Intentos de ingreso a colas permitidos por minuto antes de marcar al usuario como bot. */
 export const MAX_JOINS_PER_MINUTE = 4;
 const STORAGE_KEY = 'tkt.queue.v1';
+const JOIN_LOG_KEY = 'tkt.queue.joins.v1';
 
 interface MockEntry {
   joinedAt: number;
@@ -55,7 +56,6 @@ export class QueueService {
   private auth = inject(AuthService);
   private store = inject(MockStore);
   private base = environment.apiPricingUrl;
-  private joinLog: number[] = [];
   private entries: Record<string, MockEntry> = this.load();
   private realPasses = new Map<string, string>();
 
@@ -147,9 +147,11 @@ export class QueueService {
     const reasons: string[] = [];
     let score = 0;
     const now = Date.now();
-    this.joinLog = this.joinLog.filter(t => now - t < 60_000);
-    this.joinLog.push(now);
-    if (this.joinLog.length > MAX_JOINS_PER_MINUTE) {
+    // Compartido entre pestañas (localStorage): abrir otra pestaña no reinicia el conteo.
+    const joinLog = this.readJoinLog().filter(t => now - t < 60_000);
+    joinLog.push(now);
+    this.writeJoinLog(joinLog);
+    if (joinLog.length > MAX_JOINS_PER_MINUTE) {
       reasons.push('Demasiados intentos de ingreso en poco tiempo (posible actividad automatizada).');
       score += 70;
     }
@@ -211,15 +213,32 @@ export class QueueService {
 
   private load(): Record<string, MockEntry> {
     try {
-      return JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? '{}') as Record<string, MockEntry>;
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Record<string, MockEntry>;
     } catch {
       return {};
     }
   }
 
+  private readJoinLog(): number[] {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(JOIN_LOG_KEY) ?? '[]');
+      return Array.isArray(parsed) ? parsed.filter((t): t is number => typeof t === 'number') : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private writeJoinLog(log: number[]): void {
+    try {
+      localStorage.setItem(JOIN_LOG_KEY, JSON.stringify(log));
+    } catch {
+      /* sin almacenamiento: el conteo queda solo en esta pestaña */
+    }
+  }
+
   private persist(): void {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(this.entries));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(this.entries));
     } catch {
       /* sin almacenamiento: la fila vive solo en memoria */
     }
