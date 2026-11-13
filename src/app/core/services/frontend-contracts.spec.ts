@@ -121,6 +121,6 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   it('sesión sin recordar usa sessionStorage', async () => {
     await firstValueFrom(auth.login({ ...DEMO_CREDENTIALS.CLIENT, remember: false }));
     expect(localStorage.getItem('tkt.token')).toBeNull(); expect(sessionStorage.getItem('tkt.token')).toBeTruthy();
-    auth.logout(); expect(sessionStorage.getItem('tkt.token')).toBeNull();
+    await firstValueFrom(auth.logout()); expect(sessionStorage.getItem('tkt.token')).toBeNull();
   });
 });

@@ -33,6 +33,10 @@ Fuente funcional: pestaña **Demo4** del [backlog compartido](https://docs.googl
 | 29 | “Cancelar compra” invalida el pase mock y vuelve al detalle; cerrar pestaña no cancela. | PHP/Python deben confirmar la cancelación y liberar cupo. |
 | 30 | Ruta **Mercado** del organizador: filtros, KPI, top 5, dona, tendencia, mapa de calor y estado vacío con datos agregados mock. | `GET /api/v1/dashboard/mercado` debe entregar agregados completos y protegidos. |
 
+## Ampliación: HU-03, cierre de sesión
+
+El cierre de sesión explícito ahora llama a `POST /api/auth/logout` con el JWT activo cuando `useMockAuth` está desactivado. El frontend borra el token y el usuario de ambos almacenamientos inmediatamente, redirige al login y conserva la protección de rutas al usar «atrás». Si la revocación falla, informa que el cierre local se completó pero que no pudo confirmar la revocación en el servidor. En modo mock solo se limpia la sesión local.
+
 ## Límites de integración
 
 `useMock: true` permanece activo en los entornos del repositorio. El mock usa almacenamiento del navegador para mostrar los flujos: no garantiza orden global concurrente, JWT firmado, pago, correo, transacciones SQL ni seguridad contra clientes que alteren JavaScript. Los endpoints de cola y apertura de pago empleados por el cliente requieren acordar el contrato exacto con PHP antes de activar `useMock: false`. No se ha verificado un despliegue conjunto con PHP y Python.
