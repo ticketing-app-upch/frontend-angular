@@ -35,4 +35,17 @@ describe('MockStore', () => {
     const second = TestBed.inject(MockStore);
     expect(second.users.some(u => u.id === 'u-extra')).toBe(true);
   });
+
+  it('añade una segunda foto a los eventos existentes sin perder las compras guardadas', () => {
+    const first = TestBed.inject(MockStore);
+    const previousOrders = first.orders.length;
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY)!);
+    for (const event of stored.data.events) delete event.secondaryBannerUrl;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+
+    TestBed.resetTestingModule();
+    const upgraded = TestBed.inject(MockStore);
+    expect(upgraded.orders.length).toBe(previousOrders);
+    expect(upgraded.events.every(event => !!event.secondaryBannerUrl && event.secondaryBannerUrl !== event.imageUrl)).toBe(true);
+  });
 });

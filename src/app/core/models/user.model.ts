@@ -53,6 +53,7 @@ export interface OrganizerProfile {
 
 export interface User {
   id: string;
+  createdAt?: string;
   fullName: string;
   email: string;
   role: UserRole;

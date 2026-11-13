@@ -6,6 +6,7 @@ import { AuthService } from '../auth/auth.service';
 import { MockStore } from '../mock/mock-store';
 import { DEMO_CREDENTIALS } from '../mock/mock-data';
 import { EventItem } from '../models/event.model';
+import { environment } from '../../../enviroments/enviroment';
 
 const draft = (over: Partial<EventItem> = {}): EventItem => ({
   id: '', organizerId: 'u-org-1', name: 'Evento de prueba',
@@ -13,7 +14,8 @@ const draft = (over: Partial<EventItem> = {}): EventItem => ({
   startsAt: new Date(Date.now() + 10 * 86400000).toISOString(),
   category: 'CONCIERTO', status: 'PUBLICADO', venue: 'Arena', city: 'Lima',
   venueCapacity: 200, imageUrl: '', maxPerOrder: 4,
-  zones: [{ id: 'z1', name: 'General', price: 50, capacity: 200, sold: 0 }],
+  zones: [{ id: 'z1', name: 'General', price: 50, capacity: 100, sold: 0 },
+    { id: 'z2', name: 'VIP', price: 100, capacity: 100, sold: 0 }],
   ...over,
 });
 
@@ -23,6 +25,7 @@ describe('EventService (modo mock)', () => {
   let store: MockStore;
 
   beforeEach(() => {
+    environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     events = TestBed.inject(EventService);
@@ -90,16 +93,38 @@ describe('EventService (modo mock)', () => {
       await expect(firstValueFrom(events.save(mine))).rejects.toMatchObject({ status: 403 });
     });
 
-    it('no se puede reducir el aforo de una zona por debajo de lo ya vendido', async () => {
+    it('no permite editar un evento ya creado, incluso si se intenta reducir el aforo', async () => {
       store.upsertEvent(draft({ id: 'ev-vendido', zones: [{ id: 'z1', name: 'General', price: 10, capacity: 100, sold: 40 }] }));
       const shrink = draft({ id: 'ev-vendido', zones: [{ id: 'z1', name: 'General', price: 10, capacity: 30, sold: 40 }] });
-      await expect(firstValueFrom(events.save(shrink))).rejects.toMatchObject({ status: 422 });
+      await expect(firstValueFrom(events.save(shrink))).rejects.toMatchObject({ status: 403 });
     });
 
     it('guarda un evento válido y le asigna id', async () => {
       const saved = await firstValueFrom(events.save(draft()));
       expect(saved.id).toBeTruthy();
+      expect(saved.status).toBe('PENDIENTE');
+      expect((await firstValueFrom(events.list())).some(e => e.id === saved.id)).toBe(false);
     });
+    it('permite reenviar uno rechazado, pero impide editar uno pendiente', async () => {
+      const saved = await firstValueFrom(events.save(draft({ queueEnabled: true })));
+      await expect(firstValueFrom(events.save({ ...saved, name: 'Cambio indebido' }))).rejects.toMatchObject({ status: 403 });
+      await firstValueFrom(auth.login(DEMO_CREDENTIALS.ADMIN));
+      await firstValueFrom(events.review(saved.id, 'RECHAZADO', 'Revisar el título'));
+      await firstValueFrom(auth.login(DEMO_CREDENTIALS.ORGANIZER));
+      const corrected = await firstValueFrom(events.save({ ...saved, name: 'Título corregido' }));
+      expect(corrected).toMatchObject({ status: 'PENDIENTE', name: 'Título corregido' });
+      expect(corrected.rejectionReason).toBeUndefined();
+    });
+  });
+
+  it('solo el administrador aprueba eventos futuros y habilita el catálogo', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.ORGANIZER));
+    const saved = await firstValueFrom(events.save(draft()));
+    await expect(firstValueFrom(events.review(saved.id, 'PUBLICADO'))).rejects.toMatchObject({ status: 403 });
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.ADMIN));
+    expect((await firstValueFrom(events.pendingForReview())).some(e => e.id === saved.id)).toBe(true);
+    await firstValueFrom(events.review(saved.id, 'PUBLICADO'));
+    expect((await firstValueFrom(events.list())).some(e => e.id === saved.id)).toBe(true);
   });
 
   describe('remove()', () => {

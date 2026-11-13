@@ -14,8 +14,9 @@ import { EventItem } from '../models/event.model';
 
 const makeEvent = (): EventItem => ({ id: '', organizerId: 'u-org', name: 'Evento contractual', description: 'Descripción de prueba para el contrato.',
   startsAt: new Date(Date.now() + 10 * 86400000).toISOString(), publishedAt: new Date().toISOString(), category: 'CONCIERTO',
-  status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 100, imageUrl: '', maxPerOrder: 6,
-  zones: [{ id: 'z-test', name: 'General', price: 100, capacity: 100, sold: 0 }] });
+  status: 'PUBLICADO', venue: 'Arena', city: 'Lima', venueCapacity: 101, imageUrl: '', maxPerOrder: 6,
+  zones: [{ id: 'z-test', name: 'General', price: 100, capacity: 100, sold: 0 },
+    { id: 'z-extra', name: 'VIP', price: 150, capacity: 1, sold: 0 }] });
 
 describe('Contratos HTTP del frontend', () => {
   beforeEach(() => {
@@ -29,7 +30,7 @@ describe('Contratos HTTP del frontend', () => {
     const request = http.expectOne(environment.apiBackendUrl + '/events');
     expect(request.request.method).toBe('POST'); request.flush({ ...event, id: 'new' }); await pending;
     const updating = firstValueFrom(service.save({ ...event, id: 'new' }));
-    const put = http.expectOne(environment.apiBackendUrl + '/events/new'); expect(put.request.method).toBe('PUT');
+    const put = http.expectOne(environment.apiBackendUrl + '/v1/eventos/new'); expect(put.request.method).toBe('PUT');
     put.flush({ ...event, id: 'new' }); await updating;
   });
   it('consulta endpoint Python y calcula comisión una sola vez', async () => {
@@ -50,15 +51,18 @@ describe('Contratos HTTP del frontend', () => {
 
 describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   const originalLatency = environment.mockLatencyMs;
+  const originalEpics = environment.enabledEpics;
   let auth: AuthService, store: MockStore, tickets: TicketService, event: EventItem;
   beforeEach(async () => {
-    localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.mockLatencyMs = 0;
+    localStorage.clear(); sessionStorage.clear(); environment.useMock = true; environment.useMockAuth = true; environment.mockLatencyMs = 0;
+    // Estas pruebas cubren la mecánica de compra; la cola (Épica 4) se prueba en queue.service.spec.ts.
+    environment.enabledEpics = [1, 2, 3];
     TestBed.configureTestingModule({ providers: [provideHttpClient()] });
     auth = TestBed.inject(AuthService); store = TestBed.inject(MockStore); tickets = TestBed.inject(TicketService);
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
     event = { ...makeEvent(), id: 'test-event', organizerId: 'u-org-1' }; store.upsertEvent(event);
   });
-  afterEach(() => { environment.mockLatencyMs = originalLatency; localStorage.clear(); sessionStorage.clear(); });
+  afterEach(() => { environment.mockLatencyMs = originalLatency; environment.enabledEpics = originalEpics; localStorage.clear(); sessionStorage.clear(); });
   const payload = () => ({ eventId: 'test-event', items: [{ zoneId: 'z-test', quantity: 1 }], expectedTotal: 106 });
   it('rechazo no descuenta aforo ni crea orden', async () => {
     const count = store.orders.length;
@@ -76,7 +80,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
   });
   it('dos compras simultáneas no consumen la misma última entrada local', async () => {
     event.zones[0].sold = 99;
-    const request = { ...payload(), expectedTotal: 127.2 };
+    const request = payload();
     const results = await Promise.allSettled([firstValueFrom(tickets.createOrder(request)), firstValueFrom(tickets.createOrder(request))]);
     expect(results.filter(r => r.status === 'fulfilled').length).toBe(1);
     expect(event.zones[0].sold).toBe(100);

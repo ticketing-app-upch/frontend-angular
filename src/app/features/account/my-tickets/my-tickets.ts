@@ -8,7 +8,7 @@ import { MatExpansionModule } from '@angular/material/expansion';
 import { TicketService } from '../../../core/services/ticket.service';
 import { RedemptionService } from '../../../core/services/redemption.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { TicketOrder } from '../../../core/models/ticket.model';
+import { TicketOrder, ticketsForOrder } from '../../../core/models/ticket.model';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
 import { FormsModule } from '@angular/forms';
 import { addToCalendar, downloadFile } from '../../../shared/event-actions';
@@ -33,6 +33,7 @@ import { TicketQr } from '../../../shared/ticket-qr/ticket-qr';
   styleUrl: './my-tickets.scss',
 })
 export class MyTickets {
+  readonly ticketsForOrder = ticketsForOrder;
   private tickets = inject(TicketService);
   private redemptions = inject(RedemptionService);
   private notify = inject(NotificationService);

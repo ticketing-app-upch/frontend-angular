@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe, TitleCasePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,8 +8,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { EventService } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { computeCapacity, EventItem } from '../../../core/models/event.model';
-import { CapacityBar } from '../../../shared/capacity-bar/capacity-bar';
+import { EventItem } from '../../../core/models/event.model';
+import { epicEnabled } from '../../../core/demo-scope';
 import { EmptyState } from '../../../shared/empty-state/empty-state';
 
 @Component({
@@ -17,26 +17,28 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
-    CurrencyPipe,
     DatePipe,
-    TitleCasePipe,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatChipsModule,
-    CapacityBar,
     EmptyState,
   ],
   templateUrl: './event-manage.html',
   styleUrl: './event-manage.scss',
 })
 export class EventManage {
+  readonly epicEnabled = epicEnabled;
   private events = inject(EventService);
   private auth = inject(AuthService);
   private notify = inject(NotificationService);
 
   readonly loading = signal(true);
   readonly items = signal<EventItem[]>([]);
+  status(ev: EventItem): string {
+    if (ev.status === 'PENDIENTE' && Date.parse(ev.startsAt) <= Date.now()) return 'Vencido';
+    return ({ PENDIENTE: 'Pendiente de aprobación', PUBLICADO: 'Publicado', RECHAZADO: 'Rechazado', AGOTADO: 'Agotado', FINALIZADO: 'Finalizado', BORRADOR: 'Borrador' })[ev.status];
+  }
 
   constructor() {
     const id = this.auth.user()?.id ?? '';
@@ -52,11 +54,5 @@ export class EventManage {
         this.notify.error('No se pudieron cargar tus eventos.');
       },
     });
-  }
-
-  cap = computeCapacity;
-
-  minPrice(ev: EventItem): number {
-    return Math.min(...ev.zones.map((z) => z.price));
   }
 }

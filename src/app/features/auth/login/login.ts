@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -10,7 +12,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { AuthService } from '../../../core/auth/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -29,7 +30,6 @@ import { DEMO_CREDENTIALS } from '../../../core/mock/mock-data';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatCheckboxModule,
     MatProgressBarModule,
   ],
   templateUrl: './login.html',
@@ -42,30 +42,24 @@ export class Login {
   private route = inject(ActivatedRoute);
   private notify = inject(NotificationService);
 
+  readonly sessionExpired = toSignal(
+    this.route.queryParamMap.pipe(map(params => params.get('reason') === 'expired')),
+    { initialValue: this.route.snapshot.queryParamMap.get('reason') === 'expired' },
+  );
   readonly loading = signal(false);
   readonly hide = signal(true);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.pattern(PASSWORD_PATTERN)]],
-    remember: [true],
   });
 
-  fill(kind: 'ORGANIZER' | 'CLIENT'): void {
+  fill(kind: 'ORGANIZER' | 'CLIENT' | 'ADMIN'): void {
     this.form.patchValue(DEMO_CREDENTIALS[kind]);
   }
 
   private homeFor(role: UserRole): string {
-    if (role === 'ADMIN') return '/admin';
-    if (role === 'ORGANIZER') return '/organizador/panel';
-    return '/eventos';
-  }
-
-  forgotPassword(event: Event): void {
-    event.preventDefault();
-    this.notify.info(
-      'La recuperación de contraseña estará disponible próximamente.',
-    );
+    return role === 'ADMIN' ? '/admin/usuarios' : role === 'ORGANIZER' ? '/organizador/eventos' : '/attendee/catalog';
   }
 
   submit(): void {
@@ -76,7 +70,7 @@ export class Login {
     this.loading.set(true);
     this.auth.login(this.form.getRawValue()).subscribe({
       next: (res) => {
-        this.notify.success(`Hola, ${res.user.fullName.split(' ')[0]}`);
+        this.notify.success('Inicio de sesión correcto.');
         const redirect = this.route.snapshot.queryParamMap.get('redirect');
         this.router.navigateByUrl(redirect?.startsWith('/') && !redirect.startsWith('//') ? redirect : this.homeFor(res.user.role));
       },

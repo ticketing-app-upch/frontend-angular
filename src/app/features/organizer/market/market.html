@@ -1,0 +1,35 @@
+<div class="tkt-page market">
+  <h1 class="tkt-section-title">Mercado</h1>
+  <p class="tkt-section-sub">Indicadores agregados de eventos publicados en toda la plataforma.</p>
+  <div class="filters" aria-label="Filtros de mercado">
+    <label>Desde <input type="date" [value]="filters().from ?? ''" (change)="change('from', $any($event.target).value)" /></label>
+    <label>Hasta <input type="date" [value]="filters().to ?? ''" (change)="change('to', $any($event.target).value)" /></label>
+    <label>Categoría <select [value]="filters().category ?? ''" (change)="change('category', $any($event.target).value)"><option value="">Todas</option>@for (category of categories; track category) { <option [value]="category">{{ category }}</option> }</select></label>
+    <label>Recinto <select [value]="filters().venue ?? ''" (change)="change('venue', $any($event.target).value)"><option value="">Todos</option>@for (venue of venues; track venue) { <option [value]="venue">{{ venue }}</option> }</select></label>
+    <label>Cola virtual <select [value]="filters().queue ?? 'all'" (change)="change('queue', $any($event.target).value)"><option value="all">Todos</option><option value="with">Con cola</option><option value="without">Sin cola</option></select></label>
+  </div>
+  @if (loading()) { <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div> }
+  @else if (error()) { <p role="alert">{{ error() }}</p> }
+  @else if (report(); as data) {
+    @if (data.events === 0) { <div class="empty">No hay datos para los filtros seleccionados.</div> }
+    @else {
+      <div class="kpis">
+        <article><span>Eventos</span><strong>{{ data.events }}</strong></article>
+        <article><span>Entradas vendidas</span><strong>{{ data.tickets | number }}</strong></article>
+        <article><span>Ingresos</span><strong>{{ data.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</strong></article>
+        <article><span>Ocupación promedio</span><strong>{{ data.occupancy | percent: '1.0-1' }}</strong></article>
+        <article><span>Tiempo hasta agotarse</span><strong>{{ data.averageSelloutHours === null ? 'Sin datos' : (data.averageSelloutHours | number: '1.0-1') + ' h' }}</strong></article>
+        <article><span>Conversión de cola</span><strong>{{ conversion() | percent: '1.0-1' }}</strong><small>{{ data.queue.completed }} completados · {{ data.queue.expired }} vencidos · {{ data.queue.cancelled }} cancelados</small></article>
+      </div>
+      <div class="charts">
+        <section class="panel"><h2>Top 5 recintos por eventos</h2>@for (g of top(data.venues, 'events'); track g.name) { <div class="bar-row"><span>{{ g.name }}</span><div class="bar-track"><div [style.width.%]="width(g.events, data.venues, 'events')"></div></div><b>{{ g.events }}</b></div> }</section>
+        <section class="panel"><h2>Top 5 recintos por entradas</h2>@for (g of top(data.venues, 'tickets'); track g.name) { <div class="bar-row"><span>{{ g.name }}</span><div class="bar-track"><div [style.width.%]="width(g.tickets, data.venues, 'tickets')"></div></div><b>{{ g.tickets | number }}</b></div> }</section>
+        <section class="panel"><h2>Top 5 recintos por ingresos</h2>@for (g of top(data.venues, 'revenue'); track g.name) { <div class="bar-row"><span>{{ g.name }}</span><div class="bar-track"><div [style.width.%]="width(g.revenue, data.venues, 'revenue')"></div></div><b>{{ g.revenue | currency: 'PEN' : 'symbol-narrow' : '1.0-0' }}</b></div> }</section>
+        <section class="panel"><h2>Categorías más compradas</h2><div class="donut" [style.background]="donut()" role="img" aria-label="Distribución de entradas por categoría"></div>@for (g of top(data.categories, 'tickets'); track g.name; let i = $index) { <p><i [style.background]="colors[i]"></i> {{ g.name }} · {{ g.tickets | number }} entradas</p> }</section>
+        <section class="panel"><h2>Tendencia mensual de ventas</h2><svg viewBox="0 0 320 120" role="img" aria-label="Entradas vendidas por mes"><polyline [attr.points]="line()" fill="none" stroke="#7c3aed" stroke-width="3" /></svg><div class="month-labels">@for (month of data.monthly; track month.label) { <span>{{ month.label }}<br />{{ month.tickets }}</span> }</div></section>
+        <section class="panel"><h2>Ocupación y ticket promedio</h2><table><thead><tr><th>Recinto</th><th>Ocupación</th><th>Ticket promedio</th></tr></thead><tbody>@for (g of data.venues; track g.name) { <tr><td>{{ g.name }}</td><td>{{ g.occupancy | percent: '1.0-1' }}</td><td>{{ g.averageTicket | currency: 'PEN' : 'symbol-narrow' }}</td></tr> }</tbody></table><h3>Por categoría</h3><table><tbody>@for (g of data.categories; track g.name) { <tr><td>{{ g.name }}</td><td>{{ g.occupancy | percent: '1.0-1' }}</td><td>{{ g.averageTicket | currency: 'PEN' : 'symbol-narrow' }}</td></tr> }</tbody></table></section>
+        <section class="panel"><h2>Mapa de calor: día y categoría</h2><table><thead><tr><th>Categoría</th>@for (day of weekDays; track day) { <th>{{ day }}</th> }</tr></thead><tbody>@for (row of data.heatmap; track row.category) { <tr><td>{{ row.category }}</td>@for (value of row.days; track $index) { <td [style.background]="heat(value, row.days)" [style.color]="value > 0 && heat(value, row.days) === '#5b21b6' ? 'white' : 'inherit'">{{ value }}</td> }</tr> }</tbody></table></section>
+      </div>
+    }
+  }
+</div>

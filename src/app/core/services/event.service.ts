@@ -21,6 +21,44 @@ export class EventService {
   private store = inject(MockStore);
   private base = environment.apiBackendUrl;
 
+  pendingForReview(): Observable<EventItem[]> {
+    if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
+      return mockResponse(this.store.events.filter(e => e.status === 'PENDIENTE' && Date.parse(e.startsAt) > Date.now()).map(e => structuredClone(e)));
+    }
+    return this.http.get<EventItem[]>(`${this.base}/v1/admin/eventos`, { params: { estado: 'pendiente' } });
+  }
+
+  review(id: string, decision: 'PUBLICADO' | 'RECHAZADO', reason = ''): Observable<EventItem> {
+    if (environment.useMock) {
+      if (!this.auth.isAdmin()) return mockError('Acceso exclusivo de administración.', 403);
+      const event = this.store.events.find(e => e.id === id);
+      if (!event) return mockError('Evento no encontrado.', 404);
+      if (event.status !== 'PENDIENTE') return mockError('El evento ya no está pendiente.', 409);
+      if (decision === 'PUBLICADO' && Date.parse(event.startsAt) <= Date.now()) return mockError('El evento ya venció', 409);
+      if (decision === 'RECHAZADO' && !reason.trim()) return mockError('Indica un motivo de rechazo.', 422);
+      const updated: EventItem = { ...event, status: decision,
+        rejectionReason: decision === 'RECHAZADO' ? reason.trim() : undefined,
+        publishedAt: decision === 'PUBLICADO' ? new Date().toISOString() : undefined };
+      this.store.upsertEvent(updated);
+      return mockResponse(structuredClone(updated));
+    }
+    return this.http.patch<EventItem>(`${this.base}/v1/admin/eventos/${id}/estado`, { estado: decision.toLowerCase(), motivo: reason.trim() });
+  }
+
+  enablePurchases(id: string): Observable<EventItem> {
+    if (environment.useMock) {
+      const event = this.store.events.find(e => e.id === id);
+      if (!event) return mockError('Evento no encontrado.', 404);
+      if (!this.auth.isOrganizer() || event.organizerId !== this.auth.user()?.id) return mockError('No tienes acceso a este evento.', 403);
+      if (event.status !== 'PUBLICADO' || !event.queueEnabled || event.purchasesEnabled) return mockError('Las compras no se pueden habilitar para este evento.', 409);
+      const updated = { ...event, purchasesEnabled: true, purchasesEnabledAt: new Date().toISOString() };
+      this.store.upsertEvent(updated);
+      return mockResponse(structuredClone(updated));
+    }
+    return this.http.patch<EventItem>(`${this.base}/v1/eventos/${id}/habilitar-compras`, {});
+  }
+
   list(filter: EventFilter = {}): Observable<EventItem[]> {
     if (environment.useMock) {
       return mockResponse(this.filterLocally(this.publicEvents(), filter));
@@ -36,7 +74,8 @@ export class EventService {
 
   getById(id: string): Observable<EventItem> {
     if (environment.useMock) {
-      const found = this.store.events.find((e) => e.id === id && (e.status !== 'BORRADOR' || this.auth.isAdmin() || e.organizerId === this.auth.user()?.id));
+      const found = this.store.events.find((e) => e.id === id &&
+        (!['BORRADOR', 'PENDIENTE', 'RECHAZADO'].includes(e.status) || this.auth.isAdmin() || e.organizerId === this.auth.user()?.id));
       return found
         ? mockResponse(structuredClone(found))
         : mockError<EventItem>('Evento no encontrado.', 404);
@@ -84,24 +123,40 @@ export class EventService {
   }
 
   save(event: EventItem): Observable<EventItem> {
+    if (environment.useMock) {
+      const account = this.store.users.find(user => user.id === this.auth.user()?.id);
+      if (!account || account.active === false) return mockError('Tu cuenta está desactivada. Contacta al administrador.', 403);
+    }
     const previous = this.store.events.find(e => e.id === event.id);
     if (environment.useMock && !this.auth.isAdmin() && !(this.auth.isOrganizer() && event.organizerId === this.auth.user()?.id && (!previous || previous.organizerId === this.auth.user()?.id))) return mockError('No tienes permisos para editar este evento.', 403);
+    if (environment.useMock && event.id && (!previous || previous.status !== 'RECHAZADO')) {
+      return mockError('Solo se puede editar un evento rechazado.', previous ? 403 : 404);
+    }
+    if (environment.useMock && this.store.events.some(other =>
+      other.id !== event.id && other.venue === event.venue &&
+      (other.status === 'PENDIENTE' || other.status === 'PUBLICADO') &&
+      Math.abs(Date.parse(other.startsAt) - Date.parse(event.startsAt)) < 86_400_000
+    )) {
+      return mockError('El recinto ya tiene un evento con menos de un día de diferencia.', 409);
+    }
     const issues = eventIssues(event, environment.useMock ? previous : undefined);
     if (issues.length) return mockError<EventItem>(issues[0], 422);
     if (environment.useMock) {
-      const saved = { ...structuredClone(event), id: event.id || `ev-${crypto.randomUUID()}` };
+      const saved = { ...structuredClone(event), id: event.id || `ev-${crypto.randomUUID()}`,
+        status: 'PENDIENTE' as const, rejectionReason: undefined, publishedAt: undefined,
+        purchasesEnabled: event.queueEnabled ? false : true };
       this.store.upsertEvent(saved);
       return mockResponse(saved);
     }
     const isNew = !event.id;
     return isNew
       ? this.http.post<EventItem>(`${this.base}/events`, event)
-      : this.http.put<EventItem>(`${this.base}/events/${event.id}`, event);
+      : this.http.put<EventItem>(`${this.base}/v1/eventos/${event.id}`, event);
   }
 
   private publicEvents(): EventItem[] {
     return this.store.events
-      .filter((e) => e.status === 'PUBLICADO' || e.status === 'AGOTADO')
+      .filter((e) => (e.status === 'PUBLICADO' || e.status === 'AGOTADO') && Date.parse(e.startsAt) > Date.now())
       .map((e) => structuredClone(e));
   }
 

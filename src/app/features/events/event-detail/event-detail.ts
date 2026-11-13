@@ -13,7 +13,7 @@ import {
   DecimalPipe,
   TitleCasePipe,
 } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -28,8 +28,11 @@ import { EmptyState } from '../../../shared/empty-state/empty-state';
 import { DiscoveryService } from '../../../core/services/discovery.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { zonePrice } from '../../../core/models/ticketing-rules';
-import { addToCalendar } from '../../../shared/event-actions';
+import { copyEventLink } from '../../../shared/event-share';
 import { matchArt } from '../../../shared/event-image';
+import { venueMap } from '../../../shared/event-image';
+import { zoneColor } from '../../../shared/zone-map/zone-map';
+import { BannerPalette, DEFAULT_BANNER_PALETTE, paletteFromImage } from '../../../shared/banner-palette';
 
 @Component({
   selector: 'tkt-event-detail',
@@ -52,17 +55,33 @@ import { matchArt } from '../../../shared/event-image';
 export class EventDetail {
   readonly discovery = inject(DiscoveryService);
   private notify = inject(NotificationService);
-  readonly calendar = addToCalendar;
   readonly price = zonePrice;
   private events = inject(EventService);
   private auth = inject(AuthService);
+  private router = inject(Router);
+
+  toggleFavorite(id: string): void {
+    if (!this.auth.isClient()) {
+      void this.router.navigate(['/auth/login'], { queryParams: { redirect: this.router.url } });
+      return;
+    }
+    this.discovery.toggle(id);
+  }
 
   /** Ligado desde la ruta `eventos/:id` (withComponentInputBinding). */
   readonly id = input.required<string>();
 
   readonly loading = signal(true);
+  readonly intro = signal(true);
   readonly notFound = signal(false);
   readonly event = signal<EventItem | null>(null);
+  readonly palette = signal<BannerPalette>(DEFAULT_BANNER_PALETTE);
+  readonly venueMap = venueMap;
+  readonly zoneColor = zoneColor;
+
+  onBannerLoad(event: Event): void {
+    this.palette.set(paletteFromImage(event.target as HTMLImageElement));
+  }
 
   readonly isAuthenticated = this.auth.isAuthenticated;
   readonly isOrganizer = computed(() => this.auth.isOrganizer() || this.auth.isAdmin());
@@ -95,24 +114,32 @@ export class EventDetail {
     effect((onCleanup) => {
       const id = this.id();
       this.loading.set(true);
+      this.intro.set(true);
+      this.palette.set(DEFAULT_BANNER_PALETTE);
       this.notFound.set(false);
+      const started = performance.now();
+      let introTimer: ReturnType<typeof setTimeout> | undefined;
       const request = this.events.getById(id).subscribe({
         next: (ev) => {
           this.event.set(ev);
           this.loading.set(false);
+          introTimer = setTimeout(() => this.intro.set(false), Math.max(0, 750 - (performance.now() - started)));
         },
         error: () => {
           this.notFound.set(true);
           this.loading.set(false);
+          this.intro.set(false);
         },
       });
-      onCleanup(() => request.unsubscribe());
+      onCleanup(() => { request.unsubscribe(); if (introTimer) clearTimeout(introTimer); });
     });
   }
 
   async share(): Promise<void> {
-    try { await navigator.clipboard.writeText(location.href); this.notify.success('Enlace del evento copiado.'); }
-    catch { this.notify.info('Copia la dirección del evento desde la barra del navegador.'); }
+    const event = this.event();
+    if (!event) return;
+    try { await copyEventLink(event.id); this.notify.success('Enlace copiado'); }
+    catch { this.notify.error('No se pudo copiar el enlace.'); }
   }
 
   zoneAvailable(sold: number, capacity: number): number {

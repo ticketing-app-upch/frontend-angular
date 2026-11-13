@@ -29,7 +29,10 @@ describe('Checkout', () => {
   let store: MockStore;
   let notify: NotificationService;
 
+  const originalEpics = environment.enabledEpics;
   beforeEach(() => {
+    environment.enabledEpics = [1, 2, 3];
+    environment.useMockAuth = true;
     localStorage.clear(); sessionStorage.clear();
     environment.mockLatencyMs = 0;
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideRouter([])] });
@@ -37,7 +40,7 @@ describe('Checkout', () => {
     store = TestBed.inject(MockStore);
     notify = TestBed.inject(NotificationService);
   });
-  afterEach(() => { localStorage.clear(); sessionStorage.clear(); });
+  afterEach(() => { environment.enabledEpics = originalEpics; localStorage.clear(); sessionStorage.clear(); });
 
   /**
    * `mockResponse`/`mockError` usan `delay()`/`timer()` de RxJS, que agendan
@@ -62,6 +65,13 @@ describe('Checkout', () => {
     await fixture.whenStable();
     await flush(fixture);
     return fixture;
+  }
+
+  function useTestPayment(cmp: Checkout): void {
+    cmp.openPaymentGateway();
+    cmp.cardNumber = '4242424242424242';
+    cmp.cardExpiry = `${new Date().getFullYear() + 1}-12`;
+    cmp.cardCvv = '123';
   }
 
   it('carga el evento y arranca las cantidades en cero', async () => {
@@ -118,6 +128,23 @@ describe('Checkout', () => {
     expect(cmp.secondsLeft()).toBe(120);
   });
 
+  it('rechaza una tarjeta que vence en el mes actual (debe ser posterior a hoy)', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
+    const ev = seedEvent(store);
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.change('z1', 1);
+    cmp.startReview();
+    await flush(fixture);
+    useTestPayment(cmp);
+    const now = new Date();
+    cmp.cardExpiry = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()).toBeNull();
+    expect(cmp.paymentError()).toContain('expiración');
+  });
+
   it('sin sesión de cliente, confirmar falla y no genera orden', async () => {
     const ev = seedEvent(store);
     const fixture = await open(ev.id);
@@ -125,6 +152,7 @@ describe('Checkout', () => {
     cmp.change('z1', 1);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     cmp.confirm();
     await flush(fixture);
     expect(cmp.order()).toBeNull();
@@ -138,6 +166,7 @@ describe('Checkout', () => {
     cmp.change('z1', 2);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     cmp.confirm();
     await flush(fixture);
     expect(cmp.order()?.status).toBe('CONFIRMADA');
@@ -152,6 +181,7 @@ describe('Checkout', () => {
     cmp.change('z1', 1);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     // Fuerza el vencimiento sin esperar los 120s reales.
     (cmp as unknown as { expiresAt: number }).expiresAt = Date.now() - 1000;
     cmp.confirm();
@@ -169,6 +199,7 @@ describe('Checkout', () => {
     cmp.change('z1', 1);
     cmp.startReview();
     await flush(fixture);
+    useTestPayment(cmp);
     // Otra compra agota la zona justo antes de que este confirme.
     store.upsertEvent({ ...ev, zones: [{ ...ev.zones[0], sold: 100 }] });
     cmp.confirm();

@@ -302,25 +302,28 @@ form mat-form-field {
   flex: 1;
 }
 
-/* ---------- Consentimientos ---------- */
-.consents {
-  gap: 0.4rem;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--mat-sys-on-surface) 4%, transparent);
+.terms-consent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
 }
-.consents mat-checkbox {
-  font-size: 0.83rem;
-  line-height: 1.4;
-}
-.consents a {
+
+.terms-link {
+  border: 0;
+  padding: 0 0 0 2.5rem;
+  background: none;
   color: var(--mat-sys-primary);
-  font-weight: 600;
+  font: inherit;
+  font-size: 0.82rem;
+  text-decoration: underline;
+  cursor: pointer;
 }
-.c-error {
-  margin: 0 0 0.2rem;
-  font-size: 0.74rem;
+
+.terms-error {
+  margin: 0.2rem 0 0 2.5rem;
   color: var(--mat-sys-error);
+  font-size: 0.78rem;
 }
 
 .submit {

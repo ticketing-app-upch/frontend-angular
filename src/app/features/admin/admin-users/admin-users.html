@@ -1,77 +1,54 @@
-<div class="toolbar">
-  <button mat-flat-button type="button" (click)="createAdmin()">
-    <mat-icon>admin_panel_settings</mat-icon>
-    Nuevo administrador
-  </button>
-</div>
+<div class="tkt-page">
+  <header class="admin-head">
+    <div>
+      <h1 class="tkt-section-title">Gestión de usuarios</h1>
+      <p class="tkt-section-sub">Asistentes y organizadores registrados.</p>
+    </div>
+  </header>
 
-@if (loading()) {
-  <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
-} @else if (users().length === 0) {
-  <tkt-empty-state icon="group_off" title="Sin usuarios" />
-} @else {
-  <div class="adm-card">
-    <div class="adm-scroll">
+  <div class="filters" aria-label="Filtrar usuarios">
+    <label>Rol
+      <select [value]="role()" (change)="setRole($event)">
+        <option value="ALL">Todos</option>
+        <option value="CLIENT">Asistentes</option>
+        <option value="ORGANIZER">Organizadores</option>
+      </select>
+    </label>
+    <label>Estado
+      <select [value]="status()" (change)="setStatus($event)">
+        <option value="ALL">Todos</option>
+        <option value="ACTIVE">Activos</option>
+        <option value="INACTIVE">Inactivos</option>
+      </select>
+    </label>
+    <span class="count">{{ visible().length }} usuario(s)</span>
+  </div>
+
+  @if (loading()) {
+    <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
+  } @else if (visible().length === 0) {
+    <div class="empty">No hay usuarios para los filtros seleccionados.</div>
+  } @else {
+    <div class="adm-card adm-scroll">
       <table class="adm-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Rol</th>
-            <th class="ta-right">Acciones</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Acción</th></tr></thead>
         <tbody>
-          @for (u of users(); track u.id) {
+          @for (user of visible(); track user.id) {
             <tr>
+              <td><span class="who"><span class="avatar">{{ initials(user.fullName) }}</span>{{ user.fullName }}</span></td>
+              <td>{{ user.email }}</td>
+              <td>{{ roleLabel(user) }}</td>
+              <td><span class="state" [class.inactive]="!isActive(user)">{{ isActive(user) ? 'Activo' : 'Inactivo' }}</span></td>
               <td>
-                <div class="who">
-                  <span class="avatar">{{ initials(u.fullName) }}</span>
-                  <span>{{ u.fullName }}</span>
-                  @if (isSelf(u)) { <span class="tu">tú</span> }
-                  @if (!isActive(u)) { <span class="inactive">inhabilitado</span> }
-                </div>
-              </td>
-              <td class="muted">{{ u.email }}</td>
-              <td>
-                <mat-select
-                  class="role-select"
-                  [ngModel]="u.role"
-                  (ngModelChange)="changeRole(u, $event)"
-                  [disabled]="!canChangeRole(u) || isSelf(u) || busyId() === u.id"
-                  [matTooltip]="canChangeRole(u) ? '' : 'El rol de clientes y organizadores no se puede cambiar.'"
-                  hideSingleSelectionIndicator
-                >
-                  @for (r of roles; track r) {
-                    <mat-option [value]="r">{{ roleLabel[r] }}</mat-option>
-                  }
-                </mat-select>
-              </td>
-              <td class="ta-right">
-                @if (confirmId() === u.id) {
-                  <span class="confirm">
-                    ¿Eliminar?
-                    <button mat-button color="warn" (click)="confirmDelete(u)">Sí</button>
-                    <button mat-button (click)="cancelDelete()">No</button>
+                @if (confirmId() === user.id) {
+                  <span class="confirm">¿Desactivar esta cuenta?
+                    <button mat-button type="button" (click)="toggle(user)" [disabled]="busyId() === user.id">Confirmar</button>
+                    <button mat-button type="button" (click)="confirmId.set(null)">Cancelar</button>
                   </span>
-                } @else if (!canChangeRole(u)) {
-                  <button
-                    mat-icon-button
-                    [disabled]="busyId() === u.id"
-                    (click)="toggleActive(u)"
-                    [attr.aria-label]="isActive(u) ? 'Inhabilitar usuario' : 'Habilitar usuario'"
-                    [matTooltip]="isActive(u) ? 'Inhabilitar' : 'Habilitar'"
-                  >
-                    <mat-icon>{{ isActive(u) ? 'block' : 'check_circle_outline' }}</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    class="del"
-                    [disabled]="busyId() === u.id"
-                    (click)="askDelete(u)"
-                    aria-label="Eliminar usuario"
-                  >
-                    <mat-icon>delete_outline</mat-icon>
+                } @else {
+                  <button mat-stroked-button type="button" (click)="toggle(user)" [disabled]="busyId() === user.id">
+                    <mat-icon>{{ isActive(user) ? 'block' : 'check_circle' }}</mat-icon>
+                    {{ isActive(user) ? 'Desactivar' : 'Activar' }}
                   </button>
                 }
               </td>
@@ -80,5 +57,5 @@
         </tbody>
       </table>
     </div>
-  </div>
-}
+  }
+</div>

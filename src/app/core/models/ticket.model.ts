@@ -7,6 +7,16 @@ export interface OrderLine {
   quantity: number;
 }
 
+/** Una entrada física y su QR: nunca se comparte entre dos asistentes. */
+export interface IssuedTicket {
+  code: string;
+  zoneId: string;
+  zoneName: string;
+  unitPrice: number;
+  serviceFee: number;
+  total: number;
+}
+
 export interface TicketOrder {
   id: string;
   code: string;
@@ -19,15 +29,37 @@ export interface TicketOrder {
   createdAt: string;
   status: OrderStatus;
   lines: OrderLine[];
+  /** Entradas emitidas individualmente dentro de la compra. */
+  tickets?: IssuedTicket[];
   subtotal: number;
   fee: number;
   total: number;
+}
+
+/** Compatibilidad con compras de prueba guardadas antes de HU-15. */
+export function ticketsForOrder(order: TicketOrder): IssuedTicket[] {
+  if (order.tickets?.length) return order.tickets;
+  let index = 0;
+  return order.lines.flatMap(line => Array.from({ length: line.quantity }, () => {
+    index += 1;
+    const serviceFee = Math.round(line.unitPrice * 6) / 100;
+    return {
+      code: `${order.code}-${String(index).padStart(2, '0')}`,
+      zoneId: line.zoneId,
+      zoneName: line.zoneName,
+      unitPrice: line.unitPrice,
+      serviceFee,
+      total: Math.round((line.unitPrice + serviceFee) * 100) / 100,
+    };
+  }));
 }
 
 export interface CreateOrderPayload {
   eventId: string;
   items: { zoneId: string; quantity: number }[];
   expectedTotal?: number;
+  /** Pase de la cola virtual (Épica 4); el backend lo valida y lo consume. */
+  queuePass?: string;
   paymentMethod?: 'CARD' | 'WALLET';
   paymentResult?: 'APPROVED' | 'DECLINED';
   idempotencyKey?: string;

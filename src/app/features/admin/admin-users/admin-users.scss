@@ -1,4 +1,13 @@
 :host { display: block; }
+.admin-head { margin: 1.5rem 0; }
+.filters { display: flex; align-items: end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.filters label { display: grid; gap: .35rem; font-weight: 600; }
+.filters select { min-width: 160px; padding: .6rem .7rem; border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 18%, transparent); border-radius: 8px; background: var(--mat-sys-surface); color: var(--mat-sys-on-surface); }
+.count { margin-left: auto; color: var(--mat-sys-on-surface-variant); }
+.empty { padding: 3rem; text-align: center; border: 1px dashed #aaa; border-radius: 12px; }
+.adm-scroll { overflow-x: auto; }
+.state { color: #15803d; font-weight: 700; }
+.state.inactive { color: var(--mat-sys-error); background: none; }
 
 .toolbar {
   display: flex;

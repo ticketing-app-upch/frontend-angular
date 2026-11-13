@@ -1,101 +1,29 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
-import { MockStore } from '../../core/mock/mock-store';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { RedemptionService, Redemption } from '../../core/services/redemption.service';
-import {
-  STEP_MS,
-  TicketTokenCheck,
-  TicketTokenService,
-} from '../../core/services/ticket-token.service';
+import { MockStore } from '../../core/mock/mock-store';
+import { IssuedTicket, TicketOrder, ticketsForOrder } from '../../core/models/ticket.model';
+import { downloadTicketPdf } from '../../shared/ticket-pdf';
+import { environment } from '../../../enviroments/enviroment';
 
-type Verdict =
-  | 'empty'
-  | 'not-configured'
-  | 'invalid'
-  | 'expired'
-  | 'stale'
-  | 'reused'
-  | 'valid';
-
-type Tone = 'idle' | 'ok' | 'warn' | 'bad';
-
-interface VerdictView {
-  tone: Tone;
-  icon: string;
-  title: string;
-  detail: string;
+/** Respuesta pública de `GET /v1/tickets/{code}/validacion`. */
+interface PublicValidation {
+  ticket: {
+    code: string;
+    unitPrice: number;
+    totalPrice: number;
+    event: { title: string; venueName: string; startsAt: string };
+    zone: { id?: string; name: string };
+  };
 }
 
-const VERDICTS: Record<Verdict, VerdictView> = {
-  empty: {
-    tone: 'idle',
-    icon: 'qr_code_scanner',
-    title: 'Escanea una entrada',
-    detail: 'Apunta la cámara al QR de una entrada para validar el acceso.',
-  },
-  'not-configured': {
-    tone: 'idle',
-    icon: 'key_off',
-    title: 'Validación real pendiente de integración',
-    detail:
-      'La firma y el registro único de ingreso deben resolverse en el backend, nunca con una clave del navegador.',
-  },
-  invalid: {
-    tone: 'bad',
-    icon: 'gpp_bad',
-    title: 'Entrada inválida o alterada',
-    detail:
-      'La firma no coincide con el contenido del código. No corresponde a un pase emitido por AlpaTeck.',
-  },
-  expired: {
-    tone: 'bad',
-    icon: 'event_busy',
-    title: 'Entrada expirada',
-    detail: 'El evento ya terminó según la vigencia grabada en el pase.',
-  },
-  stale: {
-    tone: 'warn',
-    icon: 'update',
-    title: 'Código vencido',
-    detail:
-      'El QR rota cada ' +
-      STEP_MS / 1000 +
-      ' s y este ya caducó. Pide que actualicen la pantalla de la entrada y vuelve a escanear.',
-  },
-  reused: {
-    tone: 'warn',
-    icon: 'report',
-    title: 'Entrada ya utilizada',
-    detail: 'Este pase ya registró un ingreso. No se permite un segundo acceso.',
-  },
-  valid: {
-    tone: 'ok',
-    icon: 'check_circle',
-    title: 'Acceso válido',
-    detail: 'Simulación local: pase vigente y orden confirmada. No autoriza un ingreso real ni sincroniza otros dispositivos.',
-  },
-};
+interface ValidationEntry { order: TicketOrder; ticket: IssuedTicket }
 
-/**
- * Puerta de validación. Se abre al escanear el QR de una entrada: el token
- * viaja en el hash de la URL (`/validar#payload.firma`).
- *
- * Reproduce el flujo real de un lector de accesos:
- *  1. recomputa el HMAC del payload y lo compara con la firma del código;
- *  2. comprueba la vigencia y el intervalo rotativo;
- *  3. consulta el registro de redenciones y marca el primer ingreso válido;
- *     un segundo escaneo del mismo pase se responde como "ya utilizada".
- */
 @Component({
   selector: 'tkt-validate',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -105,105 +33,49 @@ const VERDICTS: Record<Verdict, VerdictView> = {
 })
 export class ValidatePage {
   private readonly store = inject(MockStore);
-  private readonly tokens = inject(TicketTokenService);
-  private readonly redemptions = inject(RedemptionService);
-  private readonly rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
-
-  readonly verdict = signal<Verdict>('empty');
-  readonly check = signal<TicketTokenCheck | null>(null);
-  readonly firstAccess = signal<Redemption | null>(null);
-  readonly rawToken = signal('');
-  readonly showDebug = signal(false);
-
-  readonly view = computed<VerdictView>(() => VERDICTS[this.verdict()]);
-  readonly claims = computed(() => this.check()?.claims ?? null);
-  readonly prettyPayload = computed(() => {
-    const c = this.claims();
-    return c ? JSON.stringify(c, null, 2) : '';
+  private readonly http = inject(HttpClient);
+  readonly code = input('');
+  private readonly remote = toSignal(
+    toObservable(this.code).pipe(
+      switchMap(code => environment.useMock || !code
+        ? of(null)
+        : this.http.get<PublicValidation>(`${environment.apiBackendUrl}/v1/tickets/${encodeURIComponent(code)}/validacion`).pipe(
+          map(res => this.fromApi(res)),
+          catchError(() => of(null)),
+        )),
+    ),
+    { initialValue: null },
+  );
+  readonly entry = computed<ValidationEntry | null>(() => {
+    if (!environment.useMock) return this.remote();
+    for (const order of this.store.orders) {
+      if (order.status !== 'CONFIRMADA') continue;
+      const ticket = ticketsForOrder(order).find(item => item.code === this.code());
+      if (ticket) return { order, ticket };
+    }
+    return null;
   });
 
-  constructor() {
-    const destroyRef = inject(DestroyRef);
-    const onHashChange = () => this.evaluate();
-    this.evaluate();
-    window.addEventListener('hashchange', onHashChange);
-    destroyRef.onDestroy(() =>
-      window.removeEventListener('hashchange', onHashChange),
-    );
+  private fromApi({ ticket }: PublicValidation): ValidationEntry {
+    const issued: IssuedTicket = {
+      code: ticket.code,
+      zoneId: ticket.zone.id ?? '',
+      zoneName: ticket.zone.name,
+      unitPrice: ticket.unitPrice,
+      serviceFee: Math.round((ticket.totalPrice - ticket.unitPrice) * 100) / 100,
+      total: ticket.totalPrice,
+    };
+    const order = {
+      id: '', code: ticket.code, eventId: '', eventName: ticket.event.title,
+      eventStartsAt: ticket.event.startsAt, eventVenue: ticket.event.venueName,
+      buyerId: '', buyerName: '', createdAt: '', status: 'CONFIRMADA',
+      lines: [], tickets: [issued], subtotal: ticket.unitPrice, fee: issued.serviceFee, total: ticket.totalPrice,
+    } satisfies TicketOrder;
+    return { order, ticket: issued };
   }
 
-  rescan(): void {
-    this.evaluate();
-  }
-
-  resetValidation(): void {
-    this.redemptions.reset();
-    this.evaluate();
-  }
-
-  toggleDebug(): void {
-    this.showDebug.update((v) => !v);
-  }
-
-  relativeTime(epochMs: number): string {
-    const diffS = Math.round((epochMs - Date.now()) / 1000);
-    const abs = Math.abs(diffS);
-    if (abs < 60) return this.rtf.format(diffS, 'second');
-    if (abs < 3600) return this.rtf.format(Math.round(diffS / 60), 'minute');
-    if (abs < 86_400) return this.rtf.format(Math.round(diffS / 3600), 'hour');
-    return this.rtf.format(Math.round(diffS / 86_400), 'day');
-  }
-
-  private evaluate(): void {
-    const token = this.readHash();
-    this.rawToken.set(token);
-    this.firstAccess.set(null);
-
-    if (!token) {
-      this.check.set(null);
-      this.verdict.set('empty');
-      return;
-    }
-
-    const result = this.tokens.verify(token);
-    this.check.set(result);
-
-    switch (result.reason) {
-      case 'not-configured':
-        this.verdict.set('not-configured');
-        return;
-      case 'malformed':
-      case 'bad-signature':
-        this.verdict.set('invalid');
-        return;
-      case 'expired':
-        this.verdict.set('expired');
-        return;
-      case 'stale':
-        this.verdict.set('stale');
-        return;
-      case 'ok': {
-        const c = result.claims!;
-        const order = this.store.orders.find(o => o.id === c.oid && o.code === c.cod && o.status === 'CONFIRMADA');
-        if (!order) { this.verdict.set('invalid'); return; }
-        const { record, firstTime } = this.redemptions.redeem(
-          c.oid,
-          c.cod,
-          c.stp,
-        );
-        this.firstAccess.set(record);
-        this.verdict.set(firstTime ? 'valid' : 'reused');
-        return;
-      }
-    }
-  }
-
-  private readHash(): string {
-    const raw = window.location.hash.replace(/^#/, '');
-    try {
-      return decodeURIComponent(raw).trim();
-    } catch {
-      return raw.trim();
-    }
+  downloadPdf(): void {
+    const entry = this.entry();
+    if (entry) downloadTicketPdf(entry.order, entry.ticket);
   }
 }
