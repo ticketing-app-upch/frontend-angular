@@ -90,6 +90,14 @@ export class AuthService {
         storage.removeItem(USER_KEY);
       } catch { /* La sesión en memoria ya fue eliminada. */ }
     }
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key?.startsWith('tkt.queue.pass.') || key?.startsWith('tkt.queue.expiry.')) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    } catch { /* Los pases dejan de ser accesibles desde la sesión en memoria. */ }
   }
 
   /** Cierra una sesión vencida o rechazada por el backend. */

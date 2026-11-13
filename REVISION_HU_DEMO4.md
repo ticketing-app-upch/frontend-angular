@@ -35,7 +35,7 @@ Fuente funcional: pestaña **Demo4** del [backlog compartido](https://docs.googl
 
 ## Ampliación: HU-03, cierre de sesión
 
-El cierre de sesión explícito ahora llama a `POST /api/auth/logout` con el JWT activo cuando `useMockAuth` está desactivado. El frontend borra el token y el usuario de ambos almacenamientos inmediatamente, redirige al login y conserva la protección de rutas al usar «atrás». Si la revocación falla, informa que el cierre local se completó pero que no pudo confirmar la revocación en el servidor. En modo mock solo se limpia la sesión local.
+El cierre de sesión explícito ahora llama a `POST /api/auth/logout` con el JWT activo cuando `useMockAuth` está desactivado. El frontend borra de inmediato el token, el usuario y los pases temporales de cola del almacenamiento del navegador, redirige al login y conserva la protección de rutas al usar «atrás». Si la revocación falla, informa que el cierre local se completó pero que no pudo confirmar la revocación en el servidor. En modo mock solo se limpia la sesión local.
 
 ## Límites de integración
 

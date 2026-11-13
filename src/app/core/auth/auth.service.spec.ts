@@ -68,11 +68,15 @@ describe('Selección del modo de autenticación', () => {
       user: { id: '42', fullName: 'Usuario Demo', email: 'usuario@example.com', role },
     });
     const token = (await login).token;
+    sessionStorage.setItem('tkt.queue.pass.evento-1', 'pase-temporal');
+    sessionStorage.setItem('tkt.queue.expiry.evento-1', String(Date.now() + 180000));
 
     const logout = firstValueFrom(auth.logout());
     expect(auth.isAuthenticated()).toBe(false);
     expect(localStorage.getItem('tkt.token')).toBeNull();
     expect(localStorage.getItem('tkt.user')).toBeNull();
+    expect(sessionStorage.getItem('tkt.queue.pass.evento-1')).toBeNull();
+    expect(sessionStorage.getItem('tkt.queue.expiry.evento-1')).toBeNull();
     const request = http.expectOne(`${environment.apiBackendUrl}/auth/logout`);
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({});
