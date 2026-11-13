@@ -4,6 +4,8 @@ import { QueueService } from './services/queue.service';
 import { EventService } from './services/event.service';
 import { map } from 'rxjs';
 import { environment } from '../../enviroments/enviroment';
+import { AuthService } from './auth/auth.service';
+import { roleHome } from './auth/role-home';
 
 /**
  * Controla qué épicas del proyecto están "encendidas" en este build, para
@@ -16,7 +18,7 @@ import { environment } from '../../enviroments/enviroment';
  *   2 = Publicación de eventos y zonas        (Demo 3)
  *   3 = Compra con control de concurrencia    (Demo 3)
  *   4 = Cola virtual y anti-scalping (Python) (Demo 4)
- *   5 = Dashboard del organizador              (Demo 4, aún sin habilitar)
+ *   5 = Dashboard del organizador y Mercado     (Demo 4)
  */
 export function epicEnabled(epic: number): boolean {
   return environment.enabledEpics.includes(epic);
@@ -24,11 +26,10 @@ export function epicEnabled(epic: number): boolean {
 
 /**
  * Bloquea una ruta si su épica todavía no está habilitada en este build y
- * manda a `/bienvenida`, la landing "segura" que solo muestra lo que ya
- * corresponde mostrar en la demo actual.
+ * devuelve al usuario a la pantalla que corresponde a su rol.
  */
 export function epicGuard(epic: number): CanActivateFn {
-  return () => (epicEnabled(epic) ? true : inject(Router).parseUrl('/bienvenida'));
+  return () => (epicEnabled(epic) ? true : inject(Router).parseUrl(roleHome(inject(AuthService).user()?.role)));
 }
 
 /**

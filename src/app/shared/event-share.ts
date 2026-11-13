@@ -1,5 +1,5 @@
 export function eventShareUrl(id: string): string {
-  return `${window.location.origin}/attendee/event/${encodeURIComponent(id)}`;
+  return `${window.location.origin}/eventos/${encodeURIComponent(id)}`;
 }
 
 export async function copyEventLink(id: string): Promise<void> {

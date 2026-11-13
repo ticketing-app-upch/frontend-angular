@@ -3,7 +3,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { firstValueFrom } from 'rxjs';
-import { authGuard, roleGuard, clientGuard, guestGuard } from './auth.guards';
+import { authGuard, roleGuard, clientGuard, guestGuard, publicCatalogGuard } from './auth.guards';
 import { AuthService, sessionTokenValid } from './auth.service';
 import { DEMO_CREDENTIALS } from '../mock/mock-data';
 import { environment } from '../../../enviroments/enviroment';
@@ -30,10 +30,10 @@ describe('Guards de ruta', () => {
           { path: 'solo-organizador', canActivate: [roleGuard('ORGANIZER')], children: [] },
           { path: 'solo-cliente', canActivate: [authGuard, clientGuard], children: [] },
           { path: 'auth/login', canActivate: [guestGuard], children: [] },
-          { path: 'bienvenida', children: [] },
-          { path: 'eventos', children: [] },
-          { path: 'admin', children: [] },
-          { path: 'organizador/panel', children: [] },
+          { path: 'eventos', canActivate: [publicCatalogGuard], children: [] },
+          { path: 'admin/usuarios', children: [] },
+          { path: 'organizador/eventos', children: [] },
+          { path: 'attendee/catalog', children: [] },
         ]),
       ],
     });
@@ -66,7 +66,7 @@ describe('Guards de ruta', () => {
     it('rechaza a un rol que no coincide antes de mostrar la pantalla', async () => {
       await loginAs('CLIENT');
       await harness.navigateByUrl('/solo-organizador');
-      expect(router.url).toBe('/bienvenida?reason=forbidden');
+      expect(router.url).toBe('/attendee/catalog');
     });
 
     it('el rol correcto entra', async () => {
@@ -78,7 +78,7 @@ describe('Guards de ruta', () => {
     it('ADMIN tampoco entra en una ruta exclusiva del organizador', async () => {
       await loginAs('ADMIN');
       await harness.navigateByUrl('/solo-organizador');
-      expect(router.url).toBe('/bienvenida?reason=forbidden');
+      expect(router.url).toBe('/admin/usuarios');
     });
   });
 
@@ -86,13 +86,13 @@ describe('Guards de ruta', () => {
     it('un organizador autenticado no puede entrar a una ruta de cliente', async () => {
       await loginAs('ORGANIZER');
       await harness.navigateByUrl('/solo-cliente');
-      expect(router.url).toBe('/bienvenida?reason=forbidden');
+      expect(router.url).toBe('/organizador/eventos');
     });
 
     it('un admin tampoco, lo manda a su panel', async () => {
       await loginAs('ADMIN');
       await harness.navigateByUrl('/solo-cliente');
-      expect(router.url).toBe('/bienvenida?reason=forbidden');
+      expect(router.url).toBe('/admin/usuarios');
     });
 
     it('un cliente sí entra', async () => {
@@ -106,12 +106,25 @@ describe('Guards de ruta', () => {
     it('un usuario ya logueado no puede volver a ver el login', async () => {
       await loginAs('CLIENT');
       await harness.navigateByUrl('/auth/login');
-      expect(router.url).toBe('/bienvenida');
+      expect(router.url).toBe('/attendee/catalog');
     });
 
     it('sin sesión, puede ver el login', async () => {
       await harness.navigateByUrl('/auth/login');
       expect(router.url).toBe('/auth/login');
+    });
+  });
+
+  describe('publicCatalogGuard', () => {
+    it('un organizador no puede abrir el catálogo público', async () => {
+      await loginAs('ORGANIZER');
+      await harness.navigateByUrl('/eventos');
+      expect(router.url).toBe('/organizador/eventos');
+    });
+
+    it('un visitante sí puede explorar el catálogo', async () => {
+      await harness.navigateByUrl('/eventos');
+      expect(router.url).toBe('/eventos');
     });
   });
 

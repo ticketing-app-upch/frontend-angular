@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Recinto de prueba</title>
+  <desc id="desc">Plano referencial de una sola zona General con aforo para una persona.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1">
+      <stop stop-color="#111827"/>
+      <stop offset="1" stop-color="#25345c"/>
+    </linearGradient>
+    <linearGradient id="seat" x2="1" y2="1">
+      <stop stop-color="#f8b44e"/>
+      <stop offset="1" stop-color="#ef6a61"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="680" fill="url(#bg)"/>
+  <circle cx="600" cy="360" r="260" fill="#ffffff" opacity=".035"/>
+  <rect x="360" y="78" width="480" height="110" rx="28" fill="#354979" stroke="#8292c5" stroke-width="3"/>
+  <text x="600" y="148" fill="white" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700" letter-spacing="8">ESCENARIO</text>
+  <path d="M412 210h376" stroke="#8292c5" stroke-width="3" stroke-dasharray="12 14"/>
+  <rect x="405" y="250" width="390" height="260" rx="52" fill="#283a69" stroke="#526ba3" stroke-width="4"/>
+  <rect x="500" y="314" width="200" height="148" rx="36" fill="url(#seat)"/>
+  <rect x="526" y="290" width="148" height="84" rx="32" fill="url(#seat)"/>
+  <text x="600" y="389" fill="#20233a" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="800">GENERAL</text>
+  <text x="600" y="430" fill="#20233a" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700">1 lugar</text>
+  <text x="600" y="590" fill="#d8e3ff" text-anchor="middle" font-family="Arial,sans-serif" font-size="29">Recinto de prueba · aforo 1</text>
+</svg>

@@ -333,6 +333,12 @@ form mat-form-field {
   border-radius: 12px;
 }
 
+.submit:disabled {
+  background: var(--mat-sys-surface-container-high, #dedbe5);
+  color: var(--mat-sys-on-surface-variant, #625f68);
+  opacity: 0.7;
+}
+
 .alt {
   margin: 1.1rem 0 0;
   text-align: center;

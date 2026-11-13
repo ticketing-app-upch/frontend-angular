@@ -16,7 +16,8 @@ describe('validación de banners de Demo 3', () => {
   it('rechaza formato declarado incorrecto, exceso de peso y contenido PNG disfrazado', async () => {
     const jpg = [0xff, 0xd8, 0xff, 0xe0];
     expect(await inspectJpegBanner(banner(jpg, 'foto.png'))).toEqual({ ok: false, issue: 'format' });
-    expect(await inspectJpegBanner(banner(jpg, 'foto.jpg', 'image/jpeg', 2 * 1024 * 1024 + 1))).toEqual({ ok: false, issue: 'size' });
+    expect((await inspectJpegBanner(banner(jpg, 'foto.jpg', 'image/jpeg', 2_000_000))).ok).toBe(true);
+    expect(await inspectJpegBanner(banner(jpg, 'foto.jpg', 'image/jpeg', 2_000_001))).toEqual({ ok: false, issue: 'size' });
     expect(await inspectJpegBanner(banner([0x89, 0x50, 0x4e, 0x47], 'foto.jpg'))).toEqual({ ok: false, issue: 'signature' });
   });
 

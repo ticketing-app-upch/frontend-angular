@@ -8,7 +8,7 @@
 
 .row {
   display: grid;
-  grid-template-columns: 132px 1fr auto;
+  grid-template-columns: 132px 1fr;
   gap: 1.25rem;
   align-items: center;
   padding: 1rem;
@@ -69,14 +69,7 @@
   color: var(--mat-sys-on-surface-variant);
 }
 
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
 @media (max-width: 780px) {
   .row { grid-template-columns: 1fr; }
   .row img { width: 100%; height: 150px; }
-  .actions { flex-direction: row; }
 }

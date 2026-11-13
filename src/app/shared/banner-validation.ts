@@ -1,6 +1,6 @@
 import { sha256 } from 'js-sha256';
 
-export const MAX_BANNER_BYTES = 2 * 1024 * 1024;
+export const MAX_BANNER_BYTES = 2_000_000;
 
 type BannerIssue = 'format' | 'size' | 'signature' | 'read';
 export type BannerInspection =

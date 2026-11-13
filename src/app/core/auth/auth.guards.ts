@@ -2,6 +2,7 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { UserRole } from '../models/user.model';
+import { roleHome } from './role-home';
 
 export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthService);
@@ -28,7 +29,7 @@ export function roleGuard(...roles: UserRole[]): CanActivateFn {
     if (role && roles.includes(role)) {
       return true;
     }
-    return router.createUrlTree(['/bienvenida'], { queryParams: { reason: 'forbidden' } });
+    return router.parseUrl(roleHome(role));
   };
 }
 
@@ -39,12 +40,20 @@ export function roleGuard(...roles: UserRole[]): CanActivateFn {
 export const clientGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isClient() ? true : router.createUrlTree(['/bienvenida'], { queryParams: { reason: 'forbidden' } });
+  return auth.isClient() ? true : router.parseUrl(roleHome(auth.user()?.role));
+};
+
+/** El catálogo público es para visitantes y asistentes, no para otros roles. */
+export const publicCatalogGuard: CanActivateFn = () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  if (!auth.token || !auth.isAuthenticated() || auth.isClient()) return true;
+  return router.parseUrl(roleHome(auth.user()?.role));
 };
 
 /** Evita que un usuario ya autenticado vea login/registro. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isAuthenticated() ? router.createUrlTree(['/bienvenida']) : true;
+  return auth.isAuthenticated() ? router.parseUrl(roleHome(auth.user()?.role)) : true;
 };

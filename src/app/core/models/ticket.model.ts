@@ -42,7 +42,8 @@ export function ticketsForOrder(order: TicketOrder): IssuedTicket[] {
   let index = 0;
   return order.lines.flatMap(line => Array.from({ length: line.quantity }, () => {
     index += 1;
-    const serviceFee = Math.round(line.unitPrice * 6) / 100;
+    // Conserva el importe de compras antiguas que ya tenían un recargo.
+    const serviceFee = order.subtotal > 0 ? Math.round(line.unitPrice * order.fee / order.subtotal * 100) / 100 : 0;
     return {
       code: `${order.code}-${String(index).padStart(2, '0')}`,
       zoneId: line.zoneId,

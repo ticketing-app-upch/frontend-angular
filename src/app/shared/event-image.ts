@@ -273,6 +273,7 @@ const BY_VENUE: { test: RegExp; url: string }[] = [
  * La clave se compara como substring del nombre del recinto (sin tildes).
  */
 const VENUE_MAPS: Record<string, string> = {
+  'recinto de prueba': '/recintos/demo3/recinto-prueba.svg',
   monumental: '/recintos/demo3/estadio-monumental-zonas.png',
   'estadio nacional': '/recintos/demo3/estadio-nacional-zonas.png',
   'san marcos': '/recintos/demo3/estadio-san-marcos-zonas.png',

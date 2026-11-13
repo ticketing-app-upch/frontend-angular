@@ -13,7 +13,7 @@ import {
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { SERVICE_FEE_RATE, zonePrice } from '../../core/models/ticketing-rules';
+import { zonePrice } from '../../core/models/ticketing-rules';
 import { Zone } from '../../core/models/event.model';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -174,8 +174,8 @@ export class Checkout {
       (a, l) => a + this.unitPrice(l.zone) * l.qty,
       0,
     );
-    const fee = round2(subtotal * SERVICE_FEE_RATE);
-    return { subtotal: round2(subtotal), fee, total: round2(subtotal + fee) };
+    const total = round2(subtotal);
+    return { subtotal: total, fee: 0, total };
   });
 
   constructor() {
@@ -317,8 +317,8 @@ export class Checkout {
     const quote = this.quote();
     if (!ev || this.placing() || !quote || this.quoting()) return;
     if (ev.queueEnabled && this.queueSecondsLeft() === 0) { this.paymentError.set('Tu tiempo para completar la compra ha terminado'); return; }
-    if (!/^\d{16}$/.test(this.cardNumber.replace(/\s/g, ''))) {
-      this.paymentError.set('Ingresa un número de tarjeta de 16 dígitos.');
+    if (!/^\d{13,19}$/.test(this.cardNumber.replace(/\s/g, ''))) {
+      this.paymentError.set('Ingresa un número de tarjeta de 13 a 19 dígitos.');
       return;
     }
     const [year, month] = this.cardExpiry.split('-').map(Number);
@@ -348,10 +348,21 @@ export class Checkout {
       },
       error: (err) => {
         this.placing.set(false);
-        this.notify.error(err?.error?.message ?? err?.message ?? 'No se pudo completar la compra.');
+        const message = err?.error?.message ?? err?.message ?? 'No se pudo completar la compra.';
+        this.notify.error(message);
         if (err?.status === 409) {
+          const previousQuantities = this.quantities();
           this.backToSelection();
-          this.events.getById(ev.id).subscribe({ next: fresh => { this.event.set(fresh); this.quantities.set({}); }, error: () => this.notFound.set(true) });
+          this.events.getById(ev.id).subscribe({
+            next: fresh => {
+              this.event.set(fresh);
+              this.quantities.set(Object.fromEntries(fresh.zones.map(zone => [
+                zone.id, Math.min(previousQuantities[zone.id] ?? 0, Math.max(0, zone.capacity - zone.sold)),
+              ])));
+              if (/precio cambi/i.test(message) && this.hasSelection()) this.startReview();
+            },
+            error: () => this.notFound.set(true),
+          });
         }
       },
     });

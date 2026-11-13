@@ -41,7 +41,7 @@ export class DashboardService {
 
   private buildLocalStats(organizerId: string): DashboardStats {
     const events = this.store.events.filter(
-      (e) => e.organizerId === organizerId,
+      (e) => e.organizerId === organizerId && ['PUBLICADO', 'AGOTADO', 'FINALIZADO'].includes(e.status),
     );
     const eventIds = new Set(events.map((e) => e.id));
     const orders = this.store.orders.filter(

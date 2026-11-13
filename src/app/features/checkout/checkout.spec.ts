@@ -115,16 +115,20 @@ describe('Checkout', () => {
     expect(cmp.currentQty('z1')).toBe(2);
   });
 
-  it('la cotización calcula subtotal, comisión del 6% y total, y arranca el contador en 120s', async () => {
-    const ev = seedEvent(store);
+  it('suma dos zonas al precio publicado sin recargo y arranca el contador en 120s', async () => {
+    const ev = seedEvent(store, { zones: [
+      { id: 'z1', name: 'General', price: 100, capacity: 100, sold: 0 },
+      { id: 'z2', name: 'VIP', price: 150, capacity: 100, sold: 0 },
+    ] });
     const fixture = await open(ev.id);
     const cmp = fixture.componentInstance;
     cmp.change('z1', 1);
+    cmp.change('z2', 1);
     cmp.startReview();
     await flush(fixture);
-    expect(cmp.quote()?.subtotal).toBe(100);
-    expect(cmp.quote()?.fee).toBe(6);
-    expect(cmp.quote()?.total).toBe(106);
+    expect(cmp.quote()?.subtotal).toBe(250);
+    expect(cmp.quote()?.fee).toBe(0);
+    expect(cmp.quote()?.total).toBe(250);
     expect(cmp.secondsLeft()).toBe(120);
   });
 
@@ -173,6 +177,22 @@ describe('Checkout', () => {
     expect(store.events.find(e => e.id === ev.id)?.zones[0].sold).toBe(2);
   });
 
+  it('acepta tarjeta de prueba de 15 dígitos y CVV de cuatro dígitos', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
+    const ev = seedEvent(store);
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.change('z1', 1);
+    cmp.startReview();
+    await flush(fixture);
+    useTestPayment(cmp);
+    cmp.cardNumber = '378282246310005';
+    cmp.cardCvv = '1234';
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()?.status).toBe('CONFIRMADA');
+  });
+
   it('una cotización vencida bloquea la confirmación con un aviso, sin descontar aforo', async () => {
     await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
     const ev = seedEvent(store);
@@ -206,6 +226,27 @@ describe('Checkout', () => {
     await flush(fixture);
     expect(cmp.order()).toBeNull();
     expect(cmp.reviewing()).toBe(false);
+  });
+
+  it('si el precio cambió, conserva la zona y presenta una cotización nueva antes de reintentar', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.CLIENT));
+    const ev = seedEvent(store);
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.change('z1', 1);
+    cmp.startReview();
+    await flush(fixture);
+    useTestPayment(cmp);
+    store.upsertEvent({ ...ev, zones: [{ ...ev.zones[0], price: 120 }] });
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()).toBeNull();
+    expect(cmp.currentQty('z1')).toBe(1);
+    expect(cmp.quote()?.total).toBe(120);
+    cmp.openPaymentGateway();
+    cmp.confirm();
+    await flush(fixture);
+    expect(cmp.order()?.total).toBe(120);
   });
 
   it('no se puede abrir la pasarela de pago sin cotización vigente', async () => {

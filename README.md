@@ -1,4 +1,8 @@
-# Demo 3 · AlpaTeck (solo frontend)
+# Demo 4 · AlpaTeck (frontend)
+
+Esta rama integra el último Demo 3 con cola virtual, aprobación de eventos y el panel Mercado. El repositorio sigue en modo mock; la integración PHP/Python y los límites de cada HU están detallados en [la revisión de Demo4](REVISION_HU_DEMO4.md).
+
+## Base heredada de Demo 3
 
 Esta rama presenta las épicas 2 y 3 con datos de prueba locales. Parte de la base de autenticación y administración de Demo 2. El alcance está contrastado con el backlog específico de Demo 3.
 
@@ -23,6 +27,8 @@ Esta rama presenta las épicas 2 y 3 con datos de prueba locales. Parte de la ba
 | 15–16 | `/mis-entradas` y `/validar/:code`: una tarjeta, código y QR estático por cada entrada; vista pública y PDF local. |
 
 Los recintos nuevos se pueden elegir al crear un evento y ya tienen eventos de ejemplo para probar la compra: `ev-16` (Estadio Nacional), `ev-7` (Estadio San Marcos) y `ev-2` (Estadio Monumental). Los aforos y zonas son **valores de maqueta**, no capacidades oficiales certificadas.
+
+En Demo 3, el precio que publica el organizador es el precio final por entrada. El catálogo, detalle, selección, resumen y pago muestran el mismo importe, sin comisión de servicio ni ajuste dinámico. La estructura de órdenes conserva el campo `fee` con valor cero por compatibilidad; compras locales antiguas mantienen el importe que ya registraron.
 
 ## Banners del organizador
 

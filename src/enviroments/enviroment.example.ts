@@ -7,11 +7,11 @@ export const environment = {
   mockLatencyMs: 450,
   sessionDurationMinutes: 15,
   /** Épicas habilitadas en este build — ver `core/demo-scope.ts`. */
-  enabledEpics: [1, 2, 3, 4],
+  enabledEpics: [1, 2, 3, 4, 5],
   /** Precio dinámico: fuera del cronograma de épicas, apagado hasta que exista el servicio. */
   dynamicPricing: false,
   /** Cola virtual: minutos que dura el turno para completar la compra. */
-  queuePassMinutes: 10,
+  queuePassMinutes: 3,
   /** Reservada para el prototipo previo de QR. */
   ticketSecret: 'cambia-esta-clave-en-tu-entorno-local',
   /** Base absoluta para el QR; vacío = origen actual. IP LAN o túnel para escanear con el móvil. */

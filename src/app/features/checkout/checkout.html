@@ -295,10 +295,6 @@
                     <dt>Subtotal</dt>
                     <dd>{{ provisional().subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd>
                   </div>
-                  <div>
-                    <dt>Comisión de servicio</dt>
-                    <dd>{{ provisional().fee | currency: 'PEN' : 'symbol-narrow' }}</dd>
-                  </div>
                   <div class="grand">
                     <dt>Total</dt>
                     <dd>{{ provisional().total | currency: 'PEN' : 'symbol-narrow' }}</dd>
@@ -337,10 +333,6 @@
                   <div>
                     <dt>Subtotal</dt>
                     <dd>{{ q.subtotal | currency: 'PEN' : 'symbol-narrow' }}</dd>
-                  </div>
-                  <div>
-                    <dt>Comisión de servicio</dt>
-                    <dd>{{ q.fee | currency: 'PEN' : 'symbol-narrow' }}</dd>
                   </div>
                   <div class="grand">
                     <dt>Total</dt>
@@ -421,7 +413,7 @@
               </button>
             </div>
             <div class="card-fields">
-              <label>Número de tarjeta de prueba (16 dígitos)<input type="text" name="demo3-test-card-number" inputmode="numeric" autocomplete="off" maxlength="19" [(ngModel)]="cardNumber" placeholder="0000 0000 0000 0000" /></label>
+              <label>Número de tarjeta de prueba (13 a 19 dígitos)<input type="text" name="demo3-test-card-number" inputmode="numeric" autocomplete="off" maxlength="23" [(ngModel)]="cardNumber" placeholder="0000 0000 0000 0000" /></label>
               <label>Expiración de prueba<input type="month" name="demo3-test-card-expiry" autocomplete="off" [(ngModel)]="cardExpiry" /></label>
               <label>CVV de prueba<input type="text" name="demo3-test-card-cvv" inputmode="numeric" autocomplete="off" maxlength="4" [(ngModel)]="cardCvv" placeholder="123" /></label>
             </div>
@@ -454,7 +446,7 @@
           <ul>
             <li>Límite de compra: máximo {{ maxPerOrder() }} entradas por transacción.</li>
             <li>Consulta al organizador las restricciones de edad del evento.</li>
-            <li>Precios por entrada más 6% de servicio, desglosado antes de confirmar.</li>
+            <li>El precio mostrado por entrada es el total a pagar por esa entrada.</li>
             <li>El plano de sectores es referencial y puede variar por razones técnicas.</li>
           </ul>
         </article>

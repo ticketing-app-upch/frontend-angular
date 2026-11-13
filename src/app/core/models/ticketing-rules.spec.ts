@@ -14,6 +14,10 @@ describe('Reglas de ticketing del proyecto', () => {
   const originalPricing = environment.dynamicPricing;
   beforeEach(() => { environment.dynamicPricing = true; });
   afterEach(() => { environment.dynamicPricing = originalPricing; });
+  it('con pricing desactivado conserva el precio publicado incluso con pocos cupos', () => {
+    environment.dynamicPricing = false;
+    expect(zonePrice(event, { ...zone, sold: 99 }, now)).toMatchObject({ unitPrice: 100, note: '' });
+  });
   it('conserva precio base', () => expect(zonePrice(event, zone, now).unitPrice).toBe(100));
   it('recarga 20% con menos de 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 86 }, now).unitPrice).toBe(120));
   it('no recarga exactamente al 15% disponible', () => expect(zonePrice(event, { ...zone, sold: 85 }, now).unitPrice).toBe(100));
@@ -37,6 +41,6 @@ describe('Reglas de ticketing del proyecto', () => {
     expect(purchaseIssue({ ...event, startsAt: new Date(now - day).toISOString() }, [{ zoneId: 'z1', quantity: 1 }])).not.toBeNull();
     expect(purchaseIssue({ ...event, status: 'BORRADOR' }, [{ zoneId: 'z1', quantity: 1 }])).not.toBeNull();
   });
-  it('rechaza stock insuficiente', () => expect(purchaseIssue({ ...event, zones: [{ ...zone, sold: 99 }] }, [{ zoneId: 'z1', quantity: 2 }])).not.toBeNull());
+  it('informa aforo insuficiente con el mensaje de la HU-14', () => expect(purchaseIssue({ ...event, zones: [{ ...zone, sold: 99 }] }, [{ zoneId: 'z1', quantity: 2 }])).toBe('Aforo insuficiente para la cantidad solicitada'));
 });
 

@@ -13,7 +13,7 @@ import { csvCell, downloadFile } from '../../../shared/event-actions';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="insights">
-      <div class="heading"><div><span class="eyebrow">ALPATECK PULSE / INTELIGENCIA POR ZONA</span><h2>Cada sector cuenta una historia.</h2><p>Ventas de entradas sin comisión. Exporta datos y explora escenarios sin modificar tus eventos.</p></div>
+      <div class="heading"><div><span class="eyebrow">ALPATECK PULSE / INTELIGENCIA POR ZONA</span><h2>Cada sector cuenta una historia.</h2><p>Ventas por zona. Exporta datos y explora escenarios sin modificar tus eventos.</p></div>
         <button mat-stroked-button (click)="exportCsv()" [disabled]="!filtered().length"><mat-icon>download</mat-icon> Exportar CSV</button></div>
       <label class="event-filter">Evento <select [ngModel]="eventId()" (ngModelChange)="eventId.set($event)"><option value="">Todos mis eventos</option>@for (event of events(); track event.id) { <option [value]="event.id">{{ event.name }}</option> }</select></label>
       @if (!rows().length) { <p>Sin métricas por zona. Registra eventos o conecta el endpoint del panel con el campo byZone.</p> }
@@ -35,7 +35,7 @@ import { csvCell, downloadFile } from '../../../shared/event-actions';
             <label>Días hasta el evento: <b>{{ days() }}</b><input type="range" min="0" max="60" step="1" [ngModel]="days()" (ngModelChange)="days.set(+$event)" /></label>
             <label>Días desde publicación: <b>{{ age() }}</b><input type="range" min="0" max="90" step="1" [ngModel]="age()" (ngModelChange)="age.set(+$event)" /></label>
           </div>
-          <output aria-live="polite"><span>Precio estimado por entrada</span><strong>{{ simulation()?.unitPrice | currency:'PEN':'symbol-narrow' }}</strong><b>{{ simulation()?.note }}</b><small>Base: {{ row.basePrice | currency:'PEN':'symbol-narrow' }} · servicio 6% adicional</small><button mat-button (click)="select(row)">Restaurar escenario actual</button></output>
+          <output aria-live="polite"><span>Precio estimado por entrada</span><strong>{{ simulation()?.unitPrice | currency:'PEN':'symbol-narrow' }}</strong><b>{{ simulation()?.note }}</b><small>Precio publicado: {{ row.basePrice | currency:'PEN':'symbol-narrow' }}</small><button mat-button (click)="select(row)">Restaurar escenario actual</button></output>
         </section>
       }
       <details><summary>¿Cómo se calcula el precio?</summary><p>+20% si queda menos del 15% del aforo o faltan menos de 3 días. −10% si lleva más de 30 días publicado y vendió menos del 10%. Si coinciden, tiene prioridad el incremento; no se acumulan ajustes.</p></details>
@@ -73,7 +73,7 @@ export class ZoneInsights {
     this.age.set(row.publishedAt ? Math.max(0, Math.min(90, Math.floor((Date.now() - Date.parse(row.publishedAt)) / 86400000))) : 0);
   }
   exportCsv(): void {
-    const records = [['Evento', 'Zona', 'Capacidad', 'Vendidas', 'Disponibles', 'Recaudación sin comisión', 'Precio base', 'Precio actual'],
+    const records = [['Evento', 'Zona', 'Capacidad', 'Vendidas', 'Disponibles', 'Recaudación', 'Precio publicado', 'Precio actual'],
       ...this.filtered().map(r => [r.eventName, r.zoneName, r.capacity, r.sold, r.capacity - r.sold, r.revenue.toFixed(2), r.basePrice.toFixed(2), r.currentPrice.toFixed(2)])];
     // "sep=," le indica a Excel el delimitador a usar sin importar el separador
     // regional configurado (en instalaciones en espa\u00F1ol suele ser ";"), evitando

@@ -82,7 +82,7 @@
       </section>
 
       <section class="block">
-        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">Precio base por entrada + 6% de servicio. El total se confirma antes del pago.</p>
+        <h2 class="tkt-section-title">Zonas y precios</h2><p class="tkt-muted">El precio de cada zona es el total por entrada. Elige tu zona al comenzar la compra.</p>
         <div class="zones">
           @for (zone of ev.zones; track zone.id; let i = $index) {
             @let avail = zoneAvailable(zone.sold, zone.capacity);
@@ -119,7 +119,7 @@
                     {{ avail | number }} entradas disponibles
                   }
                 </span>
-                <span>{{ price(ev, zone).note }}</span><span>{{ pct | number: '1.0-0' }}% ocupado</span>
+                @if (price(ev, zone).note) { <span>{{ price(ev, zone).note }}</span> }<span>{{ pct | number: '1.0-0' }}% ocupado</span>
               </div>
             </div>
           }

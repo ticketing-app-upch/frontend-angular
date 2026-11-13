@@ -7,7 +7,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
@@ -22,6 +22,7 @@ import { PASSWORD_PATTERN } from '../../../core/auth/password-policy';
 import { PublicRole } from '../../../core/models/user.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LegalDialog } from '../../../shared/legal/legal-dialog';
+import { roleHome } from '../../../core/auth/role-home';
 
 @Component({
   selector: 'tkt-register',
@@ -45,6 +46,7 @@ export class Register {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private notify = inject(NotificationService);
   private dialog = inject(MatDialog);
 
@@ -58,16 +60,11 @@ export class Register {
     role: ['CLIENT' as PublicRole, Validators.required],
     acceptedTerms: [false, Validators.requiredTrue],
     client: this.fb.nonNullable.group({
-      country: ['', Validators.required],
-      city: ['', Validators.required],
-      document: ['', [Validators.required, Validators.minLength(8)]],
-      phone: ['', [Validators.required, Validators.minLength(6)]],
+      document: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
     }),
     organizer: this.fb.nonNullable.group({
       companyName: ['', [Validators.required, Validators.minLength(2)]],
-      taxId: ['', [Validators.required, Validators.minLength(8)]],
-      country: ['', Validators.required],
-      phone: ['', [Validators.required, Validators.minLength(6)]],
+      taxId: ['', [Validators.required, Validators.pattern(/^(10|15|17|20)[0-9]{9}$/)]],
     }),
   });
 
@@ -131,15 +128,15 @@ export class Register {
         profile:
           raw.role === 'CLIENT'
             ? {
-                country: raw.client.country.trim(),
-                city: raw.client.city.trim(),
+                country: 'PE',
+                city: '',
                 district: '',
                 hasPeruvianNationality: false,
                 docType: 'DNI',
                 docNumber: raw.client.document.trim(),
                 gender: 'F',
                 phoneCode: '+51',
-                phone: raw.client.phone.trim(),
+                phone: '',
               }
             : undefined,
         organizer:
@@ -150,8 +147,8 @@ export class Register {
                 taxId: raw.organizer.taxId.trim(),
                 legalName: raw.organizer.companyName.trim(),
                 repName: raw.fullName.trim(),
-                phone: raw.organizer.phone.trim(),
-                country: raw.organizer.country.trim(),
+                phone: '',
+                country: 'PE',
                 city: '',
                 website: '',
               }
@@ -160,7 +157,10 @@ export class Register {
       .subscribe({
         next: (res) => {
           this.notify.success(`Cuenta creada. ¡Bienvenido, ${res.user.fullName.split(' ')[0]}!`);
-          void this.router.navigateByUrl('/bienvenida');
+          const redirect = this.route.snapshot.queryParamMap.get('redirect');
+          const destination = res.user.role === 'CLIENT' && redirect?.startsWith('/') && !redirect.startsWith('//')
+            ? redirect : roleHome(res.user.role);
+          void this.router.navigateByUrl(destination, { replaceUrl: true });
         },
         error: (err) => {
           this.loading.set(false);
