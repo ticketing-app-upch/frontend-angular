@@ -79,9 +79,10 @@ import { MatIconModule } from '@angular/material/icon';
       color: var(--mat-sys-on-surface-variant);
     }
     .value {
-      font-size: 1.6rem;
+      font-size: clamp(1.15rem, 4.5vw, 1.6rem);
       font-weight: 800;
       letter-spacing: -0.025em;
+      overflow-wrap: anywhere;
     }
     .hint { font-size: 0.76rem; color: var(--mat-sys-on-surface-variant); }
   `,
