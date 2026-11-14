@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TitleCasePipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +30,9 @@ export class EventForm {
   private readonly auth = inject(AuthService);
   private readonly notify = inject(NotificationService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  readonly editingId = this.route.snapshot.paramMap.get('id');
+  private previous: EventItem | null = null;
 
   readonly venues = DEMO_VENUES;
   readonly categories: EventCategory[] = ['CONCIERTO', 'FESTIVAL', 'TEATRO', 'DEPORTE', 'CONFERENCIA'];
@@ -57,10 +60,37 @@ export class EventForm {
     category: ['CONCIERTO' as EventCategory, Validators.required],
     startsAt: ['', Validators.required],
     venueId: ['', Validators.required],
+    queueEnabled: [false],
     prices: this.fb.array([] as ReturnType<typeof this.fb.nonNullable.control<number>>[]),
   });
 
   get prices(): FormArray { return this.form.controls.prices; }
+  constructor() {
+    if (this.editingId) this.events.getById(this.editingId).subscribe({
+      next: ev => {
+        if (ev.organizerId !== this.auth.user()?.id || ev.status !== 'RECHAZADO') {
+          void this.router.navigate(['/organizador/eventos']); return;
+        }
+        this.previous = ev;
+        const venue = this.venues.find(v => v.name === ev.venue);
+        if (venue) this.chooseVenue(venue.id);
+        this.form.patchValue({ name: ev.name, description: ev.description, category: ev.category,
+          startsAt: toLocalDateTime(ev.startsAt), venueId: venue?.id ?? '', queueEnabled: !!ev.queueEnabled });
+        ev.zones.forEach((z, i) => this.prices.at(i)?.setValue(z.price));
+        this.bannerUrl.set(ev.bannerUrl ?? null);
+        this.secondaryBannerUrl.set(ev.secondaryBannerUrl ?? null);
+      },
+      error: () => void this.router.navigate(['/organizador/eventos']),
+    });
+  }
+
+  confirmQueueChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.checked && !window.confirm('¿Estás seguro de activar la cola virtual para este evento? Esta decisión no se podrá cambiar después.')) {
+      input.checked = false;
+      this.form.controls.queueEnabled.setValue(false);
+    }
+  }
   zoneId(index: number): string { return `venue-${this.venue()?.id ?? 'none'}-${index}`; }
 
   chooseVenue(id: string): void {
@@ -183,6 +213,7 @@ export class EventForm {
       this.notify.error(error);
       return;
     }
+    if (!venue) return;
     const raw = this.form.getRawValue();
     const startsAt = new Date(raw.startsAt);
     if (!Number.isFinite(startsAt.getTime()) || startsAt.getTime() <= Date.now()) {
@@ -190,21 +221,21 @@ export class EventForm {
       return;
     }
     const event: EventItem = {
-      id: '', name: raw.name.trim(), description: raw.description.trim(), category: raw.category,
-      status: 'PUBLICADO', venue: venue!.name, city: venue!.city,
-      startsAt: startsAt.toISOString(), publishedAt: new Date().toISOString(),
-      venueCapacity: venueCapacity(venue!), organizerId: this.auth.user()?.id ?? '', maxPerOrder: 6,
-      imageUrl: eventImage({ name: raw.name.trim(), category: raw.category, venue: venue!.name }),
+      id: this.editingId ?? '', name: raw.name.trim(), description: raw.description.trim(), category: raw.category,
+      status: 'PENDIENTE', venue: venue.name, city: venue.city,
+      startsAt: startsAt.toISOString(), queueEnabled: raw.queueEnabled,
+      venueCapacity: venueCapacity(venue), organizerId: this.auth.user()?.id ?? '', maxPerOrder: 6,
+      imageUrl: eventImage({ name: raw.name.trim(), category: raw.category, venue: venue.name }),
       bannerUrl: this.bannerUrl()!,
       secondaryBannerUrl: this.secondaryBannerUrl()!,
-      zones: venue!.zones.map((zone, index) => ({
-        id: this.zoneId(index), name: zone.name, capacity: zone.capacity, sold: 0,
+      zones: venue.zones.map((zone, index) => ({
+        id: this.zoneId(index), name: zone.name, capacity: zone.capacity, sold: this.previous?.zones.find(z => z.id === this.zoneId(index))?.sold ?? 0,
         price: Number(raw.prices[index]),
       })),
     };
     this.saving.set(true);
     this.events.save(event).subscribe({
-      next: () => { this.notify.success('Evento publicado.'); void this.router.navigate(['/organizador/eventos']); },
+      next: () => { this.notify.success('Evento enviado a revisión'); void this.router.navigate(['/organizador/eventos']); },
       error: error => { this.saving.set(false); this.notify.error(error?.message ?? 'No se pudo publicar el evento.'); },
     });
   }
@@ -243,4 +274,9 @@ function encodeForDemo(image: HTMLImageElement, maxWidth: number, maxHeight: num
     if (encoded.length <= 1_250_000) return encoded;
   }
   throw new Error('La imagen es demasiado compleja para guardar en la demo.');
+}
+
+function toLocalDateTime(iso: string): string {
+  const date = new Date(iso);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }

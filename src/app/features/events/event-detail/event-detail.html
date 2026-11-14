@@ -177,15 +177,15 @@
             <mat-icon>store</mat-icon> Vista de gestión
           </button>
         } @else if (isAuthenticated()) {
-          <a mat-flat-button class="cta tkt-cta" [routerLink]="['/comprar', ev.id]">
-            <mat-icon>local_activity</mat-icon> Comprar entradas
+          <a mat-flat-button class="cta tkt-cta" [routerLink]="ev.queueEnabled ? ['/cola', ev.id] : ['/comprar', ev.id]">
+            <mat-icon>local_activity</mat-icon> {{ ev.queueEnabled ? 'Ingresar a la cola' : 'Comprar entradas' }}
           </a>
         } @else {
           <a
             mat-flat-button
             class="cta tkt-cta"
             [routerLink]="['/auth/login']"
-            [queryParams]="{ redirect: '/comprar/' + ev.id }"
+            [queryParams]="{ redirect: (ev.queueEnabled ? '/cola/' : '/comprar/') + ev.id }"
           >
             <mat-icon>login</mat-icon> Ingresa para comprar
           </a>

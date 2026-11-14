@@ -4,6 +4,13 @@
     <p>Cargando ventas…</p>
   } @else if (event(); as ev) {
     <h1 class="tkt-section-title">Ventas de {{ ev.name }}</h1>
+    @if (ev.queueEnabled) {
+      @if (ev.purchasesEnabled) { <p>Compras habilitadas</p> }
+      @else if (ev.status === 'PUBLICADO') {
+        <button mat-flat-button type="button" (click)="confirming.set(true)">Habilitar compras</button>
+        @if (confirming()) { <p>¿Confirmas habilitar las compras? Esta acción es irreversible.</p><button mat-flat-button type="button" [disabled]="busy()" (click)="enablePurchases()">Confirmar</button><button mat-button type="button" (click)="confirming.set(false)">Cancelar</button> }
+      }
+    }
     <p class="tkt-section-sub">{{ ev.startsAt | date: "d 'de' MMMM, y · HH:mm" }} · {{ ev.venue }}</p>
     <p class="mock-note">Vista de maqueta: importes estimados con el precio publicado y ventas guardadas en este navegador.</p>
     <div class="summary">

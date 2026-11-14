@@ -1,6 +1,7 @@
 // Aplica la configuración a los environments de Angular.
 // Fuentes (de mayor a menor prioridad): variables de entorno del proceso
-// (Vercel, Netlify, CI) > archivo `.env` (local) > valores del repo (mock).
+// (Vercel, Netlify, CI) > archivo `.env` (local) > valores del repo
+// (desarrollo: mock; producción: backend publicado).
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const ENV_FILES = ['src/enviroments/enviroment.ts', 'src/enviroments/enviroment.prod.ts'];

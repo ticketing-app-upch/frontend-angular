@@ -10,7 +10,8 @@ Este documento separa lo que ya funciona en Angular de lo que necesariamente deb
 | Eventos y zonas                        | Alta/edición, capacidad física, zonas únicas, ventas inmutables y máximo 6                         | PHP debe validar nuevamente y conservar el historial                                                                     |
 | Consulta por categoría, fecha o lugar  | Filtros combinados, búsqueda sin tildes, orden y URL compartible                                   | `GET /events` debe aceptar filtros equivalentes                                                                          |
 | Compra sin sobreventa                  | UX de selección, cotización, límite 6, revalidación, idempotencia y error de stock                 | PHP/MySQL debe ejecutar `START TRANSACTION`, `SELECT ... FOR UPDATE`, validar stock, insertar ticket y `COMMIT/ROLLBACK` |
-| Precio dinámico                        | Reglas exactas visibles y probadas; endpoint Python por zona                                       | Python es la autoridad de precio; PHP debe volver a comprobar el total antes de confirmar                                |
+| Cola virtual y anti-scalping           | Sala de espera con posición/ETA, pase de turno, bloqueo por ráfaga de ingresos y tope de 6 por persona | Python gestiona la cola y el riesgo; el backend valida y consume `queuePass` al crear la orden                       |
+| Precio dinámico (fuera del cronograma) | Reglas visibles y probadas, apagadas con `dynamicPricing: false`                                   | Solo si el equipo decide reactivarlo; PHP debe volver a comprobar el total antes de confirmar                            |
 | Ticket inmutable                       | La orden guarda zona, cantidad y precio pagado; la UI no edita tickets                             | API debe prohibir `PUT/PATCH/DELETE` de tickets confirmados                                                              |
 | Dashboard por zona                     | Ocupación, entradas, recaudación sin comisión, precio vigente, CSV y laboratorio de precios        | Endpoint debe retornar datos agregados desde MySQL                                                                       |
 
@@ -20,7 +21,7 @@ Este documento separa lo que ya funciona en Angular de lo que necesariamente deb
 | -------------------------------------- | ------- | --------------------------------------------------------------------------- |
 | Demo 2 (Semana 8)                      | 1       | Registro, Login                                                             |
 | Demo 3 (Semana 11)                     | 1, 2, 3 | + Catálogo de eventos, Gestión de eventos, Compra transaccional             |
-| Demo 4 (Semana 14)                     | 1‑5     | + Precio dinámico, Dashboard del organizador                                |
+| Demo 4 (Semana 14)                     | 1‑4     | + Cola virtual y anti-scalping (Python). El dashboard (épica 5) queda fuera |
 | Extra (no es una épica del cronograma) | —       | Administración (panel admin), Validación/redención de entradas en la puerta |
 
 ## Contratos esperados
@@ -149,7 +150,21 @@ Público, sin autenticación. Devuelve solo eventos con `status` en `PUBLICADO` 
 
 El backend debe asociar el comprador al JWT, ignorar cualquier identidad enviada por el cliente, recalcular precio, limitar la suma a 6 y garantizar que una clave idempotente no genere dos órdenes. Respuestas recomendadas: `401/403` por sesión/rol, `409` por stock o cotización cambiada, `422` por datos inválidos y `402` para rechazo de pago.
 
-### Precio dinámico (Épica 4 / Demo 4)
+### Cola virtual y anti-scalping (Épica 4 / Demo 4)
+
+Microservicio Python en `{apiPricingUrl}`. El front envía `Authorization: Bearer <JWT>` (el mismo que emite el backend); el servicio debe validarlo y no confiar en identidades enviadas en el cuerpo.
+
+| Método y ruta | Cuerpo | Respuesta |
+|---|---|---|
+| `POST /v1/queue/join` | `{ "eventId": "ev-1" }` | `QueueState` (200 también si el riesgo es `BLOCK`) |
+| `GET /v1/queue/{eventId}/status` | — | `QueueState` |
+| `DELETE /v1/queue/{eventId}` | — | 204 |
+
+`QueueState`: `{ eventId, status: "WAITING"|"READY"|"EXPIRED"|"BLOCKED", position, initialPosition, etaSeconds, joinedAt, passToken?, passExpiresAt?, risk: { decision: "ALLOW"|"BLOCK", score: 0-100, reasons: string[] } }`. `passToken` solo viaja con `READY`.
+
+`POST /orders` incluye `queuePass`: el backend debe validarlo con el microservicio, responder `403` si falta, no pertenece al usuario/evento o venció, y consumirlo al confirmar. Reglas que simula el front: más de 4 ingresos por minuto, tope de 6 entradas por persona y evento (sumando compras previas no canceladas) y cuenta desactivada. El pase dura `queuePassMinutes` (10).
+
+### Precio dinámico (fuera del cronograma, apagado)
 
 `POST {apiPricingUrl}/v1/dynamic-price`
 
@@ -168,7 +183,7 @@ Respuesta mínima: `{ "precio_ajustado": 144, "motivo": "Últimos cupos" }`. Ang
 
 Reglas implementadas: `+20%` cuando el disponible es estrictamente menor al 15% o faltan estrictamente menos de 3 días; `-10%` con más de 30 días publicado y menos del 10% vendido. El recargo tiene prioridad y no se acumulan ajustes.
 
-### Dashboard del organizador (Épica 5 / Demo 4)
+### Dashboard del organizador (Épica 5, aún sin habilitar)
 
 `GET {apiBackendUrl}/organizers/:organizerId/dashboard`
 

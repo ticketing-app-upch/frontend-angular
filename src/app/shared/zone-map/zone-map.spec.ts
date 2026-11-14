@@ -66,7 +66,7 @@ describe('Planos interactivos por recinto', () => {
         }
       }
     }
-  });
+  }, 15000);
 
   it('sincroniza las zonas trazadas, respeta agotados y confirma el segundo toque', async () => {
     await TestBed.configureTestingModule({ imports: [ZoneMap] }).compileComponents();

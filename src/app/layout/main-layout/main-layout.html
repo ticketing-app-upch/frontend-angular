@@ -19,6 +19,14 @@
           <a routerLink="/organizador/eventos" routerLinkActive="active">Mis eventos</a>
           <a routerLink="/organizador/eventos/nuevo" routerLinkActive="active">Crear evento</a>
         }
+        @if (epicEnabled(5)) {
+          <a routerLink="/organizador/dashboard" routerLinkActive="active">Dashboard</a>
+          <a routerLink="/organizador/mercado" routerLinkActive="active">Mercado</a>
+        }
+      }
+      @if (isAdmin()) {
+        <a routerLink="/admin/usuarios" routerLinkActive="active">Gestión de usuarios</a>
+        <a routerLink="/admin/eventos" routerLinkActive="active">Gestión de eventos</a>
       }
     </nav>
 

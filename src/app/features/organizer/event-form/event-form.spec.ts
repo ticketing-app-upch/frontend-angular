@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of } from 'rxjs';
 import { AuthService } from '../../../core/auth/auth.service';
 import { EventItem } from '../../../core/models/event.model';
@@ -22,6 +22,7 @@ describe('Crear evento por recinto', () => {
         { provide: AuthService, useValue: { user: () => ({ id: 'org-demo' }) } },
         { provide: NotificationService, useValue: { error: (message: string) => errors.push(message), success: () => {} } },
         { provide: Router, useValue: { navigate: () => Promise.resolve(true) } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: { get: () => null } } } },
       ],
     });
   });

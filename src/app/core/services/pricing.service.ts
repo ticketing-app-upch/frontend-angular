@@ -41,7 +41,7 @@ export class PricingService {
     event: EventItem,
     items: { zoneId: string; quantity: number }[],
   ): Observable<PriceQuote> {
-    if (environment.useMock || !environment.enabledEpics.includes(4)) {
+    if (environment.useMock || !environment.dynamicPricing) {
       return mockResponse(this.buildLocalQuote(event, items));
     }
     if (!items.length) return throwError(() => new Error('Selecciona al menos una zona.'));

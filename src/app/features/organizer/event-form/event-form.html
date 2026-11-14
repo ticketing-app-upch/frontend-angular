@@ -1,7 +1,7 @@
 <div class="tkt-page">
   <a routerLink="/organizador/eventos" class="back"><mat-icon>arrow_back</mat-icon> Mis eventos</a>
-  <h1 class="tkt-section-title">Crear evento</h1>
-  <p class="tkt-section-sub">Elige un recinto, carga un banner principal y una imagen secundaria, y asigna el precio final de cada zona. Una vez publicado, el evento no se podrá editar.</p>
+  <h1 class="tkt-section-title">{{ editingId ? 'Corregir evento rechazado' : 'Crear evento' }}</h1>
+  <p class="tkt-section-sub">Elige un recinto, carga dos banners y asigna el precio de cada zona. El evento se enviará a revisión.</p>
 
   <form [formGroup]="form" (ngSubmit)="submit()" class="form">
     <mat-card class="block">
@@ -14,6 +14,7 @@
         </mat-select></mat-form-field>
         <mat-form-field appearance="outline"><mat-label>Fecha y hora</mat-label><input matInput type="datetime-local" formControlName="startsAt" /><mat-error>Selecciona la fecha y hora.</mat-error></mat-form-field>
       </div>
+      <label class="queue-choice"><input type="checkbox" formControlName="queueEnabled" (change)="confirmQueueChange($event)" /> Activar sistema de cola virtual</label>
       <div class="banner-field">
         <label for="event-banner"><strong>Banner principal</strong><span>JPG · mínimo 1920 × 480 px · proporción 4:1 · máximo 2 MB</span></label>
         <input id="event-banner" type="file" accept=".jpg,.jpeg,image/jpeg" (change)="onBannerChange($event)" aria-describedby="banner-help" />
@@ -52,6 +53,6 @@
       </mat-card>
     }
 
-    <div class="form-actions"><a mat-stroked-button routerLink="/organizador/eventos">Cancelar</a><button mat-flat-button type="submit" class="tkt-cta" [disabled]="saving()">{{ saving() ? 'Publicando…' : 'Publicar evento' }}</button></div>
+    <div class="form-actions"><a mat-stroked-button routerLink="/organizador/eventos">Cancelar</a><button mat-flat-button type="submit" class="tkt-cta" [disabled]="saving()">{{ saving() ? 'Enviando…' : 'Enviar a revisión' }}</button></div>
   </form>
 </div>

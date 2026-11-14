@@ -90,3 +90,4 @@ h1{font-size:clamp(40px,5.3vw,70px);line-height:1.02;letter-spacing:-.055em;marg
 .share-card { position: absolute; right: 58px; top: 14px; z-index: 3; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 1px solid #ffffff66; background: #19172b88; backdrop-filter: blur(6px); color: white; }
 .share-card:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 2px; }
 @media (hover: none) { .feature-next { opacity: 1; pointer-events: auto; right: 10px; } }
+@media (max-width: 600px) { .feature-next { right: 10px; } }

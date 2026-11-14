@@ -1,0 +1,51 @@
+<section class="queue" aria-live="polite">
+  @if (loading()) {
+    <div class="center"><mat-spinner diameter="40" /><p>Validando tu ingreso a la cola…</p></div>
+  } @else if (error()) {
+    <tkt-empty-state icon="error_outline" title="No pudimos abrir la cola" [message]="error()">
+      <a mat-stroked-button routerLink="/eventos">Volver a eventos</a>
+    </tkt-empty-state>
+  } @else if (state(); as s) {
+    <header class="head">
+      <mat-icon>confirmation_number</mat-icon>
+      <div>
+        <h1>{{ event()?.name ?? 'Cola virtual' }}</h1>
+        @if (event(); as ev) {
+          <p class="meta">{{ ev.startsAt | date: "d 'de' MMMM, y · HH:mm" }} · {{ ev.venue }}, {{ ev.city }}</p>
+        }
+      </div>
+    </header>
+
+    @switch (s.status) {
+      @case ('WAITING') {
+        <div class="card">
+          <p class="label">Tu posición en la fila</p>
+          <p class="position">{{ s.position }}</p>
+          <mat-progress-bar mode="determinate" [value]="progress()" aria-label="Avance en la cola" />
+          <p class="eta"><mat-icon>schedule</mat-icon> Tiempo estimado: {{ eta() }}</p>
+          @if (!s.salesEnabled) { <p class="hint">La venta aún no ha sido habilitada por el organizador.</p> }
+          <p class="hint">Puedes recargar la página: tu turno se conserva.</p>
+        </div>
+      }
+      @case ('ADMITTED') {
+        <div class="card ready">
+          <mat-icon class="big">check_circle</mat-icon>
+          <h2>¡Es tu turno!</h2>
+          <p>Tienes <strong>{{ passLeft() }} s</strong> para elegir tus zonas y pagar antes de que el turno pase al siguiente.</p>
+          <button mat-flat-button type="button" [disabled]="passLeft() === 0" (click)="buy()">Comprar entradas</button>
+        </div>
+      }
+      @case ('EXPIRED') {
+        <div class="card">
+          <mat-icon class="big warn">timer_off</mat-icon>
+          <h2>Tu turno venció</h2>
+          <p>No completaste la compra a tiempo. Puedes volver a entrar a la fila.</p>
+          <button mat-flat-button type="button" (click)="rejoin()">Volver a la cola</button>
+        </div>
+      }
+      @case ('CLOSED') { <div class="card"><h2>La venta de este evento ha finalizado</h2></div> }
+      @case ('CANCELLED') { <div class="card"><h2>Compra cancelada</h2><button mat-flat-button type="button" (click)="rejoin()">Volver a la cola</button></div> }
+      @case ('COMPLETED') { <div class="card"><h2>Compra confirmada</h2><a mat-flat-button routerLink="/mis-entradas">Mis entradas</a></div> }
+    }
+  }
+</section>

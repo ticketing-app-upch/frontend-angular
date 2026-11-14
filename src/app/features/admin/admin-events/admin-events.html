@@ -1,63 +1,33 @@
+<h2>Eventos pendientes de aprobación</h2>
 @if (loading()) {
   <div class="center"><mat-progress-spinner mode="indeterminate" diameter="40" /></div>
 } @else if (items().length === 0) {
-  <tkt-empty-state icon="event_busy" title="Sin eventos" />
+  <tkt-empty-state icon="event_busy" title="No hay eventos pendientes" />
 } @else {
-  <div class="adm-card">
-    <div class="adm-scroll">
-      <table class="adm-table">
-        <thead>
-          <tr>
-            <th>Evento</th>
-            <th>Organizador</th>
-            <th>Categoría</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-            <th class="ta-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (ev of items(); track ev.id) {
-            <tr>
-              <td class="strong">{{ ev.name }}</td>
-              <td class="muted">{{ organizer(ev.organizerId) }}</td>
-              <td>{{ ev.category | titlecase }}</td>
-              <td>
-                <span class="adm-chip" [class]="'st-' + ev.status">
-                  {{ ev.status | titlecase }}
-                </span>
-              </td>
-              <td class="muted">{{ ev.startsAt | date: "d MMM y · HH:mm" }}</td>
-              <td class="ta-right">
-                @if (confirmId() === ev.id) {
-                  <span class="confirm">
-                    ¿Eliminar?
-                    <button mat-button color="warn" (click)="confirmDelete(ev)">Sí</button>
-                    <button mat-button (click)="cancelDelete()">No</button>
-                  </span>
-                } @else {
-                  <a
-                    mat-icon-button
-                    [routerLink]="['/organizador/eventos', ev.id, 'editar']"
-                    aria-label="Editar evento"
-                  >
-                    <mat-icon>edit</mat-icon>
-                  </a>
-                  <button
-                    mat-icon-button
-                    class="del"
-                    [disabled]="busyId() === ev.id"
-                    (click)="askDelete(ev)"
-                    aria-label="Eliminar evento"
-                  >
-                    <mat-icon>delete_outline</mat-icon>
-                  </button>
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
+  <div class="adm-card adm-scroll"><table class="adm-table">
+    <thead><tr><th>Evento</th><th>Organizador</th><th>Fecha</th><th>Recinto</th><th>Cola virtual</th><th>Revisión</th></tr></thead>
+    <tbody>@for (ev of items(); track ev.id) {
+      <tr><td class="strong">{{ ev.name }}</td><td>{{ organizer(ev.organizerId) }}</td>
+      <td>{{ ev.startsAt | date: "d MMM y · HH:mm" }}</td><td>{{ ev.venue }}</td>
+      <td>{{ ev.queueEnabled ? 'Sí' : 'No' }}</td>
+      <td><button mat-button type="button" (click)="open(ev)">Revisar</button></td></tr>
+    }</tbody>
+  </table></div>
+}
+@if (selected(); as ev) {
+  <section class="adm-card" style="padding:1.5rem; margin-top:1.5rem" aria-label="Detalle para revisión">
+    <h2>{{ ev.name }}</h2><p>{{ ev.description }}</p>
+    <p>{{ ev.startsAt | date: "d MMMM y · HH:mm" }} · {{ ev.venue }}, {{ ev.city }}</p>
+    @if (ev.bannerUrl) { <img [src]="ev.bannerUrl" alt="Banner principal" style="max-width:100%;max-height:180px" /> }
+    @if (ev.secondaryBannerUrl) { <img [src]="ev.secondaryBannerUrl" alt="Banner secundario" style="max-width:100%;max-height:180px" /> }
+    <tkt-zone-map [zones]="ev.zones" [quantities]="{}" [stadium]="false" [venue]="ev.venue" [image]="venueMap(ev.venue, ev.zones)" [hotspots]="venueHotspots(ev.venue, ev.zones)" />
+    <ul>@for (zone of ev.zones; track zone.id) { <li>{{ zone.name }}: {{ zone.price | currency: 'PEN' : 'symbol-narrow' }} · {{ zone.capacity }} cupos</li> }</ul>
+    <div class="confirm">
+      <button mat-flat-button type="button" (click)="decision.set('PUBLICADO')">Aprobar</button>
+      <button mat-stroked-button type="button" (click)="decision.set('RECHAZADO')">Rechazar</button>
+      <button mat-button type="button" (click)="selected.set(null)">Cerrar</button>
     </div>
-  </div>
+    @if (decision() === 'RECHAZADO') { <label>Motivo obligatorio <textarea [(ngModel)]="reason" rows="3" style="display:block;width:100%"></textarea></label> }
+    @if (decision()) { <p>¿Confirmas {{ decision() === 'PUBLICADO' ? 'la aprobación' : 'el rechazo' }} de este evento?</p><button mat-flat-button type="button" [disabled]="busy()" (click)="review()">Confirmar</button><button mat-button type="button" (click)="decision.set(null)">Cancelar</button> }
+  </section>
 }
