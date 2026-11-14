@@ -27,6 +27,7 @@ export const DEMO_CREDENTIALS = {
 export const SEED_USERS: SeedUser[] = [
   {
     id: 'u-org-1',
+    createdAt: '2026-09-01T00:00:00.000Z',
     fullName: 'José Manuel Ames',
     email: DEMO_CREDENTIALS.ORGANIZER.email,
     password: DEMO_CREDENTIALS.ORGANIZER.password,
@@ -34,6 +35,7 @@ export const SEED_USERS: SeedUser[] = [
   },
   {
     id: 'u-cli-1',
+    createdAt: '2026-09-01T00:00:00.000Z',
     fullName: 'Juan Aguilar',
     email: DEMO_CREDENTIALS.CLIENT.email,
     password: DEMO_CREDENTIALS.CLIENT.password,
@@ -42,6 +44,7 @@ export const SEED_USERS: SeedUser[] = [
   {
     // Cuenta de administrador: se crea aquí, nunca desde el registro público.
     id: 'u-adm-1',
+    createdAt: '2026-09-01T00:00:00.000Z',
     fullName: 'Admin AlpaTeck',
     email: DEMO_CREDENTIALS.ADMIN.email,
     password: DEMO_CREDENTIALS.ADMIN.password,

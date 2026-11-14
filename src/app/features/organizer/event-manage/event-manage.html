@@ -32,6 +32,15 @@
             <p class="meta">
               {{ ev.startsAt | date: "d 'de' MMM, y · HH:mm" }}
             </p>
+            <p class="meta">Estado del evento: {{ status(ev) }}</p>
+            @if (ev.status === 'RECHAZADO') { <p class="meta">Motivo: {{ ev.rejectionReason }}</p> }
+          </div>
+          <div class="actions">
+            <a mat-button [routerLink]="['/eventos', ev.id]">Ver ficha</a>
+            @if (ev.status === 'RECHAZADO') { <a mat-button [routerLink]="['/organizador/eventos', ev.id, 'editar']">Editar</a> }
+            @if (epicEnabled(5) && ev.status === 'PUBLICADO') {
+              <a mat-button [routerLink]="['/organizador/eventos', ev.id, 'ventas']">Ventas</a>
+            }
           </div>
         </article>
       }

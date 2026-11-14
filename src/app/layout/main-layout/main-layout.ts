@@ -8,6 +8,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { AuthService } from '../../core/auth/auth.service';
 import { epicEnabled } from '../../core/demo-scope';
 import { roleHome } from '../../core/auth/role-home';
+import { NotificationService } from '../../core/services/notification.service';
 
 @Component({
   selector: 'tkt-main-layout',
@@ -31,6 +32,7 @@ export class MainLayout {
   readonly homeLink = computed(() => roleHome(this.auth.user()?.role));
   readonly dark = signal(false);
   private router = inject(Router);
+  private notify = inject(NotificationService);
   constructor() {
     let preferred = ''; try { preferred = localStorage.getItem('aforo.theme') ?? ''; } catch { /* sistema */ }
     this.dark.set(preferred ? preferred === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches);
@@ -49,8 +51,10 @@ export class MainLayout {
   readonly year = new Date().getFullYear();
 
   logout(): void {
-    this.auth.logout();
-    void this.router.navigateByUrl('/eventos', { replaceUrl: true });
+    this.auth.logout().subscribe(revoked => {
+      if (!revoked) this.notify.error('Se cerró la sesión en este dispositivo, pero no se pudo confirmar la revocación del token en el servidor.');
+    });
+    void this.router.navigateByUrl('/auth/login', { replaceUrl: true });
   }
 
   initials(name: string): string {

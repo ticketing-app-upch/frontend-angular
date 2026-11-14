@@ -1,4 +1,8 @@
-# Demo 3 · AlpaTeck (solo frontend)
+# Demo 4 · AlpaTeck (frontend)
+
+Esta rama integra el último Demo 3 con cola virtual, aprobación de eventos y el panel Mercado. El repositorio sigue en modo mock; la integración PHP/Python y los límites de cada HU están detallados en [la revisión de Demo4](REVISION_HU_DEMO4.md).
+
+## Base heredada de Demo 3
 
 Esta rama presenta las épicas 2 y 3 con datos de prueba locales. Parte de la base de autenticación y administración de Demo 2. El alcance está contrastado con el backlog específico de Demo 3.
 

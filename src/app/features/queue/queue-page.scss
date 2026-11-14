@@ -1,0 +1,49 @@
+:host { display: block; }
+
+.queue {
+  max-width: 560px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.center {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: 3rem 0;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.25rem;
+
+  mat-icon { color: var(--mat-sys-primary); font-size: 2rem; width: 2rem; height: 2rem; }
+  h1 { margin: 0; font-size: 1.35rem; }
+  .meta { margin: 0.2rem 0 0; color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
+}
+
+.card {
+  display: grid;
+  gap: 0.75rem;
+  justify-items: center;
+  text-align: center;
+  padding: 1.75rem 1.5rem;
+  border-radius: var(--tkt-radius);
+  border: 1px solid color-mix(in srgb, var(--mat-sys-on-surface) 14%, transparent);
+  background: var(--mat-sys-surface-container-low);
+
+  h2 { margin: 0; }
+  p { margin: 0; }
+  mat-progress-bar { width: 100%; }
+  ul { margin: 0; padding-left: 1.1rem; text-align: left; }
+}
+
+.label { color: var(--mat-sys-on-surface-variant); font-size: 0.9rem; }
+.position { font-size: 4rem !important; font-weight: 700; line-height: 1; color: var(--mat-sys-primary); }
+.eta { display: flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+.hint { color: var(--mat-sys-on-surface-variant); font-size: 0.85rem; }
+.big { font-size: 3rem; width: 3rem; height: 3rem; color: var(--mat-sys-primary); }
+.warn { color: var(--mat-sys-error); }

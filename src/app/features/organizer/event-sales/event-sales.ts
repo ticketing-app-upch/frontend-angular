@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../../core/auth/auth.service';
 import { EventItem } from '../../../core/models/event.model';
 import { EventService } from '../../../core/services/event.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'tkt-event-sales',
@@ -18,6 +19,9 @@ export class EventSales {
   private readonly auth = inject(AuthService);
   private readonly events = inject(EventService);
   private readonly route = inject(ActivatedRoute);
+  private readonly notify = inject(NotificationService);
+  readonly confirming = signal(false);
+  readonly busy = signal(false);
   readonly loading = signal(true);
   readonly event = signal<EventItem | null>(null);
   readonly sold = () => this.event()?.zones.reduce((sum, zone) => sum + zone.sold, 0) ?? 0;
@@ -32,6 +36,15 @@ export class EventSales {
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+  }
+  enablePurchases(): void {
+    const event = this.event();
+    if (!event || this.busy()) return;
+    this.busy.set(true);
+    this.events.enablePurchases(event.id).subscribe({
+      next: updated => { this.event.set(updated); this.confirming.set(false); this.busy.set(false); this.notify.success('Compras habilitadas'); },
+      error: err => { this.busy.set(false); this.notify.error(err?.error?.message ?? err?.message ?? 'No se pudieron habilitar las compras.'); },
     });
   }
 }

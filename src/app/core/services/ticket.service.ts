@@ -17,6 +17,8 @@ import { EventService } from './event.service';
 import { PricingService } from './pricing.service';
 import { purchaseIssue } from '../models/ticketing-rules';
 import { RedemptionService } from './redemption.service';
+import { QueueService } from './queue.service';
+import { epicEnabled } from '../demo-scope';
 
 @Injectable({ providedIn: 'root' })
 export class TicketService {
@@ -27,7 +29,16 @@ export class TicketService {
   private pricing = inject(PricingService);
   private base = environment.apiBackendUrl;
   private redemptions = inject(RedemptionService);
+  private queue = inject(QueueService);
   private completed = new Map<string, TicketOrder>();
+  private paymentOpenedAt = new Map<string, number>();
+
+  /** En mock conserva la apertura para medir Δt al pagar; en real la registra PHP. */
+  openPayment(eventId: string): Observable<void> {
+    if (!environment.useMock) return this.http.post<void>(`${this.base}/v1/eventos/${eventId}/pago/apertura`, {});
+    this.paymentOpenedAt.set(`${this.auth.user()?.id}:${eventId}`, Date.now());
+    return mockResponse(undefined);
+  }
 
   myOrders(): Observable<TicketOrder[]> {
     const buyerId = this.auth.user()?.id;
@@ -90,6 +101,26 @@ export class TicketService {
             if (this.store.users.find(account => account.id === user.id)?.active === false) {
               throw { status: 403, message: 'Tu cuenta está desactivada. Contacta al administrador.' };
             }
+            if (event.queueEnabled) {
+              const passIssue = this.queue.validatePass(payload.eventId, payload.queuePass);
+              if (passIssue) throw { status: 403, message: passIssue };
+            }
+            if (epicEnabled(4)) {
+              const limit = Math.min(6, event.maxPerOrder);
+              const owned = this.store.orders
+                .filter(o => o.buyerId === user.id && o.eventId === event.id && o.status !== 'CANCELADA')
+                .reduce((sum, o) => sum + o.lines.reduce((n, l) => n + l.quantity, 0), 0);
+              const requested = payload.items.reduce((sum, item) => sum + item.quantity, 0);
+              if (owned + requested > limit) throw { status: 409, message: `Límite de ${limit} entradas por persona para este evento (ya tienes ${owned}).` };
+              const openedAt = this.paymentOpenedAt.get(`${user.id}:${event.id}`) ?? Date.now();
+              const elapsed = Math.max(0, (Date.now() - openedAt) / 1000);
+              const ageHours = (Date.now() - Date.parse(this.store.users.find(u => u.id === user.id)?.createdAt ?? '1970-01-01')) / 3_600_000;
+              const speedScore = elapsed < 2 ? 100 : 0;
+              const ageScore = ageHours < 24 ? 100 : 0;
+              const countScore = Math.min(100, requested / 6 * 100);
+              const riskScore = 0.4 * speedScore + 0.3 * ageScore + 0.3 * countScore;
+              if (riskScore >= 70) throw { status: 429, message: 'Transacción bloqueada por patrón sospechoso de compra' };
+            }
             // Validaciones de negocio contra la data mock.
             const fresh = this.store.events.find(e => e.id === event.id);
             if (payload.idempotencyKey && this.completed.has(key)) return structuredClone(this.completed.get(key)!);
@@ -130,6 +161,7 @@ export class TicketService {
               }
               if (computeCapacity(stored).available === 0) {
                 stored.status = 'AGOTADO';
+                stored.soldOutAt = new Date().toISOString();
               }
               this.store.upsertEvent(stored);
             }
@@ -173,6 +205,7 @@ export class TicketService {
               total: quote.total,
             };
             this.store.addOrder(order);
+            if (event.queueEnabled) this.queue.consume(event.id);
             if (payload.idempotencyKey) this.completed.set(key, structuredClone(order));
             return order;
       }),

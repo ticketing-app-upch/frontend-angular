@@ -113,7 +113,29 @@ describe('EventService (modo mock)', () => {
     it('guarda un evento válido y le asigna id', async () => {
       const saved = await firstValueFrom(events.save(draft()));
       expect(saved.id).toBeTruthy();
+      expect(saved.status).toBe('PENDIENTE');
+      expect((await firstValueFrom(events.list())).some(e => e.id === saved.id)).toBe(false);
     });
+    it('permite reenviar uno rechazado, pero impide editar uno pendiente', async () => {
+      const saved = await firstValueFrom(events.save(draft({ queueEnabled: true })));
+      await expect(firstValueFrom(events.save({ ...saved, name: 'Cambio indebido' }))).rejects.toMatchObject({ status: 403 });
+      await firstValueFrom(auth.login(DEMO_CREDENTIALS.ADMIN));
+      await firstValueFrom(events.review(saved.id, 'RECHAZADO', 'Revisar el título'));
+      await firstValueFrom(auth.login(DEMO_CREDENTIALS.ORGANIZER));
+      const corrected = await firstValueFrom(events.save({ ...saved, name: 'Título corregido' }));
+      expect(corrected).toMatchObject({ status: 'PENDIENTE', name: 'Título corregido' });
+      expect(corrected.rejectionReason).toBeUndefined();
+    });
+  });
+
+  it('solo el administrador aprueba eventos futuros y habilita el catálogo', async () => {
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.ORGANIZER));
+    const saved = await firstValueFrom(events.save(draft()));
+    await expect(firstValueFrom(events.review(saved.id, 'PUBLICADO'))).rejects.toMatchObject({ status: 403 });
+    await firstValueFrom(auth.login(DEMO_CREDENTIALS.ADMIN));
+    expect((await firstValueFrom(events.pendingForReview())).some(e => e.id === saved.id)).toBe(true);
+    await firstValueFrom(events.review(saved.id, 'PUBLICADO'));
+    expect((await firstValueFrom(events.list())).some(e => e.id === saved.id)).toBe(true);
   });
 
   describe('remove()', () => {

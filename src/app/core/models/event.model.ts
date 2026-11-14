@@ -30,6 +30,11 @@ export interface EventItem {
   /** ISO string. */
   startsAt: string;
   publishedAt?: string;
+  rejectionReason?: string;
+  queueEnabled?: boolean;
+  purchasesEnabled?: boolean;
+  purchasesEnabledAt?: string;
+  soldOutAt?: string;
   /** Capacidad física declarada del recinto. */
   venueCapacity?: number;
   imageUrl: string;

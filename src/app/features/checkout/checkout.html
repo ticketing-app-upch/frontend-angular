@@ -351,9 +351,9 @@
                   mat-flat-button
                   class="tkt-cta cta"
                   (click)="openPaymentGateway()"
-                  [disabled]="placing() || secondsLeft() === 0"
+                  [disabled]="placing() || openingPayment() || secondsLeft() === 0 || (ev.queueEnabled && (!ev.purchasesEnabled || queueSecondsLeft() === 0))"
                 >
-                  Ir a la pasarela de pago
+                  {{ ev.queueEnabled && !ev.purchasesEnabled ? 'Las compras aún no han sido habilitadas' : 'Ir a la pasarela de pago' }}
                 </button>
                 <button
                   mat-button
@@ -396,6 +396,7 @@
               <b>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</b>
             </div>
             <h2 id="payment-title">Pago simulado con tarjeta</h2>
+            @if (ev.queueEnabled) { <p role="status">Tiempo para completar la compra: {{ queueSecondsLeft() }} s</p> }
             <div class="payment-options" role="radiogroup" aria-label="Medios de pago">
               <button
                 type="button"
@@ -424,7 +425,7 @@
               mat-flat-button
               class="gateway-pay"
               (click)="confirm()"
-              [disabled]="placing() || secondsLeft() === 0"
+              [disabled]="placing() || secondsLeft() === 0 || (ev.queueEnabled && (!ev.purchasesEnabled || queueSecondsLeft() === 0))"
             >
               @if (placing()) {
                 Procesando pago…
@@ -433,6 +434,7 @@
               }
             </button>
             <p class="gateway-expiry">La cotización vence en {{ secondsLeft() }} s.</p>
+            @if (ev.queueEnabled) { @if (queueSecondsLeft() === 0) { <p role="alert">Tu tiempo para completar la compra ha terminado</p> } <button mat-stroked-button type="button" [disabled]="placing()" (click)="cancelPurchase()">Cancelar compra</button> }
           </section>
         </div>
       }

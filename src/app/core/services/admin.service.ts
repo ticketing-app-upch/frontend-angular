@@ -60,7 +60,7 @@ export class AdminService {
           .sort((a, b) => a.fullName.localeCompare(b.fullName)),
       );
     }
-    return this.http.get<User[]>(`${this.base}/admin/users`);
+    return this.http.get<User[]>(`${this.base}/v1/admin/usuarios`);
   }
 
   /**

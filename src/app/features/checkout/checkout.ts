@@ -21,6 +21,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { EventService } from '../../core/services/event.service';
 import { PriceQuote, PricingService } from '../../core/services/pricing.service';
+import { QueueService } from '../../core/services/queue.service';
 import { TicketService } from '../../core/services/ticket.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { EventItem } from '../../core/models/event.model';
@@ -52,12 +53,15 @@ export class Checkout {
   private events = inject(EventService);
   private pricing = inject(PricingService);
   private tickets = inject(TicketService);
+  private queue = inject(QueueService);
   private notify = inject(NotificationService);
   private router = inject(Router);
 
   private quoteRequest?: Subscription;
   private attemptKey = crypto.randomUUID();
   readonly secondsLeft = signal(0);
+  readonly queueSecondsLeft = signal(0);
+  readonly openingPayment = signal(false);
   private expiresAt = 0;
   paymentMethod: 'CARD' | 'WALLET' = 'CARD';
   cardNumber = '';
@@ -175,7 +179,11 @@ export class Checkout {
   });
 
   constructor() {
-    const timer = setInterval(() => this.secondsLeft.set(Math.max(0, Math.ceil((this.expiresAt - Date.now()) / 1000))), 1000);
+    const timer = setInterval(() => {
+      this.secondsLeft.set(Math.max(0, Math.ceil((this.expiresAt - Date.now()) / 1000)));
+      const expiry = this.queue.passExpiresAt(this.eventId());
+      this.queueSecondsLeft.set(expiry ? Math.max(0, Math.ceil((expiry - Date.now()) / 1000)) : 0);
+    }, 1000);
     inject(DestroyRef).onDestroy(() => { clearInterval(timer); this.quoteRequest?.unsubscribe(); });
     effect((onCleanup) => {
       const id = this.eventId();
@@ -191,6 +199,8 @@ export class Checkout {
       const request = this.events.getById(id).subscribe({
         next: (ev) => {
           this.event.set(ev);
+          const expiry = this.queue.passExpiresAt(ev.id);
+          this.queueSecondsLeft.set(expiry ? Math.max(0, Math.ceil((expiry - Date.now()) / 1000)) : 0);
           this.quantities.set(
             Object.fromEntries(ev.zones.map((z) => [z.id, 0])),
           );
@@ -253,7 +263,22 @@ export class Checkout {
 
   openPaymentGateway(): void {
     if (!this.quote() || this.quoting() || this.secondsLeft() === 0) return;
-    this.paymentGateway.set(true);
+    const ev = this.event();
+    if (!ev || (ev.queueEnabled && (!ev.purchasesEnabled || this.queueSecondsLeft() === 0))) return;
+    this.openingPayment.set(true);
+    this.tickets.openPayment(ev.id).subscribe({
+      next: () => { this.openingPayment.set(false); this.paymentGateway.set(true); },
+      error: err => { this.openingPayment.set(false); this.notify.error(err?.error?.message ?? 'No se pudo abrir el pago.'); },
+    });
+  }
+
+  cancelPurchase(): void {
+    const ev = this.event();
+    if (!ev?.queueEnabled || this.placing()) return;
+    this.queue.leave(ev.id).subscribe({
+      next: () => void this.router.navigate(['/eventos', ev.id]),
+      error: err => this.notify.error(err?.error?.message ?? 'No se pudo cancelar la compra.'),
+    });
   }
 
   closePaymentGateway(): void {
@@ -291,6 +316,7 @@ export class Checkout {
     const ev = this.event();
     const quote = this.quote();
     if (!ev || this.placing() || !quote || this.quoting()) return;
+    if (ev.queueEnabled && this.queueSecondsLeft() === 0) { this.paymentError.set('Tu tiempo para completar la compra ha terminado'); return; }
     if (!/^\d{13,19}$/.test(this.cardNumber.replace(/\s/g, ''))) {
       this.paymentError.set('Ingresa un número de tarjeta de 13 a 19 dígitos.');
       return;
@@ -312,7 +338,7 @@ export class Checkout {
       quantity: l.qty,
     }));
     this.placing.set(true);
-    this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey }).subscribe({
+    this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey, queuePass: this.queue.passToken(ev.id) }).subscribe({
       next: (ord) => {
         this.cardNumber = this.cardExpiry = this.cardCvv = '';
         this.order.set(ord);

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../../enviroments/enviroment';
 import { MockStore } from '../mock/mock-store';
@@ -62,7 +62,22 @@ export class AuthService {
     return req.pipe(tap((res) => this.persistSession(res)));
   }
 
-  logout(): void {
+  /** Revoca el JWT de esta sesión y limpia el navegador de inmediato. */
+  logout(): Observable<boolean> {
+    const token = this._token();
+    this.clearSession();
+    if (environment.useMockAuth || !token) return of(true);
+
+    // El interceptor ya no puede leer el token después de clearSession().
+    return this.http.post(`${this.base}/auth/logout`, {}, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).pipe(
+      map(() => true),
+      catchError(() => of(false)),
+    );
+  }
+
+  private clearSession(): void {
     if (this.expiryTimer !== null) clearTimeout(this.expiryTimer);
     this.expiryTimer = null;
     this.expiryRedirectPending = false;
@@ -75,12 +90,20 @@ export class AuthService {
         storage.removeItem(USER_KEY);
       } catch { /* La sesión en memoria ya fue eliminada. */ }
     }
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const key = sessionStorage.key(i);
+        if (key?.startsWith('tkt.queue.pass.') || key?.startsWith('tkt.queue.expiry.')) {
+          sessionStorage.removeItem(key);
+        }
+      }
+    } catch { /* Los pases dejan de ser accesibles desde la sesión en memoria. */ }
   }
 
   /** Cierra una sesión vencida o rechazada por el backend. */
   expireSession(redirectToLogin = true): void {
     if (!this._sessionExpired()) {
-      this.logout();
+      this.clearSession();
       this._sessionExpired.set(true);
     }
     if (!redirectToLogin || this.expiryRedirectPending) return;
@@ -120,7 +143,7 @@ export class AuthService {
 
   // --- Sesión ---------------------------------------------------------
   private persistSession(res: AuthResponse, remember = true): void {
-    this.logout();
+    this.clearSession();
     this._token.set(res.token);
     this._user.set(res.user);
     try {
@@ -175,6 +198,7 @@ export class AuthService {
     }
     const user: User & { password: string } = {
       id: `u-${crypto.randomUUID().slice(0, 8)}`,
+      createdAt: new Date().toISOString(),
       fullName: payload.fullName.trim(),
       email,
       role: payload.role,
@@ -197,10 +221,10 @@ export class AuthService {
   }
 
   private toAuthResponse(user: User): AuthResponse {
-    const { id, fullName, email, role, organizer, profile, marketingOptIn } = user;
+    const { id, createdAt, fullName, email, role, organizer, profile, marketingOptIn } = user;
     return {
       token: `mock.${btoa(`${id}:${role}`)}.${Date.now()}`,
-      user: { id, fullName, email, role, organizer, profile, marketingOptIn },
+      user: { id, createdAt, fullName, email, role, organizer, profile, marketingOptIn },
     };
   }
 }

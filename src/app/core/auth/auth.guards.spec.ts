@@ -60,6 +60,15 @@ describe('Guards de ruta', () => {
       await harness.navigateByUrl('/protegida');
       expect(router.url).toBe('/protegida');
     });
+
+    it('después de cerrar sesión no vuelve a mostrar una ruta protegida', async () => {
+      await loginAs('CLIENT');
+      await harness.navigateByUrl('/protegida');
+      await firstValueFrom(TestBed.inject(AuthService).logout());
+      await harness.navigateByUrl('/auth/login');
+      await harness.navigateByUrl('/protegida');
+      expect(router.url).toBe('/auth/login?redirect=%2Fprotegida');
+    });
   });
 
   describe('roleGuard', () => {

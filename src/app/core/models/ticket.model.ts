@@ -59,6 +59,8 @@ export interface CreateOrderPayload {
   eventId: string;
   items: { zoneId: string; quantity: number }[];
   expectedTotal?: number;
+  /** Pase de la cola virtual (Épica 4); el backend lo valida y lo consume. */
+  queuePass?: string;
   paymentMethod?: 'CARD' | 'WALLET';
   paymentResult?: 'APPROVED' | 'DECLINED';
   idempotencyKey?: string;
