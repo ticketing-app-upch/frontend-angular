@@ -64,4 +64,6 @@ export interface CreateOrderPayload {
   paymentMethod?: 'CARD' | 'WALLET';
   paymentResult?: 'APPROVED' | 'DECLINED';
   idempotencyKey?: string;
+  /** Segundos desde que entró al formulario hasta presionar Pagar (anti-scalping). */
+  timeElapsedSeconds: number;
 }

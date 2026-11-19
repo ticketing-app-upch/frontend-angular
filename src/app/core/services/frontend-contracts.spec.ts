@@ -73,7 +73,7 @@ describe('Transacciones locales en una instancia (no reemplazan SQL)', () => {
     event = { ...makeEvent(), id: 'test-event', organizerId: 'u-org-1' }; store.upsertEvent(event);
   });
   afterEach(() => { environment.mockLatencyMs = originalLatency; environment.enabledEpics = originalEpics; localStorage.clear(); sessionStorage.clear(); });
-  const payload = () => ({ eventId: 'test-event', items: [{ zoneId: 'z-test', quantity: 1 }], expectedTotal: 100 });
+  const payload = () => ({ eventId: 'test-event', items: [{ zoneId: 'z-test', quantity: 1 }], expectedTotal: 100, timeElapsedSeconds: 45 });
   it('rechazo no descuenta aforo ni crea orden', async () => {
     const count = store.orders.length;
     await expect(firstValueFrom(tickets.createOrder({ ...payload(), paymentResult: 'DECLINED' }))).rejects.toMatchObject({ status: 402 });
