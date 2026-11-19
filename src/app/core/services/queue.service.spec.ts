@@ -45,7 +45,7 @@ describe('Cola virtual de Demo4', () => {
     const waiting = await firstValueFrom(queue.join('ev-queue-demo4'));
     expect(waiting).toMatchObject({ status: 'WAITING', position: 1, salesEnabled: false });
     expect(waiting.passToken).toBeUndefined();
-    await expect(firstValueFrom(tickets.createOrder({ eventId: event().id, items: [{ zoneId: 'z1', quantity: 1 }] })))
+    await expect(firstValueFrom(tickets.createOrder({ eventId: event().id, items: [{ zoneId: 'z1', quantity: 1 }], timeElapsedSeconds: 45 })))
       .rejects.toMatchObject({ status: 403, message: 'Las compras de este evento aún no han sido habilitadas' });
   });
 
@@ -75,10 +75,10 @@ describe('Cola virtual de Demo4', () => {
     await firstValueFrom(queue.join(event().id)); await enable();
     const pass = (await firstValueFrom(queue.status(event().id)))!.passToken!;
     await firstValueFrom(tickets.openPayment(event().id));
-    const order = await firstValueFrom(tickets.createOrder({ eventId: event().id, items: [{ zoneId: 'z1', quantity: 1 }], queuePass: pass }));
+    const order = await firstValueFrom(tickets.createOrder({ eventId: event().id, items: [{ zoneId: 'z1', quantity: 1 }], queuePass: pass, timeElapsedSeconds: 45 }));
     expect(order.status).toBe('CONFIRMADA');
     expect((await firstValueFrom(queue.status(event().id)))?.status).toBe('COMPLETED');
-    await expect(firstValueFrom(tickets.createOrder({ eventId: event().id, items: [{ zoneId: 'z1', quantity: 1 }], queuePass: pass })))
+    await expect(firstValueFrom(tickets.createOrder({ eventId: event().id, items: [{ zoneId: 'z1', quantity: 1 }], queuePass: pass, timeElapsedSeconds: 45 })))
       .rejects.toMatchObject({ status: 403 });
   });
 });

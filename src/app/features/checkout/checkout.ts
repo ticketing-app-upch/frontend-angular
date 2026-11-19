@@ -59,6 +59,7 @@ export class Checkout {
 
   private quoteRequest?: Subscription;
   private attemptKey = crypto.randomUUID();
+  private formOpenedAt = Date.now();
   readonly secondsLeft = signal(0);
   readonly queueSecondsLeft = signal(0);
   readonly openingPayment = signal(false);
@@ -199,6 +200,7 @@ export class Checkout {
       const request = this.events.getById(id).subscribe({
         next: (ev) => {
           this.event.set(ev);
+          this.formOpenedAt = Date.now();
           const expiry = this.queue.passExpiresAt(ev.id);
           this.queueSecondsLeft.set(expiry ? Math.max(0, Math.ceil((expiry - Date.now()) / 1000)) : 0);
           this.quantities.set(
@@ -338,7 +340,16 @@ export class Checkout {
       quantity: l.qty,
     }));
     this.placing.set(true);
-    this.tickets.createOrder({ eventId: ev.id, items, expectedTotal: quote.total, paymentMethod: this.paymentMethod, paymentResult: 'APPROVED', idempotencyKey: this.attemptKey, queuePass: this.queue.passToken(ev.id) }).subscribe({
+    this.tickets.createOrder({
+      eventId: ev.id,
+      items,
+      expectedTotal: quote.total,
+      paymentMethod: this.paymentMethod,
+      paymentResult: 'APPROVED',
+      idempotencyKey: this.attemptKey,
+      queuePass: this.queue.passToken(ev.id),
+      timeElapsedSeconds: Math.max(0, (Date.now() - this.formOpenedAt) / 1000),
+    }).subscribe({
       next: (ord) => {
         this.cardNumber = this.cardExpiry = this.cardCvv = '';
         this.order.set(ord);
