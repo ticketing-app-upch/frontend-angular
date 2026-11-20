@@ -623,9 +623,11 @@
 }
 @media (prefers-reduced-motion: reduce) { .intro-progress { animation: none; width: 100%; } }
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .event-experience .detail-grid { grid-template-columns: minmax(0, 1fr); }
   .event-experience .buy-box { position: static; width: 100%; }
+  .event-experience .plan-image { max-width: 760px; margin-inline: auto; }
+  .event-experience .buy-card { max-width: 560px; margin-inline: auto; }
 }
 @media (max-width: 600px) {
   .banner, .banner.has-upload, .banner.is-match { height: clamp(205px, 54vw, 270px); }

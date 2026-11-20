@@ -757,3 +757,17 @@
   .gateway-pay { width: calc(100% - 32px); margin-inline: 16px; }
   .gateway-expiry { margin: 10px 16px 14px; }
 }
+
+@media (max-height: 500px) and (max-width: 950px) {
+  .payment-backdrop { padding: 6px; box-sizing: border-box; }
+  .payment-gateway { max-height: calc(100dvh - 12px); overflow-y: auto; }
+  .gateway-head { padding-block: 8px; }
+  .gateway-merchant { padding-block: 8px; }
+  .gateway-merchant b { font-size: 22px; }
+  .payment-gateway h2 { margin-block: 10px 7px; }
+  .payment-options button { padding-block: 8px; }
+  .card-fields { margin-block: 10px; }
+  .gateway-protection { margin-block: 8px; }
+  .gateway-pay { height: 42px; }
+  .gateway-expiry { margin-block: 6px; }
+}
