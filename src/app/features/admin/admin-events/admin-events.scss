@@ -11,3 +11,36 @@
   font-size: 0.82rem;
   color: var(--mat-sys-on-surface-variant);
 }
+
+.event-table { max-width: 100%; overflow-x: auto; }
+.event-table .adm-table { min-width: 760px; }
+.review-detail { max-width: 960px; margin: 1.5rem auto 0; padding: clamp(1rem, 3vw, 2rem); }
+.review-top, .review-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.review-top span { font-size: .7rem; font-weight: 800; letter-spacing: .12em; color: var(--mat-sys-primary); }
+.review-heading { align-items: start; margin: 1rem 0; }
+.review-heading h2 { margin: 0; }
+.review-heading p { max-width: 70ch; line-height: 1.5; }
+.confirm { flex-wrap: wrap; flex: none; }
+.review-info { padding: 1rem; margin: 1rem 0; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface); }
+.review-info h3 { margin: 0 0 1rem; font-size: 1rem; }
+.review-info dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 0; }
+.review-info dt { font-size: .75rem; color: var(--mat-sys-on-surface-variant); }
+.review-info dd { margin: .2rem 0 0; font-weight: 600; }
+.review-banner { margin: .75rem 0; }
+.review-banner img { display: block; width: 100%; max-height: 340px; object-fit: cover; border-radius: 12px; }
+.review-banner figcaption { padding: .3rem 0; font-size: .75rem; color: var(--mat-sys-on-surface-variant); }
+@media (max-width: 650px) {
+  .review-heading { flex-direction: column; }
+  .review-info dl { grid-template-columns: 1fr; }
+  .review-top { align-items: start; flex-direction: column; }
+  .event-table { overflow: visible; background: transparent; border: 0; }
+  .event-table .adm-table { min-width: 0; }
+  .event-table thead { display: none; }
+  .event-table tbody, .event-table tr { display: grid; gap: .5rem; }
+  .event-table tbody { gap: 1rem; }
+  .event-table tr { padding: 1rem; border: 1px solid var(--mat-sys-outline-variant); border-radius: 12px; background: var(--mat-sys-surface); }
+  .event-table td { display: grid; grid-template-columns: 6.5rem minmax(0, 1fr); gap: .5rem; padding: 0; border: 0; overflow-wrap: anywhere; }
+  .event-table td::before { content: attr(data-label); font-size: .75rem; color: var(--mat-sys-on-surface-variant); }
+  .event-table td:last-child { display: block; }
+  .event-table td:last-child::before { content: none; }
+}
