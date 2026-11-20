@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { HttpClient } from '@angular/common/http';
 import { DatePipe } from '@angular/common';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, startWith, switchMap } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -42,12 +42,14 @@ export class ValidatePage {
         : this.http.get<PublicValidation>(`${environment.apiBackendUrl}/v1/tickets/${encodeURIComponent(code)}/validacion`).pipe(
           map(res => this.fromApi(res)),
           catchError(() => of(null)),
+          startWith(undefined),
         )),
     ),
-    { initialValue: null },
+    { initialValue: undefined },
   );
+  readonly loading = computed(() => !environment.useMock && this.remote() === undefined);
   readonly entry = computed<ValidationEntry | null>(() => {
-    if (!environment.useMock) return this.remote();
+    if (!environment.useMock) return this.remote() ?? null;
     for (const order of this.store.orders) {
       if (order.status !== 'CONFIRMADA') continue;
       const ticket = ticketsForOrder(order).find(item => item.code === this.code());

@@ -303,3 +303,12 @@ tkt-qr {
 }
 .ticket-filters { margin: 24px 0; label { display: flex; gap: 10px; align-items: center; font-size: 13px; } input, select { padding: 10px; border: 1px solid var(--mat-sys-outline-variant); border-radius: 8px; background: var(--mat-sys-surface); color: inherit; max-width: 220px; } }
 .ticket-actions { display: flex; flex-wrap: wrap; gap: .35rem .7rem; margin-top: 1rem; }
+
+@media (min-width: 700px) {
+  .tickets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; align-items: start; }
+  .ticket { --tkt-stub-w: 150px; min-width: 0; }
+}
+@media (min-width: 700px) and (max-width: 1020px) {
+  .ticket { grid-template-columns: 1fr; }
+  .stub { border-radius: var(--tkt-card-radius) var(--tkt-card-radius) 0 0; }
+}

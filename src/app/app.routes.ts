@@ -31,7 +31,7 @@ export const routes: Routes = [
           { path: 'eventos', loadComponent: () => import('./features/organizer/event-manage/event-manage').then(m => m.EventManage), title: 'Mis eventos · AlpaTeck' },
           { path: 'eventos/nuevo', loadComponent: () => import('./features/organizer/event-form/event-form').then(m => m.EventForm), title: 'Publicar evento · AlpaTeck' },
           { path: 'eventos/:id/editar', loadComponent: () => import('./features/organizer/event-form/event-form').then(m => m.EventForm), title: 'Corregir evento · AlpaTeck' },
-          { path: 'dashboard', canActivate: [epicGuard(5)], loadComponent: () => import('./features/organizer/dashboard/dashboard').then(m => m.OrganizerDashboard), title: 'Dashboard · AlpaTeck' },
+          { path: 'dashboard', redirectTo: 'mercado' },
           { path: 'mercado', canActivate: [epicGuard(5)], loadComponent: () => import('./features/organizer/market/market').then(m => m.Market), title: 'Mercado · AlpaTeck' },
           { path: 'eventos/:id/ventas', canActivate: [epicGuard(5)], loadComponent: () => import('./features/organizer/event-sales/event-sales').then(m => m.EventSales), title: 'Ventas por evento · AlpaTeck' },
         ],

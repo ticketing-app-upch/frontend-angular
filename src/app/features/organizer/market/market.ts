@@ -38,7 +38,7 @@ export class Market {
   readonly line = computed(() => {
     const months = this.report()?.monthly ?? [];
     const max = Math.max(1, ...months.map(m => m.tickets));
-    return months.map((m, i) => `${i * 60 + 10},${110 - m.tickets / max * 95}`).join(' ');
+    return months.map((m, i) => `${months.length === 1 ? 160 : 10 + i * 300 / (months.length - 1)},${110 - m.tickets / max * 95}`).join(' ');
   });
   readonly conversion = computed(() => {
     const q = this.report()?.queue;

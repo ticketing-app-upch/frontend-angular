@@ -24,3 +24,20 @@
 @media (max-width: 380px) {
   .charts { grid-template-columns: minmax(0, 1fr); }
 }
+
+.filters { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.filters label, .filters input, .filters select { min-width: 0; width: 100%; box-sizing: border-box; }
+.charts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.monthly-panel { grid-column: 1 / -1; }
+.monthly-panel svg { display: block; min-width: 0; height: clamp(150px, 25vw, 260px); }
+.month-labels { min-width: 0; gap: .3rem; }
+.month-labels span { flex: 1; min-width: 0; text-align: center; overflow-wrap: anywhere; }
+.heat-panel table { min-width: 340px; }
+.heat-legend { display: flex; align-items: center; justify-content: flex-end; gap: .35rem; margin-top: 1rem; font-size: .72rem; color: var(--mat-sys-on-surface-variant); }
+.heat-legend i { width: 1rem; height: 1rem; border-radius: .2rem; }
+.heat-legend i:nth-of-type(1) { background: #e5e7eb; }
+.heat-legend i:nth-of-type(2) { background: #ddd6fe; }
+.heat-legend i:nth-of-type(3) { background: #a78bfa; }
+.heat-legend i:nth-of-type(4) { background: #5b21b6; }
+@media (max-width: 900px) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .charts { grid-template-columns: minmax(0, 1fr); } .filters label:last-child { grid-column: 1 / -1; } }

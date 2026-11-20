@@ -622,3 +622,20 @@
   .story-content h2 { font-size: clamp(2rem, 8vw, 3rem); }
 }
 @media (prefers-reduced-motion: reduce) { .intro-progress { animation: none; width: 100%; } }
+
+@media (max-width: 900px) {
+  .event-experience .detail-grid { grid-template-columns: minmax(0, 1fr); }
+  .event-experience .buy-box { position: static; width: 100%; }
+}
+@media (max-width: 600px) {
+  .banner, .banner.has-upload, .banner.is-match { height: clamp(205px, 54vw, 270px); }
+  .banner .match-crests { padding: 1rem 1rem 5rem; }
+  .banner .match-crests img { max-height: 75px; }
+  .banner-text { padding: 1rem 1.1rem 1.2rem; }
+  .banner-text h1 { font-size: clamp(1.35rem, 7vw, 2rem); }
+  .banner-text h1::after { margin: .5rem 0; }
+  .when, .where { font-size: .8rem; }
+  .story-banner { min-height: 340px; }
+  .story-content, .story-banner.text-left .story-content { padding: 5rem 1.1rem 1.5rem; }
+  .story-content h2 { font-size: clamp(1.5rem, 7vw, 2.4rem); }
+}

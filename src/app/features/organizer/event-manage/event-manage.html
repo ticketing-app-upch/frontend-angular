@@ -24,7 +24,7 @@
     <div class="list">
       @for (ev of items(); track ev.id) {
         <article class="row">
-          <img [src]="ev.bannerUrl || ev.imageUrl" [alt]="ev.name" />
+          <img [src]="ev.bannerUrl || ev.imageUrl" [alt]="ev.name" (error)="imageError($event, ev)" />
           <div class="main">
             <div class="row-top">
               <h2>{{ ev.name }}</h2>
