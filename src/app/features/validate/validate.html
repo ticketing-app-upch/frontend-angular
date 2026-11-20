@@ -1,9 +1,9 @@
 <div class="gate" [attr.data-tone]="entry() ? 'ok' : 'warn'">
-  <div class="card">
+  <div class="card" [attr.aria-busy]="loading()">
     <div class="verdict">
-      <mat-icon>{{ entry() ? 'verified' : 'search_off' }}</mat-icon>
-      <h1>{{ entry() ? 'Confirmación de compra' : 'Ticket no encontrado' }}</h1>
-      <p>{{ entry() ? 'Datos de esta entrada registrada en la demo.' : 'No hay una entrada confirmada con este código.' }}</p>
+      <mat-icon>{{ loading() ? 'hourglass_top' : entry() ? 'verified' : 'search_off' }}</mat-icon>
+      <h1>{{ loading() ? 'Buscando entrada' : entry() ? 'Confirmación de compra' : 'Ticket no encontrado' }}</h1>
+      <p role="status">{{ loading() ? 'Cargando los datos del ticket…' : entry() ? 'Datos de esta entrada registrada en la demo.' : 'No hay una entrada confirmada con este código.' }}</p>
     </div>
     @if (entry(); as entry) {
       <dl class="claims">

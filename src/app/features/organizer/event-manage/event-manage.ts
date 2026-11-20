@@ -35,6 +35,11 @@ export class EventManage {
 
   readonly loading = signal(true);
   readonly items = signal<EventItem[]>([]);
+  imageError(event: Event, item: EventItem): void {
+    const image = event.target as HTMLImageElement;
+    if (item.imageUrl && !image.src.endsWith(item.imageUrl)) image.src = item.imageUrl;
+    else if (!image.src.endsWith('/recintos/demo3/recinto-prueba.svg')) image.src = '/recintos/demo3/recinto-prueba.svg';
+  }
   status(ev: EventItem): string {
     if (ev.status === 'PENDIENTE' && Date.parse(ev.startsAt) <= Date.now()) return 'Vencido';
     return ({ PENDIENTE: 'Pendiente de aprobación', PUBLICADO: 'Publicado', RECHAZADO: 'Rechazado', AGOTADO: 'Agotado', FINALIZADO: 'Finalizado', BORRADOR: 'Borrador' })[ev.status];

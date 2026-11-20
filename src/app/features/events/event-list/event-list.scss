@@ -91,3 +91,13 @@ h1{font-size:clamp(40px,5.3vw,70px);line-height:1.02;letter-spacing:-.055em;marg
 .share-card:focus-visible { outline: 3px solid var(--mat-sys-primary); outline-offset: 2px; }
 @media (hover: none) { .feature-next { opacity: 1; pointer-events: auto; right: 10px; } }
 @media (max-width: 600px) { .feature-next { right: 10px; } }
+
+/* Los filtros conservan su ancho dentro de teléfonos estrechos. */
+.search-panel > * { min-width: 0; }
+.select-field select { min-width: 0; width: 100%; }
+@media (max-width: 600px) {
+  .search-panel { display: grid; grid-template-columns: minmax(0, 1fr); }
+  .searchbox { width: 100%; box-sizing: border-box; }
+  .select-field { width: 100%; max-width: none; box-sizing: border-box; padding: 4px 8px; }
+  .select-field mat-icon { flex: none; }
+}

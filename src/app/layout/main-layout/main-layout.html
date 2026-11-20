@@ -20,7 +20,6 @@
           <a routerLink="/organizador/eventos/nuevo" routerLinkActive="active">Crear evento</a>
         }
         @if (epicEnabled(5)) {
-          <a routerLink="/organizador/dashboard" routerLinkActive="active">Dashboard</a>
           <a routerLink="/organizador/mercado" routerLinkActive="active">Mercado</a>
         }
       }
@@ -75,6 +74,12 @@
           <a mat-menu-item routerLink="/organizador/eventos">
             <mat-icon>event</mat-icon> Mis eventos
           </a>
+          <a mat-menu-item routerLink="/organizador/eventos/nuevo"><mat-icon>add</mat-icon> Crear evento</a>
+          <a mat-menu-item routerLink="/organizador/mercado"><mat-icon>insights</mat-icon> Mercado</a>
+        }
+        @if (isAdmin()) {
+          <a mat-menu-item routerLink="/admin/usuarios"><mat-icon>group</mat-icon> Gestión de usuarios</a>
+          <a mat-menu-item routerLink="/admin/eventos"><mat-icon>event</mat-icon> Gestión de eventos</a>
         }
         <mat-divider />
         <button mat-menu-item (click)="logout()"><mat-icon>logout</mat-icon> Cerrar sesión</button>
@@ -90,7 +95,6 @@
   <router-outlet />
 </main>
 
-@if (!isAdmin()) {
 <nav class="mobile-nav" aria-label="Navegación móvil">
   @if (isClient()) {
     <a routerLink="/attendee/catalog" routerLinkActive="active"><mat-icon>explore</mat-icon>Eventos</a>
@@ -104,13 +108,17 @@
     <a routerLink="/organizador/eventos" routerLinkActive="active"
       ><mat-icon>event</mat-icon>Mis eventos</a
     >
+    <a routerLink="/organizador/eventos/nuevo" routerLinkActive="active"><mat-icon>add_circle_outline</mat-icon>Crear evento</a>
+    <a routerLink="/organizador/mercado" routerLinkActive="active"><mat-icon>insights</mat-icon>Mercado</a>
+  } @else if (isAdmin()) {
+    <a routerLink="/admin/usuarios" routerLinkActive="active"><mat-icon>group</mat-icon>Usuarios</a>
+    <a routerLink="/admin/eventos" routerLinkActive="active"><mat-icon>event</mat-icon>Eventos</a>
   } @else if (isClient()) {
     <a routerLink="/attendee/tickets" routerLinkActive="active"
       ><mat-icon>confirmation_number</mat-icon>Mis entradas</a
     >
   }
 </nav>
-}
 <footer class="foot">
   <div class="foot-inner">
     <span>© {{ year }} AlpaTeck · Tu próxima experiencia</span>
