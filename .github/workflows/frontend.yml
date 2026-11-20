@@ -22,3 +22,15 @@ jobs:
       - run: npm ci
       - run: npm test -- --watch=false
       - run: npm run build
+        env:
+          API_BACKEND_URL: https://backend.example.test/api
+          API_PRICING_URL: https://backend.example.test/api
+          USE_MOCK: 'false'
+          USE_MOCK_AUTH: 'false'
+      - name: El bundle debe quedar en modo backend (no mock)
+        run: |
+          grep -rq 'backend.example.test/api' dist/tkt/browser/*.js
+          if grep -rq 'useMock:!0' dist/tkt/browser/*.js; then
+            echo '::error::useMock sigue en true dentro del bundle: set-env.mjs no aplicó USE_MOCK=false.'
+            exit 1
+          fi
