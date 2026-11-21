@@ -14,7 +14,7 @@
         (mouseleave)="featuredPaused.set(false)"
       >
         <div class="feature">
-          <img [src]="event.imageUrl" [alt]="event.name" fetchpriority="high" (error)="recoverEventImage($event, event)" />
+          <img [src]="event.bannerUrl || event.imageUrl" [alt]="event.name" fetchpriority="high" (error)="recoverEventImage($event, event)" />
           @if (matchArt(event.name, event.category); as m) {
             <div class="match-crests">
               <img [src]="m.crestA" [alt]="m.teamA" (error)="m.crestA = m.crestAAlt" />
@@ -65,7 +65,7 @@
     <div class="event-grid">
       @for(e of shown(); track e.id) {
         <article class="event-card" [class.sold-out]="!capacity(e).available">
-          <div class="poster"><img [src]="e.imageUrl" [alt]="e.name" loading="lazy" (error)="recoverEventImage($event, e)" />
+          <div class="poster"><img [src]="e.bannerUrl || e.imageUrl" [alt]="e.name" loading="lazy" (error)="recoverEventImage($event, e)" />
             @if (matchArt(e.name, e.category); as m) {
               <div class="match-crests small">
                 <img [src]="m.crestA" [alt]="m.teamA" (error)="m.crestA = m.crestAAlt" />
