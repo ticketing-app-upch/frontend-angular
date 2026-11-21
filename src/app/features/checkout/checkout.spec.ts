@@ -256,4 +256,24 @@ describe('Checkout', () => {
     cmp.openPaymentGateway();
     expect(cmp.paymentGateway()).toBe(false);
   });
+
+  it('en la pasarela con cola muestra un solo tiempo, el menor de pase y cotización', async () => {
+    const ev = seedEvent(store, { queueEnabled: true, purchasesEnabled: true });
+    const fixture = await open(ev.id);
+    const cmp = fixture.componentInstance;
+    cmp.quote.set({ eventId: ev.id, currency: 'PEN', items: [], subtotal: 80, fee: 0, total: 80 });
+    cmp.secondsLeft.set(100);
+    cmp.queueSecondsLeft.set(65);
+    cmp.paymentGateway.set(true);
+    fixture.detectChanges();
+
+    expect(cmp.paymentSecondsLeft()).toBe(65);
+    expect(fixture.nativeElement.querySelector('.gateway-queue-timer')?.textContent).toContain('65 s');
+    expect(fixture.nativeElement.querySelector('.gateway-expiry')).toBeNull();
+
+    cmp.secondsLeft.set(30);
+    fixture.detectChanges();
+    expect(cmp.paymentSecondsLeft()).toBe(30);
+    expect(fixture.nativeElement.querySelector('.gateway-queue-timer')?.textContent).toContain('30 s');
+  });
 });
