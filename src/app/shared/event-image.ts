@@ -1,4 +1,4 @@
-import { EventCategory } from '../core/models/event.model';
+import { EventCategory, EventItem } from '../core/models/event.model';
 
 /**
  * Imagen de portada para un evento, determinista a partir del nombre/lugar.
@@ -32,6 +32,20 @@ export function eventImage(input: {
   }
 
   return unsplash(pick(BY_CATEGORY[input.category] ?? BY_CATEGORY.CONCIERTO, input.name));
+}
+
+/** Recupera una portada remota rota sin dejar el icono de imagen dañada. */
+export function recoverEventImage(error: Event, item: Pick<EventItem, 'name' | 'category' | 'venue' | 'imageUrl'>): void {
+  const img = error.target;
+  if (!(img instanceof HTMLImageElement)) return;
+
+  const candidates = [item.imageUrl, eventImage(item), '/events/parque-exposicion.jpg'];
+  const absolute = (url: string) => new URL(url, document.baseURI).href;
+  const current = img.currentSrc || img.src;
+  const nextIndex = candidates.findIndex(url => absolute(url) === current) + 1;
+  const next = candidates.slice(nextIndex).find(url => absolute(url) !== current);
+  if (next) img.src = next;
+  else img.style.visibility = 'hidden';
 }
 
 /** Otra fotografía temática para la sección narrativa; nunca repite la portada. */
