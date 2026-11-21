@@ -49,10 +49,12 @@
     }
     <div class="banner-shade"></div>
     <div class="banner-text">
-      <a routerLink="/eventos" class="back">
-        <mat-icon>arrow_back</mat-icon> Eventos
-      </a>
-      <span class="cat">{{ ev.category | titlecase }}</span>
+      <div class="banner-tools">
+        <a routerLink="/eventos" class="back">
+          <mat-icon>arrow_back</mat-icon> Eventos
+        </a>
+        <span class="cat">{{ ev.category | titlecase }}</span>
+      </div>
       <h1>{{ ev.name }}</h1>
       <p class="when">
         <mat-icon inline>event</mat-icon>

@@ -14,7 +14,7 @@
 
 .event-table { max-width: 100%; overflow-x: auto; }
 .event-table .adm-table { min-width: 760px; }
-.review-detail { max-width: 960px; margin: 1.5rem auto 0; padding: clamp(1rem, 3vw, 2rem); }
+.review-detail { max-width: 960px; margin: 0 auto; padding: clamp(1rem, 3vw, 2rem); }
 .review-top, .review-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .review-top span { font-size: .7rem; font-weight: 800; letter-spacing: .12em; color: var(--mat-sys-primary); }
 .review-heading { align-items: start; margin: 1rem 0; }
@@ -29,6 +29,11 @@
 .review-banner { margin: .75rem 0; }
 .review-banner img { display: block; width: 100%; max-height: 340px; object-fit: cover; border-radius: 12px; }
 .review-banner figcaption { padding: .3rem 0; font-size: .75rem; color: var(--mat-sys-on-surface-variant); }
+.review-actions { display: grid; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--mat-sys-outline-variant); }
+.review-actions .confirm { gap: .5rem; }
+.review-actions label { display: grid; gap: .5rem; }
+.review-actions textarea { display: block; width: 100%; box-sizing: border-box; }
+.decision-confirm p { margin: 0 0 .5rem; }
 @media (max-width: 650px) {
   .review-heading { flex-direction: column; }
   .review-info dl { grid-template-columns: 1fr; }
