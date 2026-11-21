@@ -61,6 +61,9 @@ export class Checkout {
   private attemptKey = crypto.randomUUID();
   readonly secondsLeft = signal(0);
   readonly queueSecondsLeft = signal(0);
+  readonly paymentSecondsLeft = computed(() => this.event()?.queueEnabled
+    ? Math.min(this.secondsLeft(), this.queueSecondsLeft())
+    : this.secondsLeft());
   readonly openingPayment = signal(false);
   private expiresAt = 0;
   paymentMethod: 'CARD' | 'WALLET' = 'CARD';

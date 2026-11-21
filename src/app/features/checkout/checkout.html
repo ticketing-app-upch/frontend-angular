@@ -396,7 +396,7 @@
               <b>{{ q.total | currency: 'PEN' : 'symbol-narrow' }}</b>
             </div>
             <h2 id="payment-title">Pago simulado con tarjeta</h2>
-            @if (ev.queueEnabled) { <p role="status">Tiempo para completar la compra: {{ queueSecondsLeft() }} s</p> }
+            @if (ev.queueEnabled) { <p class="gateway-queue-timer" role="status">Tiempo restante para pagar: {{ paymentSecondsLeft() }} s</p> }
             <div class="payment-options" role="radiogroup" aria-label="Medios de pago">
               <button
                 type="button"
@@ -433,8 +433,12 @@
                 Pagar {{ q.total | currency: 'PEN' : 'symbol-narrow' }}
               }
             </button>
-            <p class="gateway-expiry">La cotización vence en {{ secondsLeft() }} s.</p>
-            @if (ev.queueEnabled) { @if (queueSecondsLeft() === 0) { <p role="alert">Tu tiempo para completar la compra ha terminado</p> } <button mat-stroked-button type="button" [disabled]="placing()" (click)="cancelPurchase()">Cancelar compra</button> }
+            @if (!ev.queueEnabled) { <p class="gateway-expiry">La cotización vence en {{ secondsLeft() }} s.</p> }
+            @if (ev.queueEnabled) {
+              @if (queueSecondsLeft() === 0) { <p class="gateway-queue-alert" role="alert">Tu tiempo para completar la compra ha terminado.</p> }
+              @else if (secondsLeft() === 0) { <p class="gateway-queue-alert" role="alert">La cotización venció. Vuelve a los sectores para actualizarla.</p> }
+              <button mat-stroked-button class="gateway-cancel" type="button" [disabled]="placing()" (click)="cancelPurchase()">Cancelar compra</button>
+            }
           </section>
         </div>
       }
