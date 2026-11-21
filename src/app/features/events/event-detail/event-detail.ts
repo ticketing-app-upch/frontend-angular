@@ -29,7 +29,7 @@ import { DiscoveryService } from '../../../core/services/discovery.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { zonePrice } from '../../../core/models/ticketing-rules';
 import { copyEventLink } from '../../../shared/event-share';
-import { matchArt } from '../../../shared/event-image';
+import { matchArt, recoverEventImage } from '../../../shared/event-image';
 import { venueMap } from '../../../shared/event-image';
 import { zoneColor } from '../../../shared/zone-map/zone-map';
 import { BannerPalette, DEFAULT_BANNER_PALETTE, paletteFromImage } from '../../../shared/banner-palette';
@@ -78,6 +78,7 @@ export class EventDetail {
   readonly palette = signal<BannerPalette>(DEFAULT_BANNER_PALETTE);
   readonly venueMap = venueMap;
   readonly zoneColor = zoneColor;
+  readonly recoverEventImage = recoverEventImage;
 
   onBannerLoad(event: Event): void {
     this.palette.set(paletteFromImage(event.target as HTMLImageElement));
