@@ -28,9 +28,9 @@
   <div class="banner" [class.is-match]="match() !== null && !ev.bannerUrl"
     [class.has-upload]="!!ev.bannerUrl" [class.text-right]="!!ev.bannerUrl && palette().textSide === 'right'">
     @if (ev.bannerUrl) {
-      <img [src]="ev.bannerUrl" [alt]="'Banner de ' + ev.name" (load)="onBannerLoad($event)" />
+      <img [src]="ev.bannerUrl" [alt]="'Banner de ' + ev.name" (load)="onBannerLoad($event)" (error)="recoverEventImage($event, ev)" />
     } @else if (match(); as m) {
-      <img class="match-bg" [src]="ev.imageUrl" alt="" (load)="onBannerLoad($event)" />
+      <img class="match-bg" [src]="ev.imageUrl" alt="" (load)="onBannerLoad($event)" (error)="recoverEventImage($event, ev)" />
       <div class="match-crests">
         <img
           [src]="m.crestA"
@@ -45,14 +45,16 @@
         />
       </div>
     } @else {
-      <img [src]="ev.imageUrl" [alt]="ev.name" (load)="onBannerLoad($event)" />
+      <img [src]="ev.imageUrl" [alt]="ev.name" (load)="onBannerLoad($event)" (error)="recoverEventImage($event, ev)" />
     }
     <div class="banner-shade"></div>
     <div class="banner-text">
-      <a routerLink="/eventos" class="back">
-        <mat-icon>arrow_back</mat-icon> Eventos
-      </a>
-      <span class="cat">{{ ev.category | titlecase }}</span>
+      <div class="banner-tools">
+        <a routerLink="/eventos" class="back">
+          <mat-icon>arrow_back</mat-icon> Eventos
+        </a>
+        <span class="cat">{{ ev.category | titlecase }}</span>
+      </div>
       <h1>{{ ev.name }}</h1>
       <p class="when">
         <mat-icon inline>event</mat-icon>
@@ -198,7 +200,7 @@
     </aside>
   </div>
   <section class="story-banner" [class.text-left]="!!ev.bannerUrl && palette().textSide === 'left'" aria-labelledby="story-title">
-    <img [src]="ev.secondaryBannerUrl || ev.imageUrl" alt="" aria-hidden="true" class="story-art" />
+    <img [src]="ev.secondaryBannerUrl || ev.imageUrl" alt="" aria-hidden="true" class="story-art" (error)="recoverEventImage($event, ev)" />
     <div class="story-content">
       <span class="story-kicker">LA EXPERIENCIA</span>
       <h2 id="story-title">{{ ev.name }}</h2>

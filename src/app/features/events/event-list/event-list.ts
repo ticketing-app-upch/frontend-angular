@@ -8,7 +8,7 @@ import { DiscoveryService } from '../../../core/services/discovery.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { EventItem, computeCapacity } from '../../../core/models/event.model';
 import { zonePrice } from '../../../core/models/ticketing-rules';
-import { matchArt } from '../../../shared/event-image';
+import { matchArt, recoverEventImage } from '../../../shared/event-image';
 import { copyEventLink } from '../../../shared/event-share';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -60,6 +60,7 @@ export class EventList {
   readonly capacity = computeCapacity;
   readonly price = lowestPrice;
   readonly matchArt = matchArt;
+  readonly recoverEventImage = recoverEventImage;
   readonly venues = computed(() => [...new Set(this.allEvents().map(e => e.venue))].sort());
   readonly featuredEvents = computed(() => this.allEvents().filter(e => this.capacity(e).available > 0).slice(0, 5));
   readonly featuredIndex = signal(0);
